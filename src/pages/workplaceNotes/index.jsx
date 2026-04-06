@@ -1,0 +1,533 @@
+import React, { useState, useMemo, useEffect } from "react";
+import { Helmet } from "react-helmet";
+import toast from "react-hot-toast";
+import Header from "../../components/ui/Header";
+import Sidebar from "../../components/ui/Sidebar";
+import Icon from "../../components/AppIcon";
+import Button from "../../components/ui/Button";
+import DealsTable from "./components/DealsTable";
+import DealsFilters from "./components/DealsFilters";
+import DealDrawer from "./components/DealDrawer";
+import Papa from "papaparse";
+import TablePagination from "./components/TablePagination";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  createLead,
+  deleteActivity,
+  deleteLead,
+  updateLead,
+} from "services/leads.service";
+import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
+import StatusChart from "./components/charts/StatusChart";
+import IndustryChart from "./components/charts/IndustryChart";
+import AssignedUserChart from "./components/charts/AssignedUserChart";
+import MultiLineChart from "pages/dashboard/components/MultiLineChart";
+import { useMetaData } from "hooks/useMetaData";
+import { useLeadDetails } from "hooks/useLeadDetails";
+import { useWorkPlace } from "hooks/useWorkplace";
+
+const WorkPlace = () => {
+  const queryClient = useQueryClient();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedDeal, setSelectedDeal] = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedDeals, setSelectedDeals] = useState([]);
+  const [limit, setLimit] = useState(20);
+  const [page, setPage] = useState(1);
+  const [mode, setMode] = useState("view");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const { data: WorkPlace, isLoading } = useWorkPlace({ limit, page });
+  const { data: metaData } = useMetaData();
+  const { data: workDetails } = useLeadDetails(selectedDeal?.id, mode);
+
+  const [sortConfig, setSortConfig] = useState({
+    key: "createdAt",
+    direction: "desc",
+  });
+  const [filters, setFilters] = useState({
+    search: "",
+    status: "",
+    projectName: "",
+    source: "",
+    assignUser: "",
+    closeDateFrom: "",
+    closeDateTo: "",
+  });
+  const createLeadMutation = useMutation({
+    mutationFn: createLead,
+    onSuccess: () => {
+      toast.success("Lead created");
+      queryClient.invalidateQueries(["work"]);
+    },
+  });
+  const deleteLeadMutation = useMutation({
+    mutationFn: deleteLead,
+    onSuccess: () => {
+      toast.success("Deleted");
+      queryClient.invalidateQueries(["work"]);
+    },
+  });
+  // fetch work
+  const work = WorkPlace?.list || [];
+  const source = metaData?.sources || [];
+  const status = metaData?.status || [];
+  const industry = metaData?.industries || [];
+  const total = work?.total || 0;
+  const exportworkToCSV = (rows, fileName = "work_export") => {
+    if (!rows || rows.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+
+    const exportData = rows.map((lead) => ({
+      Name: lead?.name || "",
+      Email: lead?.emailAddress || "",
+      Phone: lead?.phoneNumber || "",
+      Status: lead?.status || "",
+      Source: lead?.source || "",
+      "Project Name": lead?.cProjectName || "",
+      "Assigned User": lead?.assignedUserName || "",
+      "Next Contact": lead?.cNextContact || "",
+      "Created At": lead?.createdAt || "",
+    }));
+
+    const csv = Papa.unparse(exportData);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${fileName}_${new Date().toISOString().split("T")[0]}.csv`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Filter and sort deals
+  const filteredAndSortedDeals = useMemo(() => {
+    let filtered = work?.filter((deal) => {
+      const search = filters?.search?.toLowerCase();
+
+      const matchesSearch =
+        !search ||
+        deal?.name?.toLowerCase()?.includes(search) ||
+        deal?.emailAddress?.toLowerCase()?.includes(search) ||
+        deal?.phoneNumber?.includes(search) ||
+        deal?.accountName?.toLowerCase()?.includes(search);
+
+      const matchesStatus =
+        !filters?.status || deal?.status === filters?.status;
+
+      const matchesSource =
+        !filters?.source || deal?.source === filters?.source;
+
+      const matchesprojectName =
+        !filters?.projectName ||
+        deal?.cProjectName
+          ?.toLowerCase()
+          .includes(filters.projectName.toLowerCase());
+
+      const matchesAssignUser =
+        !filters?.assignUser || deal?.assignedUserId === filters?.assignUser;
+
+      const matchesCreatedFrom =
+        !filters?.closeDateFrom ||
+        new Date(deal?.createdAt?.replace(" ", "T")) >=
+          new Date(filters?.closeDateFrom);
+
+      const matchesCreatedTo =
+        !filters?.closeDateTo ||
+        new Date(deal?.createdAt?.replace(" ", "T")) <=
+          new Date(filters?.closeDateTo);
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesSource &&
+        matchesprojectName &&
+        matchesAssignUser &&
+        matchesCreatedFrom &&
+        matchesCreatedTo
+      );
+    });
+
+    // ✅ SAFE SORTING
+    if (sortConfig?.key) {
+      filtered.sort((a, b) => {
+        let aValue = a?.[sortConfig.key];
+        let bValue = b?.[sortConfig.key];
+
+        if (sortConfig.key === "opportunityAmount") {
+          aValue = Number(aValue ?? 0);
+          bValue = Number(bValue ?? 0);
+        } else if (sortConfig.key === "createdAt") {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        } else if (typeof aValue === "string") {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [work, filters, sortConfig]);
+
+  const totalPages = Math.ceil(total / limit);
+
+  const handleMenuToggle = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const handleSidebarClose = () => {
+    setIsSidebarOpen(false);
+  };
+
+  const handleAddwork = () => {
+    setSelectedDeal(null);
+    setMode("add");
+    setIsDrawerOpen(true);
+  };
+
+  const handleDealClick = (deal) => {
+    setSelectedDeal(deal);
+    setMode("view");
+    setIsDrawerOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setIsDrawerOpen(false);
+    setSelectedDeal(null);
+  };
+  const handleCreateLead = async (payload) => {
+    try {
+      createLeadMutation.mutate(payload);
+    } catch (err) {
+      console.error("Lead creationd failed", err);
+    }
+  };
+
+  const handleUpdateLead = async (id, payload) => {
+    await updateLead(id, payload);
+  };
+
+  const handleDeleteLead = async (id) => {
+    try {
+      toast.loading("Deleting lead...", { id: "delete-lead" });
+      deleteLeadMutation.mutate(id);
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
+  };
+  const handleDeleteActivity = async (id) => {
+    try {
+      await deleteActivity(id); // API call
+      toast.success("Activity deleted successfully");
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
+  };
+
+  const handleSelectDeal = (dealId, isSelected) => {
+    if (isSelected) {
+      setSelectedDeals([...selectedDeals, dealId]);
+    } else {
+      setSelectedDeals(selectedDeals?.filter((id) => id !== dealId));
+    }
+  };
+
+  const handleSelectAll = (isSelected) => {
+    const currentPageDeals = deals.map((deal) => deal.id);
+
+    if (isSelected) {
+      setSelectedDeals([...new Set([...selectedDeals, ...currentPageDeals])]);
+    } else {
+      setSelectedDeals(
+        selectedDeals.filter((id) => !currentPageDeals.includes(id)),
+      );
+    }
+  };
+
+  const handleSort = (key) => {
+    setSortConfig((prevConfig) => ({
+      key,
+      direction:
+        prevConfig?.key === key && prevConfig?.direction === "asc"
+          ? "desc"
+          : "asc",
+    }));
+  };
+
+  const handleFiltersChange = (newFilters) => {
+    setFilters(newFilters);
+    setPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: "",
+      status: "",
+      projectName: "",
+      source: "",
+      assignUser: "",
+      closeDateFrom: "",
+      closeDateTo: "",
+    });
+    setPage(1);
+  };
+  const handleBulkAction = (action) => {
+    if (action === "mass-update") {
+      if (!selectedDeals.length) {
+        toast.error("Select at least one lead");
+        n;
+      }
+      setSelectedDeal(null);
+      setMode("mass-update");
+      setIsDrawerOpen(true);
+
+      return;
+    }
+
+    if (action === "export") {
+      if (!selectedDeals.length) {
+        toast.error("Select at least one lead");
+        return;
+      }
+
+      const selectedRows = filteredAndSortedDeals.filter((deal) =>
+        selectedDeals.includes(deal.id),
+      );
+
+      exportworkToCSV(selectedRows, "selected_work");
+      return;
+    }
+
+    if (action === "delete") {
+      if (!selectedDeals.length) {
+        toast.error("Select at least one lead");
+        return;
+      }
+
+      setShowDeleteConfirm(true);
+      return;
+    }
+
+    if (action === "stage" || action === "owner") {
+      // later mass update drawer
+    }
+  };
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids) => {
+      return Promise.all(ids.map((id) => deleteLead(id)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["work"]);
+      toast.success("Selected work deleted");
+    },
+  });
+  const handleConfirmBulkDelete = () => {
+    if (!selectedDeals.length) {
+      toast.error("No work selected");
+      return;
+    }
+
+    toast.loading("Deleting work...", { id: "bulk-delete" });
+
+    bulkDeleteMutation.mutate(selectedDeals, {
+      onSuccess: () => {
+        toast.success("Selected work deleted", { id: "bulk-delete" });
+        setSelectedDeals([]);
+        setShowDeleteConfirm(false);
+      },
+      onError: () => {
+        toast.error("Failed to delete work", { id: "bulk-delete" });
+      },
+    });
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setPage(1);
+  };
+  const handleBulkUpdatework = async (payload) => {
+    try {
+      toast.loading("Updating work...", { id: "bulk-update" });
+
+      await Promise.all(selectedDeals.map((id) => updateLead(id, payload)));
+
+      toast.success(`${selectedDeals.length} work updated`, {
+        id: "bulk-update",
+      });
+
+      // setwork(data.list);
+      queryClient.invalidateQueries(["work"]);
+
+      setSelectedDeals([]);
+      setIsDrawerOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Mass update failed", { id: "bulk-update" });
+    }
+  };
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [filters]);
+
+  return (
+    <>
+      <Helmet>
+        <title>work - Aajneeti Connect ltd</title>
+        <meta
+          name="description"
+          content="Manage and track your sales deals with comprehensive filtering and pipeline management tools."
+        />
+      </Helmet>
+      <div className="min-h-screen bg-background">
+        <Header onMenuToggle={handleMenuToggle} isSidebarOpen={isSidebarOpen} />
+        <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
+
+        <main className="lg:ml-64 pt-16">
+          <div className="p-4 lg:p-6">
+            {/* Page Header */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                  work
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Track and manage your sales opportunities
+                </p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Button
+                  className="linearbg-1 text-white hover:text-white"
+                  variant="outline"
+                  onClick={() =>
+                    exportworkToCSV(filteredAndSortedDeals, "all_work")
+                  }
+                >
+                  <Icon name="Download" size={16} className="mr-2" />
+                  Export All
+                </Button>
+
+                <Button
+                  onClick={handleAddwork}
+                  className="linearbg-1 text-white hover:text-white"
+                >
+                  <Icon name="Plus" size={16} className="mr-2" />
+                  New Deal
+                </Button>
+              </div>
+            </div>
+
+            {/* Filters */}
+            <DealsFilters
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              onClearFilters={handleClearFilters}
+              dealCount={filteredAndSortedDeals?.length}
+              onBulkAction={handleBulkAction}
+              selectedCount={selectedDeals?.length}
+              toggleAnalytics={() => setShowAnalytics((prev) => !prev)}
+              total={total}
+              limit={limit}
+              page={page}
+            />
+            {/* chartsAnanlysis */}
+            {showAnalytics && (
+              <div className="bg-card border border-border rounded-lg p-5 mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Lead Analytics</h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowAnalytics((prev) => !prev)}
+                  >
+                    <Icon name="X" size={20} />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  <IndustryChart work={filteredAndSortedDeals} />
+
+                  <MultiLineChart work={filteredAndSortedDeals} />
+
+                  <StatusChart work={filteredAndSortedDeals} />
+
+                  <AssignedUserChart work={filteredAndSortedDeals} />
+                </div>
+              </div>
+            )}
+
+            {/* Deals Table */}
+            <DealsTable
+              deals={filteredAndSortedDeals}
+              selectedDeals={selectedDeals}
+              onSelectDeal={handleSelectDeal}
+              onSelectAll={handleSelectAll}
+              onDealClick={handleDealClick}
+              sortConfig={sortConfig}
+              onSort={handleSort}
+              onDelete={handleDeleteLead}
+              isLoading={isLoading}
+              page={page}
+              setPage={setPage}
+            />
+
+            {/* Pagination */}
+            <TablePagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={total}
+              itemsPerPage={limit}
+              onPageChange={(p) => setPage(p)}
+              onItemsPerPageChange={(val) => {
+                setLimit(val);
+                setPage(1);
+              }}
+            />
+
+            {/* Deal Drawer */}
+            <DealDrawer
+              status={status}
+              industry={industry}
+              source={source}
+              workDetails={workDetails}
+              deal={selectedDeal}
+              mode={mode}
+              isOpen={isDrawerOpen}
+              onCreate={handleCreateLead}
+              onUpdate={handleUpdateLead}
+              onClose={handleDrawerClose}
+              onDelete={handleDeleteActivity}
+              onBulkUpdate={handleBulkUpdatework}
+              selectedIds={selectedDeals}
+            />
+
+            <ConfirmDeleteModal
+              open={showDeleteConfirm}
+              title="Delete Selected work"
+              description={`Are you sure you want to delete ${selectedDeals.length} lead(s)? This action cannot be undone.`}
+              onCancel={() => setShowDeleteConfirm(false)}
+              onConfirm={handleConfirmBulkDelete}
+            />
+          </div>
+        </main>
+      </div>
+    </>
+  );
+};
+
+export default WorkPlace;

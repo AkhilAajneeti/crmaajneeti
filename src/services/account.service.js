@@ -1,7 +1,7 @@
 /* GET */
-export const fetchAccounts = async ({limit,page}) => {
+export const fetchAccounts = async ({ limit, page }) => {
   const token = localStorage.getItem("auth_token");
-const offset=(page-1)*limit;
+  const offset = (page - 1) * limit;
   // console.log("AUTH TOKEN:", token); // 🔍 debug
 
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Account?maxSize=${limit}&offset=${offset}&orderBy=createdAt&order=desc&attributeSelect=name%2Ctype%2CmodifiedAt%2CmodifiedById%2CmodifiedByName%2CcreatedAt%2CcreatedById%2CcreatedByName`, {
@@ -28,7 +28,6 @@ const offset=(page-1)*limit;
 
 export const fetchAccountById = async (id) => {
   const token = localStorage.getItem("auth_token");
-const offset=(page-1)*limit;
   // console.log("AUTH TOKEN:", token); // 🔍 debug
 
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Account/${id}`, {
@@ -49,7 +48,6 @@ const offset=(page-1)*limit;
 
     throw new Error("Failed to fetch accounts");
   }
-
   return await res.json();
 };
 
@@ -218,7 +216,7 @@ export const fetchTaskByAccount = async (id) => {
   const token = localStorage.getItem("auth_token");
   console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
-    `https://gateway.aajneetiadvertising.com/Task?accountId=${id}`,
+    `https://gateway.aajneetiadvertising.com/Account/${id}/tasksPrimary`,
     {
       method: "GET",
       headers: {
@@ -295,3 +293,5 @@ export const unlinkContactFromAccount = async (id) => {
 
   return res.json();
 };
+
+

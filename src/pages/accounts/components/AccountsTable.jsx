@@ -58,9 +58,8 @@ const AccountsTable = ({
       if (globalFilter) {
         const searchTerm = globalFilter?.toLowerCase();
         const searchableFields = [
-          account?.company,
+          account?.name,
           account?.industry,
-          account?.owner,
         ];
         if (
           !searchableFields?.some((field) =>
@@ -114,10 +113,7 @@ const AccountsTable = ({
 
   // Pagination
   const totalPages = Math.ceil(total / limit);
-  // const accounts = filteredAndSortedData?.slice(
-  //   (page - 1) * pageSize,
-  //   page * pageSize,
-  // );
+
 
   const handleSort = (key) => {
     setSortConfig((prev) => ({
@@ -315,11 +311,11 @@ const AccountsTable = ({
                 </td>
               </tr>
             ) : (
-              accounts?.map((account) => (
+              filteredAndSortedData?.map((account) => (
                 <tr
                   key={account?.id}
                   className="border-t border-border hover:bg-muted/30 cursor-pointer transition-colors"
-                  onClick={() => onRowClick(account)}
+                  onClick={() => onRowClick(account.id)}
                 >
                   <td className="p-4" onClick={(e) => e?.stopPropagation()}>
                     <Checkbox
@@ -379,7 +375,7 @@ const AccountsTable = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => onRowClick(account, "edit")}
+                          onClick={() => onRowClick(account.id, "edit")}
                         >
                           <Icon name="Edit" size={16} />
                         </Button>
@@ -421,7 +417,7 @@ const AccountsTable = ({
                   onClick={(e) => e.stopPropagation()}
                 />
 
-                <div onClick={() => onRowClick(account)}>
+                <div onClick={() => onRowClick(account.id)}>
                   {/* Account Name */}
                   <h4 className="font-semibold text-foreground leading-tight">
                     Account Name:{account?.name}
@@ -439,7 +435,7 @@ const AccountsTable = ({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => onRowClick(account, "edit")}
+                onClick={() => onRowClick(account.id, "edit")}
               >
                 <Icon name="Edit" size={16} />
               </Button>

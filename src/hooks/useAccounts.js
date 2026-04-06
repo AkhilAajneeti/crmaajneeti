@@ -12,6 +12,6 @@ export const useAccountById = (id) => {
     return useQuery({
         queryKey: ["accounts",id],
         queryFn: ()=>fetchAccountById(id),
-        placeholderData: keepPreviousData,
+        enabled: !!id,
     })
 }

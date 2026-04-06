@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Icon from "../AppIcon";
 import Button from "./Button";
-import { useLeads, useNewLeads } from "hooks/useLeads";
+import { useLeads,} from "hooks/useLeads";
 import { useTasks } from "hooks/useTasks";
 import { useMeetings } from "hooks/useMeetings";
 import { useProjects } from "hooks/useProjects";
@@ -60,59 +60,78 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       icon: "Building2",
       badge: null,
     },
-    {
-      label: "Sales Team",
-      path: "/sales-team",
-      icon: "Users",
-      badge: null,
-    },
+    // {
+    //   label: "Sales Team",
+    //   path: "/sales-team",
+    //   icon: "Users",
+    //   badge: null,
+    // },
     {
       label: "Leads",
       path: "/leads",
       icon: "Target",
-      badge: todayLeadsCount==0?" ":todayLeadsCount,
+      badge: todayLeadsCount == 0 ? " " : todayLeadsCount,
     },
-    {
-      label: "Projects",
-      path: "/projects",
-      icon: "Layers",
-      badge: activeProjectsCount==0?" ":activeProjectsCount,
-    },
+    // {
+    //   label: "Projects",
+    //   path: "/projects",
+    //   icon: "Layers",
+    //   badge: activeProjectsCount==0?" ":activeProjectsCount,
+    // },
     {
       label: "Task",
       path: "/tasks",
       icon: "ListChecks",
-      badge: pendingTasksCount==0?" ":pendingTasksCount,
+      badge: pendingTasksCount == 0 ? " " : pendingTasksCount,
     },
     {
       label: "Meeting",
       path: "/meeting",
       icon: "Projector",
-      badge: todayMeetingsCount==0?" ":todayMeetingsCount,
+      badge: todayMeetingsCount == 0 ? " " : todayMeetingsCount,
     },
     {
       label: "Training",
       path: "/call",
       icon: "Phone",
-      badge: trainingCountll==0?" ":trainingCountll,
+      badge: trainingCountll == 0 ? " " : trainingCountll,
     },
-    {
-      label: "Activities",
-      path: "/activities",
-      icon: "Calendar",
-      badge: null,
-    },
+    // {
+    //   label: "Activities",
+    //   path: "/activities",
+    //   icon: "Calendar",
+    //   badge: null,
+    // },
     {
       label: "Reports",
       path: "/reports",
       icon: "BarChart3",
       badge: null,
     },
+
     {
-      label: "Settings",
-      path: "/settings",
-      icon: "Settings",
+      label: "Integrations",
+      path: "/integrations",
+      icon: "Puzzle",
       badge: null,
+    },
+    {
+      label: "Attendance Requests",
+      path: "/attendance",
+      icon: "ClipboardList",
+      badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
+    },
+    {
+      label: "Profile & Details",
+      path: "/profile",
+      icon: "User",
+      badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
+    },
+    {
+      label: "Workplace Notes",
+      path: "/workplace",
+      icon: "NotebookText",
+      badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
     },
     {
       label: "Pipeline",
@@ -121,9 +140,9 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       badge: null,
     },
     {
-      label: "Integrations",
-      path: "/integrations",
-      icon: "Puzzle",
+      label: "Settings",
+      path: "/settings",
+      icon: "Settings",
       badge: null,
     },
   ];
@@ -161,7 +180,8 @@ const Sidebar = ({ isOpen = false, onClose }) => {
           fixed top-0 left-0 h-full w-64 bg-background border-r border-border z-50 lg:z-30
           transform transition-transform duration-300 ease-out
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        `} >
+        `}
+      >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border">

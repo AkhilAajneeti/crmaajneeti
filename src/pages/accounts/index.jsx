@@ -35,7 +35,7 @@ const AccountsPage = () => {
     type: "",
     activityDate: "",
   });
-
+  console.log("Selectde account", selectedAccount);
   const { data, isLoading } = useAccounts({ limit, page });
   const { data: meta } = useMetaData();
   const queryClient = useQueryClient();
@@ -129,8 +129,9 @@ const AccountsPage = () => {
     setIsSidebarOpen(false);
   };
 
-  const handleRowClick = (account, mode = "view") => {
-    setSelectedAccount(account);
+  const handleRowClick = (id, mode = "view") => {
+    console.log("On row click", id);
+    setSelectedAccount(id);
     setIsDrawerOpen(true);
     setDrawerMode(mode);
   };
@@ -390,7 +391,7 @@ const AccountsPage = () => {
       <AccountDrawer
         accType={accType}
         industry={industry}
-        account={selectedAccount}
+        accounts={selectedAccount}
         isOpen={isDrawerOpen}
         onClose={handleDrawerClose}
         onSuccess={handleAccountSuccess}

@@ -22,6 +22,8 @@ import CallPage from "./pages/call";
 import Pipeline from "pages/pipeline";
 import ProjectsPage from "pages/projects";
 import SalesTeam from "pages/sales-team";
+import Attendance from "pages/attendance";
+import WorkPlace from "pages/workplaceNotes";
 const Routes = () => {
   return (
     <BrowserRouter>
@@ -158,6 +160,30 @@ const Routes = () => {
             element={
               <ProtectedRoute>
                 <Pipeline />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/attendance"
+            element={
+              <ProtectedRoute>
+                <Attendance />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Pipeline />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/workplace"
+            element={
+              <ProtectedRoute>
+                <WorkPlace />
               </ProtectedRoute>
             }
           />

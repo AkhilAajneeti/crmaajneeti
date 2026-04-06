@@ -24,7 +24,7 @@ import { useAccountById } from "hooks/useAccounts";
 const AccountDrawer = ({
   accType,
   industry,
-  account,
+  accounts,
   isOpen,
   onClose,
   mode = "view",
@@ -34,9 +34,8 @@ const AccountDrawer = ({
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState(account || {});
+  const [editData, setEditData] = useState(accounts || {});
   const [drawerMode, setDrawerMode] = useState(mode);
-  const [isLoading, setIsLoading] = useState(false);
   const [streams, setStreams] = useState([]);
   const [streamLoading, setStreamLoading] = useState(false);
   const [showStreamForm, setShowStreamForm] = useState(false);
@@ -60,8 +59,11 @@ const AccountDrawer = ({
   });
 
   const isMassUpdate = drawerMode === "mass-update";
-  const { data, loading } = useAccountById(account.id);
-  const accountById = data.list || {};
+  console.log("entering inside fetc");
+
+  const { data: account, isLoading } = useAccountById(accounts);
+  console.log(account?.id);
+
   // Form state for create/edit mode
   const [formData, setFormData] = useState({
     name: "",
@@ -338,8 +340,6 @@ const AccountDrawer = ({
     if (!validateForm()) return;
 
     try {
-      setIsLoading(true);
-
       const payload = { ...formData };
 
       console.log("UPDATE ACCOUNT PAYLOAD", payload);
@@ -352,8 +352,6 @@ const AccountDrawer = ({
     } catch (err) {
       console.error("Update failed:", err);
       alert("Failed to update account");
-    } finally {
-      setIsLoading(false);
     }
   };
   const handleCreate = async () => {
@@ -1435,6 +1433,23 @@ const AccountDrawer = ({
                                 )}
                               </p>
                             </div>
+
+                            <div>
+                              <p className="text-sm text-muted-foreground">
+                                Type
+                              </p>
+                              <p className="text-foreground font-medium">
+                                {account?.type || "None"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">
+                                Industry
+                              </p>
+                              <p className="text-foreground font-medium">
+                                {account?.industry || "None"}
+                              </p>
+                            </div>
                           </div>
                         </div>
 
@@ -1458,19 +1473,24 @@ const AccountDrawer = ({
                             {/* Industry */}
                             <div>
                               <p className="text-sm text-muted-foreground">
-                                Industry
+                                Team Names
                               </p>
                               <p className="text-foreground font-medium">
-                                {account?.industry || "None"}
+                                {account?.teamsIds?.length
+                                  ? account.teamsIds
+                                      .map((id) => account?.teamsNames?.[id])
+                                      .filter(Boolean)
+                                      .join(", ")
+                                  : "None"}
                               </p>
                             </div>
                             {/* Industry */}
                             <div>
                               <p className="text-sm text-muted-foreground">
-                                Created At
+                                Created
                               </p>
                               <p className="text-foreground font-medium">
-                                {formatDateTime(account?.createdAt)}
+                                {formatDateTime(account?.createdAt)}{" : "}{account?.createdByName}
                               </p>
                             </div>
                             <div>
@@ -1508,84 +1528,97 @@ const AccountDrawer = ({
                 </div>
 
                 <div className="space-y-3">
-                  {contacts?.map((contact) => (
-                    <div
-                      key={contact.id}
-                      className="rounded-xl p-4 border border-[#7BC47F] shadow-sm hover:shadow-md transition bg-background"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        {/* LEFT */}
-                        <div className="flex gap-3">
-                          {/* Avatar */}
-                          <Avatar
-                            name={contact.name}
-                            size="44"
-                            round
-                            textSizeRatio={2}
-                          />
+                  {contacts.length > 0 ? (
+                    contacts?.map((contact) => (
+                      <div
+                        key={contact.id}
+                        className="rounded-xl p-4 border border-[#7BC47F] shadow-sm hover:shadow-md transition bg-background"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          {/* LEFT */}
+                          <div className="flex gap-3">
+                            {/* Avatar */}
+                            <Avatar
+                              name={contact.name}
+                              size="44"
+                              round
+                              textSizeRatio={2}
+                            />
 
-                          {/* INFO */}
-                          <div className="space-y-1">
-                            {/* Name */}
-                            <p className="font-semibold text-foreground leading-tight">
-                              {contact.name}
-                            </p>
+                            {/* INFO */}
+                            <div className="space-y-1">
+                              {/* Name */}
+                              <p className="font-semibold text-foreground leading-tight">
+                                {contact.name}
+                              </p>
 
-                            {/* Email */}
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Icon name="Mail" size={14} />
-                              <span className="break-all">
-                                {contact.emailAddress}
-                              </span>
-                            </div>
-
-                            {/* Account */}
-                            {contact.accountName && (
+                              {/* Email */}
                               <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Icon name="Building2" size={14} />
-                                <span>{contact.accountName}</span>
-                              </div>
-                            )}
-
-                            {/* Owner */}
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Icon name="User" size={13} />
-                              <span>
-                                Owner:{" "}
-                                <span className="font-medium text-foreground">
-                                  {contact.assignedUserName || "Unassigned"}
+                                <Icon name="Mail" size={14} />
+                                <span className="break-all">
+                                  {contact.emailAddress}
                                 </span>
-                              </span>
+                              </div>
+
+                              {/* Account */}
+                              {contact.accountName && (
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <Icon name="Building2" size={14} />
+                                  <span>{contact.accountName}</span>
+                                </div>
+                              )}
+
+                              {/* Owner */}
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Icon name="User" size={13} />
+                                <span>
+                                  Owner:{" "}
+                                  <span className="font-medium text-foreground">
+                                    {contact.assignedUserName || "Unassigned"}
+                                  </span>
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* RIGHT ACTIONS */}
-                        <div className="flex items-center gap-1">
-                          {/* Call */}
-                          {contact.phoneNumber && (
+                          {/* RIGHT ACTIONS */}
+                          <div className="flex items-center gap-1">
+                            {/* Call */}
+                            {contact.phoneNumber && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="hover:bg-green-50"
+                              >
+                                <Icon name="Phone" size={16} />
+                              </Button>
+                            )}
+
+                            {/* Delete */}
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="hover:bg-green-50"
+                              className="text-destructive hover:bg-red-50"
+                              onClick={() => handleUnlinkContact(contact)}
                             >
-                              <Icon name="Phone" size={16} />
+                              <Icon name="Trash2" size={16} />
                             </Button>
-                          )}
-
-                          {/* Delete */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:bg-red-50"
-                            onClick={() => handleUnlinkContact(contact)}
-                          >
-                            <Icon name="Trash2" size={16} />
-                          </Button>
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                      <img
+                        src="/assets/images/3d-contact.png"
+                        alt="No Activities"
+                        className="w-40 opacity-80"
+                      />
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        Currently you don't have any contacts
+                      </p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             )}
@@ -1599,49 +1632,62 @@ const AccountDrawer = ({
                 </div>
 
                 <div className="space-y-3">
-                  {tasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="relative rounded-xl border-l-4 border-l-[#A3D9A5] border border-border bg-background p-4 shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all duration-200"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-medium text-foreground">
-                            {task.name}
-                          </p>
+                  {tasks.lenght === 0 ? (
+                    tasks.map((task) => (
+                      <div
+                        key={task.id}
+                        className="relative rounded-xl border-l-4 border-l-[#A3D9A5] border border-border bg-background p-4 shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all duration-200"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-medium text-foreground">
+                              {task.name}
+                            </p>
 
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Start Date: {formatDate(task.dateStart)}
-                          </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Start Date: {formatDate(task.dateStart)}
+                            </p>
 
-                          <p className="text-xs text-muted-foreground">
-                            Assigned: {task.assignedUserName || "—"}
-                          </p>
-                        </div>
+                            <p className="text-xs text-muted-foreground">
+                              Assigned: {task.assignedUserName || "—"}
+                            </p>
+                          </div>
 
-                        <div className="flex items-center justify-center gap-5">
-                          {task.status && (
-                            <span
-                              className={`px-2 py-1 text-xs rounded-full ${getStageColor(
-                                task.status,
-                              )}`}
+                          <div className="flex items-center justify-center gap-5">
+                            {task.status && (
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full ${getStageColor(
+                                  task.status,
+                                )}`}
+                              >
+                                {task.status}
+                              </span>
+                            )}
+                            {/* Delete */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:bg-red-50"
+                              onClick={() => handleDeleteTask(task)}
                             >
-                              {task.status}
-                            </span>
-                          )}
-                          {/* Delete */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:bg-red-50"
-                            onClick={() => handleDeleteTask(task)}
-                          >
-                            <Icon name="Trash2" size={16} />
-                          </Button>
+                              <Icon name="Trash2" size={16} />
+                            </Button>
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                      <img
+                        src="/public/assets/images/check.png"
+                        alt="No Activities"
+                        className="w-40 opacity-80"
+                      />
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        Currently you don't have any task
+                      </p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             )}
@@ -1691,82 +1737,95 @@ const AccountDrawer = ({
                 )}
 
                 {/* Stream List */}
-                {streams?.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex space-x-3 p-4 bg-muted/30 rounded-lg group"
-                  >
-                    {/* Avatar */}
-                    <Avatar
-                      name={item.createdByName || "System"}
-                      size="36"
-                      round
-                      textSizeRatio={2}
-                    />
+                {streams.lenght > 0 ? (
+                  streams?.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex space-x-3 p-4 bg-muted/30 rounded-lg group"
+                    >
+                      {/* Avatar */}
+                      <Avatar
+                        name={item.createdByName || "System"}
+                        size="36"
+                        round
+                        textSizeRatio={2}
+                      />
 
-                    {/* Content */}
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="font-medium text-foreground">
-                            {item.createdByName || "System"}
-                          </h4>
+                      {/* Content */}
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="font-medium text-foreground">
+                              {item.createdByName || "System"}
+                            </h4>
 
-                          <Icon
-                            name={getStreamIcon(item.type)}
-                            size={14}
-                            className={getStreamIconColor(item.type)}
-                          />
+                            <Icon
+                              name={getStreamIcon(item.type)}
+                              size={14}
+                              className={getStreamIconColor(item.type)}
+                            />
 
-                          <span className="text-xs text-muted-foreground">
-                            {item.type}
-                          </span>
-                        </div>
+                            <span className="text-xs text-muted-foreground">
+                              {item.type}
+                            </span>
+                          </div>
 
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs text-muted-foreground">
-                            {formatDateTime(item.createdAt)}
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-muted-foreground">
+                              {formatDateTime(item.createdAt)}
+                            </span>
 
-                          {/* Actions (hover only) */}
-                          <div className="opacity-0 group-hover:opacity-100 transition">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                            >
-                              <Icon name="Edit" size={14} />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteStream(item.id)}
-                              className="h-8 w-8 text-destructive"
-                            >
-                              <Icon name="Trash2" size={14} />
-                            </Button>
+                            {/* Actions (hover only) */}
+                            <div className="opacity-0 group-hover:opacity-100 transition">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                              >
+                                <Icon name="Edit" size={14} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteStream(item.id)}
+                                className="h-8 w-8 text-destructive"
+                              >
+                                <Icon name="Trash2" size={14} />
+                              </Button>
+                            </div>
                           </div>
                         </div>
+
+                        {/* Message */}
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {getStreamMessage(item)}
+                        </p>
+
+                        {/* Status Badge */}
+                        {item.data?.value && (
+                          <span
+                            className={`inline-block mt-2 px-2 py-0.5 text-xs rounded-full ${getStageColor(
+                              item.data.value,
+                            )}`}
+                          >
+                            {item.data.value}
+                          </span>
+                        )}
                       </div>
-
-                      {/* Message */}
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {getStreamMessage(item)}
-                      </p>
-
-                      {/* Status Badge */}
-                      {item.data?.value && (
-                        <span
-                          className={`inline-block mt-2 px-2 py-0.5 text-xs rounded-full ${getStageColor(
-                            item.data.value,
-                          )}`}
-                        >
-                          {item.data.value}
-                        </span>
-                      )}
                     </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <img
+                      src="/public/assets/images/comment.png"
+                      alt="No Activities"
+                      className="w-40 opacity-80"
+                    />
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Currently you don't have any comments
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
             )}
 
@@ -1779,145 +1838,148 @@ const AccountDrawer = ({
                   </h3>
                 </div>
 
-                {activityLoading && (
-                  <p className="text-sm text-muted-foreground">
-                    Loading activities…
-                  </p>
-                )}
-
-                {!activityLoading && activities.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    No activities found
-                  </p>
-                )}
-
                 {/* Activity List */}
-                {activities.map((activity) => {
-                  const isOpen = expandedActivityId === activity.id;
+                {activities.length > 0 ? (
+                  activities.map((activity) => {
+                    const isOpen = expandedActivityId === activity.id;
 
-                  return (
-                    <div
-                      key={activity.id}
-                      onClick={() => toggleActivity(activity.id)}
-                      className="cursor-pointer rounded-lg bg-muted/30 p-4 transition hover:bg-muted/50"
-                    >
-                      {/* COLLAPSED HEADER */}
-                      <div className="flex gap-3">
-                        <Avatar
-                          name={activity.assignedUserName || "System"}
-                          size="36"
-                          round
-                        />
-
-                        <div className="flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="font-medium text-foreground">
-                              {activity.name || "Activity"}
-                            </h4>
-
-                            <span className="text-xs text-muted-foreground">
-                              {activity._scope}
-                            </span>
-
-                            {activity.status && (
-                              <span
-                                className={`px-2 py-0.5 text-xs rounded-full ${getStageColor(
-                                  activity.status,
-                                )}`}
-                              >
-                                {activity.status}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="mt-1 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Icon name="Clock" size={12} />
-                              {formatDateTime(activity.dateStart)}
-                            </span>
-
-                            {activity.duration && (
-                              <span className="flex items-center gap-1">
-                                <Icon name="Timer" size={12} />
-                                {Math.round(activity.duration / 60)} min
-                              </span>
-                            )}
-
-                            {activity.parentType && (
-                              <span className="flex items-center gap-1">
-                                <Icon name="Link" size={12} />
-                                {activity.parentType}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* EXPANDED CONTENT */}
+                    return (
                       <div
-                        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                          isOpen
-                            ? "max-h-[500px] opacity-100 mt-4"
-                            : "max-h-0 opacity-0"
-                        }`}
+                        key={activity.id}
+                        onClick={() => toggleActivity(activity.id)}
+                        className="cursor-pointer rounded-lg bg-muted/30 p-4 transition hover:bg-muted/50"
                       >
-                        <div className="border-t pt-4 grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-xs text-muted-foreground">
-                              Direction
-                            </p>
-                            <p className="font-medium">
-                              {activity.direction || "—"}
-                            </p>
-                          </div>
+                        {/* COLLAPSED HEADER */}
+                        <div className="flex gap-3">
+                          <Avatar
+                            name={activity.assignedUserName || "System"}
+                            size="36"
+                            round
+                          />
 
-                          <div>
-                            <p className="text-xs text-muted-foreground">
-                              Assigned User
-                            </p>
-                            <p className="font-medium">
-                              {activity.assignedUserName || "—"}
-                            </p>
-                          </div>
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className="font-medium text-foreground">
+                                {activity.name || "Activity"}
+                              </h4>
 
-                          <div>
-                            <p className="text-xs text-muted-foreground">
-                              Start
-                            </p>
-                            <p className="font-medium">
-                              {formatDateTime(activity.dateStart)}
-                            </p>
-                          </div>
+                              <span className="text-xs text-muted-foreground">
+                                {activity._scope}
+                              </span>
 
-                          <div>
-                            <p className="text-xs text-muted-foreground">End</p>
-                            <p className="font-medium">
-                              {formatDateTime(activity.dateEnd)}
-                            </p>
-                          </div>
+                              {activity.status && (
+                                <span
+                                  className={`px-2 py-0.5 text-xs rounded-full ${getStageColor(
+                                    activity.status,
+                                  )}`}
+                                >
+                                  {activity.status}
+                                </span>
+                              )}
+                            </div>
 
-                          <div>
-                            <p className="text-xs text-muted-foreground">
-                              Created
-                            </p>
-                            <p className="font-medium">
-                              {formatDateTime(activity.createdAt)}
-                            </p>
-                          </div>
+                            <div className="mt-1 flex flex-wrap gap-3 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Icon name="Clock" size={12} />
+                                {formatDateTime(activity.dateStart)}
+                              </span>
 
-                          <div>
-                            <p className="text-xs text-muted-foreground">
-                              Parent
-                            </p>
-                            <p className="font-medium text-primary">
-                              {activity.parentType}
-                            </p>
+                              {activity.duration && (
+                                <span className="flex items-center gap-1">
+                                  <Icon name="Timer" size={12} />
+                                  {Math.round(activity.duration / 60)} min
+                                </span>
+                              )}
+
+                              {activity.parentType && (
+                                <span className="flex items-center gap-1">
+                                  <Icon name="Link" size={12} />
+                                  {activity.parentType}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* EXPANDED CONTENT */}
+                        <div
+                          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                            isOpen
+                              ? "max-h-[500px] opacity-100 mt-4"
+                              : "max-h-0 opacity-0"
+                          }`}
+                        >
+                          <div className="border-t pt-4 grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Direction
+                              </p>
+                              <p className="font-medium">
+                                {activity.direction || "—"}
+                              </p>
+                            </div>
+
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Assigned User
+                              </p>
+                              <p className="font-medium">
+                                {activity.assignedUserName || "—"}
+                              </p>
+                            </div>
+
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Start
+                              </p>
+                              <p className="font-medium">
+                                {formatDateTime(activity.dateStart)}
+                              </p>
+                            </div>
+
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                End
+                              </p>
+                              <p className="font-medium">
+                                {formatDateTime(activity.dateEnd)}
+                              </p>
+                            </div>
+
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Created
+                              </p>
+                              <p className="font-medium">
+                                {formatDateTime(activity.createdAt)}
+                              </p>
+                            </div>
+
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Parent
+                              </p>
+                              <p className="font-medium text-primary">
+                                {activity.parentType}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <img
+                      src="/assets/images/no-content.png"
+                      alt="No Activities"
+                      className="w-40 opacity-80"
+                    />
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Currently you don't have any activities
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
