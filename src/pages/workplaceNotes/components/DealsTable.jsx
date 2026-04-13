@@ -31,16 +31,19 @@ const DealsTable = ({
     })?.format(new Date(date));
   };
 
+  const noteTypeColor = (stage) => {
+    const colors = {
+      Positive: "bg-green-100 text-green-800",
+      Negative: "bg-red-100 text-red-800",
+    };
+
+    return colors?.[stage] || "bg-gray-100 text-gray-800";
+  };
   const getStageColor = (stage) => {
     const colors = {
-      New: "bg-blue-100 text-blue-800",
-      Interested: "bg-sky-100 text-sky-800",
-      "Follow up": "bg-indigo-100 text-indigo-800",
-      Converted: "bg-green-100 text-green-800",
-      "Not interested": "bg-orange-100 text-orange-800",
-      Broker: "bg-purple-100 text-purple-800",
-      "Call Not Picked": "bg-red-100 text-red-800",
-      Invalid: "bg-gray-100 text-gray-700",
+      Approved: "bg-blue-100 text-blue-800",
+      Pending: "bg-orange-100 text-orange-800",
+      Reject: "bg-gray-100 text-gray-700",
     };
 
     return colors?.[stage] || "bg-gray-100 text-gray-800";
@@ -178,7 +181,7 @@ const DealsTable = ({
               </th>
               <th className="text-left px-4 py-3">
                 <button
-                  onClick={() => onSort("Source")}
+                  onClick={() => onSort("noteType")}
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
                   <span>Note Type</span>
@@ -212,11 +215,11 @@ const DealsTable = ({
                   {getSortIcon("closeDate")}
                 </button>
               </th>
-              <th className="text-left px-4 py-3">
+              {/* <th className="text-left px-4 py-3">
                 <span className="text-sm font-medium text-foreground">
                   Assigned User
                 </span>
-              </th>
+              </th> */}
               <th className="w-24 px-4 py-3">
                 <span className="text-sm font-medium text-foreground">
                   Actions
@@ -262,7 +265,14 @@ const DealsTable = ({
                   </td>
                   <td className="px-4 py-4">
                     <div className="font-medium text-foreground">
-                      {deal?.noteType}
+                      <div
+                      className={`flex justify-center items-center space-x-2 px-2 py-1 font-medium rounded-full ${noteTypeColor(deal?.noteType)}`}
+                    >
+                      <span className={`text-sm text-foreg roundunded-full `}>
+                        {deal?.noteType}
+                      </span>
+                    </div>
+                     
                     </div>
                   </td>
                   <td className="px-4 py-4">
@@ -288,7 +298,7 @@ const DealsTable = ({
                       {deal?.createdByName}
                     </div>
                   </td>
-                  <td className="px-4 py-4">
+                  {/* <td className="px-4 py-4">
                     <div
                       className={`text-sm font-medium ${getProbabilityColor(
                         deal?.assignedUserName,
@@ -296,12 +306,11 @@ const DealsTable = ({
                     >
                       {deal?.assignedUserName}
                     </div>
-                  </td>
+                  </td> */}
                   <td className="px-4 py-4">
                     <div
-                      className={`flex items-center space-x-1 transition-opacity ${
-                        hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
-                      }`}
+                      className={`flex items-center space-x-1 transition-opacity ${hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
+                        }`}
                     >
                       <Button
                         variant="ghost"

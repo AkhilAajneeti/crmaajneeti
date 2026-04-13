@@ -24,6 +24,8 @@ import ProjectsPage from "pages/projects";
 import SalesTeam from "pages/sales-team";
 import Attendance from "pages/attendance";
 import WorkPlace from "pages/workplaceNotes";
+import Complaints from "pages/complaints";
+import KnowledgeBase from "pages/knowledgeBase";
 const Routes = () => {
   return (
     <BrowserRouter>
@@ -184,6 +186,22 @@ const Routes = () => {
             element={
               <ProtectedRoute>
                 <WorkPlace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/complaints"
+            element={
+              <ProtectedRoute>
+                <Complaints />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/knowledge-base"
+            element={
+              <ProtectedRoute>
+                <KnowledgeBase />
               </ProtectedRoute>
             }
           />

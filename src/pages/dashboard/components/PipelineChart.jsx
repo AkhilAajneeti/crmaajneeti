@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -11,11 +11,16 @@ import {
 import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
+import { fetchLeadsCount } from "services/leads.service";
 
 const PipelineChart = ({ leads = [] }) => {
   // const [selectedYear, setSelectedYear] = useState(2024);
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [loadingMonthly, setLoadingMonthly] = useState(false);
+
+
   const [viewType, setViewType] = useState("monthly");
-  const now = new Date();
+  const now = new Date
   const currentYearLeads = leads.filter((l) => {
     const d = new Date(l.createdAt);
     return (
@@ -38,7 +43,7 @@ const PipelineChart = ({ leads = [] }) => {
                 {payload?.[0]?.value} leads
               </span>
             </div>
-            
+
           </div>
         </div>
       );
@@ -46,31 +51,72 @@ const PipelineChart = ({ leads = [] }) => {
     return null;
   };
   // get monthly data
+  useEffect(() => {
+    if (viewType !== "monthly") return;
 
-  const getMonthlyData = () => {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
+    setLoadingMonthly(true);
+
+    getMonthlyDataFromAPI()
+      .then(setMonthlyData)
+      .finally(() => setLoadingMonthly(false));
+  }, [viewType]);
+  // const getMonthlyData = () => {
+  //   const months = [
+  //     "Jan",
+  //     "Feb",
+  //     "Mar",
+  //     "Apr",
+  //     "May",
+  //     "Jun",
+  //     "Jul",
+  //     "Aug",
+  //     "Sep",
+  //     "Oct",
+  //     "Nov",
+  //     "Dec",
+  //   ];
+  //   const year = new Date().getFullYear();
+
+  //   return months.map((m, index) => ({
+  //     label: m,
+  //     value: leads.filter((l) => {
+  //       const d = new Date(l.createdAt);
+  //       return d.getFullYear() === year && d.getMonth() === index;
+  //     }).length,
+  //   }));
+  // };
+  const getMonthlyDataFromAPI = async () => {
     const year = new Date().getFullYear();
 
-    return months.map((m, index) => ({
-      label: m,
-      value: leads.filter((l) => {
-        const d = new Date(l.createdAt);
-        return d.getFullYear() === year && d.getMonth() === index;
-      }).length,
-    }));
+    const months = Array.from({ length: 12 }, (_, i) => {
+      const start = new Date(year, i, 1);
+      const end = new Date(year, i + 1, 0);
+
+      return {
+        label: start.toLocaleString("default", { month: "short" }),
+        start,
+        end,
+      };
+    });
+
+    const results = await Promise.all(
+      months.map(async (m) => {
+        const count = await fetchLeadsCount([
+          {
+            type: "between",
+            attribute: "createdAt",
+            value: [m.start.toISOString(), m.end.toISOString()],
+          },
+        ]);
+
+        return {
+          label: m.label,
+          value: count,
+        };
+      })
+    );
+
+    return results;
   };
 
   const getWeeklyData = () => {
@@ -117,6 +163,16 @@ const PipelineChart = ({ leads = [] }) => {
       };
     });
   };
+  // const chartData = (() => {
+  //   switch (viewType) {
+  //     case "weekly":
+  //       return getWeeklyData();
+  //     case "daily":
+  //       return getDailyData();
+  //     default:
+  //       return getMonthlyData();
+  //   }
+  // })();
   const chartData = (() => {
     switch (viewType) {
       case "weekly":
@@ -124,10 +180,9 @@ const PipelineChart = ({ leads = [] }) => {
       case "daily":
         return getDailyData();
       default:
-        return getMonthlyData();
+        return monthlyData; // ✅ API DATA
     }
   })();
-
   return (
     <motion.div
       className="bg-card border border-border rounded-xl p-6 shadow-elevation-1"
@@ -144,7 +199,7 @@ const PipelineChart = ({ leads = [] }) => {
             Monthly leads closed and leads generated
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {["monthly", "weekly", "daily"].map((type) => (
             <Button
@@ -160,7 +215,11 @@ const PipelineChart = ({ leads = [] }) => {
         </div>
       </div>
       <div className="h-80" aria-label="Monthly Leads Performance Bar Chart">
-        <ResponsiveContainer width="100%" height="100%">
+        {viewType === "monthly" && loadingMonthly ? (
+          <div className="h-80 flex items-center justify-center">
+            <span className="text-muted-foreground">Loading monthly data...</span>
+          </div>
+        ) : (<ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
@@ -179,14 +238,14 @@ const PipelineChart = ({ leads = [] }) => {
               radius={[4, 4, 0, 0]}
             />
           </BarChart>
-        </ResponsiveContainer>
+        </ResponsiveContainer>)}
       </div>
       <div className="flex items-center justify-center space-x-6 mt-4 pt-4 border-t border-border">
-       
+
         <div className="flex items-center space-x-2">
           <Icon name="Target" size={16} className="text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
-           Leads : {currentYearLeads} / Year
+            Leads : {currentYearLeads} / Year
           </span>
         </div>
       </div>

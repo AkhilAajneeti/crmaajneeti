@@ -11,7 +11,7 @@ const DealsFilters = ({
   filters,
   onFiltersChange,
   onClearFilters,
-  total,
+  dealCount,
   onBulkAction,
   selectedCount,
   toggleAnalytics,
@@ -45,6 +45,19 @@ const DealsFilters = ({
 
     loadData();
   }, []);
+  const ACTIVITY_DATE_FILTERS = [
+    { label: "Today", value: "today" },
+    { label: "Yesterday", value: "yesterday" },
+    { label: "Last 7 Days", value: "last7Days" },
+
+    { label: "Before", value: "before" },
+    { label: "After", value: "after" },
+
+    { label: "Between", value: "between" },
+    { label: "This Month", value: "currentMonth" },
+    { label: "Last Month", value: "lastMonth" },
+  ];
+
   const sourceOptions = source
     .filter((item) => item !== "")
     .map((item) => ({
@@ -57,7 +70,19 @@ const DealsFilters = ({
       value: item,
       label: item,
     }));
+  const showDateInputs = [
+    "between",
+    "after",
+    "before",
+    "on"
+  ].includes(filters?.dateType);
 
+  const showXDaysInput = [
+    "lastXDays",
+    "nextXDays",
+    "olderThanXDays",
+    "afterXDays"
+  ].includes(filters?.dateType);
   const handleFilterChange = (key, value) => {
     onFiltersChange({
       ...filters,
@@ -89,7 +114,7 @@ const DealsFilters = ({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
         <div className="flex items-center space-x-4">
           <h2 className="text-lg font-semibold text-foreground">
-            Leads ({total})
+            Leads ({dealCount})
           </h2>
           {activeFiltersCount > 0 && (
             <div className="flex items-center space-x-2">
@@ -210,10 +235,52 @@ const DealsFilters = ({
           value={filters?.assignUser || ""}
           onChange={(value) => handleFilterChange("assignUser", value)}
         />
+        {/* Date Type Select */}
+        <Select
+          className="min-w-0"
+          placeholder="Filter by date"
+          options={ACTIVITY_DATE_FILTERS}
+          value={filters?.dateType || ""}
+          onChange={(value) => handleFilterChange("dateType", value)}
+        />
+
+        {/* X Days Input */}
+        {showXDaysInput && (
+          <Input
+            type="number"
+            placeholder="Enter days"
+            value={filters?.xDays || ""}
+            onChange={(e) =>
+              handleFilterChange("xDays", e.target.value)
+            }
+          />
+        )}
+
+        {/* Date Range Inputs */}
+        {showDateInputs && (
+          <div className="flex gap-2">
+            <Input
+              type="date"
+              value={filters?.closeDateFrom || ""}
+              onChange={(e) =>
+                handleFilterChange("closeDateFrom", e.target.value)
+              }
+            />
+            {filters?.dateType === "between" && (
+              <Input
+                type="date"
+                value={filters?.closeDateTo || ""}
+                onChange={(e) =>
+                  handleFilterChange("closeDateTo", e.target.value)
+                }
+              />
+            )}
+          </div>
+        )}
       </div>
       {/* Advanced Filters Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 pt-4 border-t border-border gap-3">
-        <div className="flex flex-col sm:flex-row gap-3 w-full">
+        {/* <div className="flex flex-col sm:flex-row gap-3 w-full">
           <Input
             type="date"
             placeholder="Close date from"
@@ -230,7 +297,7 @@ const DealsFilters = ({
               handleFilterChange("closeDateTo", e?.target?.value)
             }
           />
-        </div>
+        </div> */}
         <RoleGuard allowedRoles={["admin", "manager"]}>
           <Button onClick={toggleAnalytics} className="linearbg-1 text-white hover:text-white">
             <Icon name="Plus" size={16} className="mr-2" />

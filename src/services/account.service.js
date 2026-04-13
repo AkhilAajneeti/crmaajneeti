@@ -1,31 +1,183 @@
 /* GET */
-export const fetchAccounts = async ({ limit, page }) => {
+// export const fetchAccounts = async ({ limit, page }) => {
+//   const token = localStorage.getItem("auth_token");
+//   const offset = (page - 1) * limit;
+//   // console.log("AUTH TOKEN:", token); // 🔍 debug
+
+//   const res = await fetch(`https://gateway.aajneetiadvertising.com/Account?maxSize=${limit}&offset=${offset}&orderBy=createdAt&order=desc&attributeSelect=name%2Ctype%2CmodifiedAt%2CmodifiedById%2CmodifiedByName%2CcreatedAt%2CcreatedById%2CcreatedByName`, {
+//     method: "GET",
+//     headers: {
+//       "Content-Type": "application/json",
+//       token: token, // ✅ backend expects this
+//     },
+//   });
+
+//   if (!res.ok) {
+//     console.log("STATUS:", res.status);
+
+//     if (res.status === 401 || res.status === 403) {
+//       localStorage.clear();
+//       window.location.href = "/login";
+//     }
+
+//     throw new Error("Failed to fetch accounts");
+//   }
+
+//   return await res.json();
+// };
+// 🔥 DATE HELPERS
+const toLocalISOString = (date) => {
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date - tzOffset).toISOString().slice(0, -1);
+};
+const getDateRange = (type) => {
+  const now = new Date();
+  let start = new Date();
+  let end = new Date();
+
+  switch (type) {
+    case "today":
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+      break;
+
+    case "yesterday":
+      start.setDate(start.getDate() - 1);
+      start.setHours(0, 0, 0, 0);
+      end = new Date(start);
+      end.setHours(23, 59, 59, 999);
+      break;
+
+    case "last7Days":
+      start.setDate(start.getDate() - 7);
+      start.setHours(0, 0, 0, 0);
+      break;
+
+    case "currentMonth":
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end.setHours(23, 59, 59, 999);
+      break;
+
+    case "lastMonth":
+      start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+      break;
+
+    default:
+      return null;
+  }
+
+  return {
+    start: toLocalISOString(start),
+    end: toLocalISOString(end),
+  };
+};
+// 🚀 MAIN API
+export const fetchAccounts = async ({ limit, page, filters = {} }) => {
   const token = localStorage.getItem("auth_token");
   const offset = (page - 1) * limit;
-  // console.log("AUTH TOKEN:", token); // 🔍 debug
 
-  const res = await fetch(`https://gateway.aajneetiadvertising.com/Account?maxSize=${limit}&offset=${offset}&orderBy=createdAt&order=desc&attributeSelect=name%2Ctype%2CmodifiedAt%2CmodifiedById%2CmodifiedByName%2CcreatedAt%2CcreatedById%2CcreatedByName`, {
-    method: "GET",
+  const where = [];
+
+  // 🔍 SEARCH
+  if (filters.search?.trim()) {
+    where.push({
+      type: "like",
+      attribute: "name",
+      value: `%${filters.search.trim()}%`,
+    });
+  }
+
+  // 🔹 TYPE
+  if (filters.type) {
+    where.push({
+      type: "in",
+      attribute: "type",
+      value: [filters.type],
+    });
+  }
+
+  // 📅 DATE FILTER
+  if (filters.dateType) {
+    let condition = null;
+
+    if (filters.dateType === "between") {
+      if (filters.startDate && filters.endDate) {
+        condition = {
+          type: "between",
+          attribute: "createdAt",
+          value: [filters.startDate, filters.endDate],
+        };
+      }
+    }
+    else if (filters.dateType === "before") {
+      if (filters.startDate) {
+        condition = {
+          type: "lessThan",
+          attribute: "createdAt",
+          value: filters.startDate,
+        };
+      }
+    }
+    else if (filters.dateType === "after") {
+      if (filters.startDate) {
+        condition = {
+          type: "greaterThan",
+          attribute: "createdAt",
+          value: filters.startDate,
+        };
+      }
+    }
+    else {
+      const range = getDateRange(filters.dateType);
+
+      if (range) {
+        condition = {
+          type: "between",
+          attribute: "createdAt",
+          value: [range.start, range.end],
+        };
+      }
+    }
+
+    if (condition) where.push(condition);
+  }
+
+  // 🔥 BUILD QUERY
+  const query = where
+    .map((f, i) => {
+      let q = `whereGroup[${i}][type]=${f.type}&whereGroup[${i}][attribute]=${f.attribute}`;
+
+      if (Array.isArray(f.value)) {
+        f.value.forEach((v, j) => {
+          q += `&whereGroup[${i}][value][${j}]=${encodeURIComponent(v)}`;
+        });
+      } else {
+        q += `&whereGroup[${i}][value]=${encodeURIComponent(f.value)}`;
+      }
+
+      return q;
+    })
+    .join("&");
+
+  const url = `https://gateway.aajneetiadvertising.com/Account?maxSize=${limit}&offset=${offset}&orderBy=createdAt&order=desc${query ? `&${query}` : ""}`;
+
+  console.log("🔥 API URL:", url); // DEBUG
+
+  const res = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
-      token: token, // ✅ backend expects this
+      token: token,
     },
   });
 
   if (!res.ok) {
-    console.log("STATUS:", res.status);
-
-    if (res.status === 401 || res.status === 403) {
-      localStorage.clear();
-      window.location.href = "/login";
-    }
-
+    console.error("API ERROR:", res.status);
     throw new Error("Failed to fetch accounts");
   }
 
-  return await res.json();
+  return res.json();
 };
-
 export const fetchAccountById = async (id) => {
   const token = localStorage.getItem("auth_token");
   // console.log("AUTH TOKEN:", token); // 🔍 debug

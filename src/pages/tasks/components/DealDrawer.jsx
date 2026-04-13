@@ -11,6 +11,7 @@ import { createLeadActivity, fetchLeads } from "services/leads.service";
 import { fetchAccounts } from "services/account.service";
 import { fetchContacts } from "services/contact.service";
 import { TaskActivitesById, taskStreamById } from "services/tasks.service";
+import { useTasksById } from "hooks/useTasks";
 
 const DealDrawer = ({
   deal,
@@ -34,6 +35,7 @@ const DealDrawer = ({
   const [showActivityForm, setActivityForm] = useState(false);
   const [activityText, setActivityText] = useState("");
   const [postingActivity, setPostingActivity] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     assignedUserId: "",
@@ -75,6 +77,10 @@ const DealDrawer = ({
       });
     }
   }, [deal, mode]);
+
+  // now use hooks
+  const { data: task, isLoading } = useTasksById(deal?.id);
+  console.log("deasl drwaer ", selectedIds);
   // mass update
   const isMassUpdate = mode === "mass-update";
 
@@ -108,7 +114,7 @@ const DealDrawer = ({
   }, [isOpen, deal?.id]);
 
   // mockactivities
- 
+
   const STATUS_OPTIONS = [
     { value: "Not Started", label: "Not Started" },
     { value: "Started", label: "Started" },
@@ -161,7 +167,7 @@ const DealDrawer = ({
         return "bg-gray-100 text-gray-700";
     }
   };
-    const getStageColor = (stage) => {
+  const getStageColor = (stage) => {
     const colors = {
       New: "bg-blue-100 text-blue-800",
       Interested: "bg-sky-100 text-sky-800",
@@ -178,8 +184,8 @@ const DealDrawer = ({
   const tabs = [
     { id: "overview", label: "Overview", icon: "Eye" },
     { id: "AssignedUsers", label: "Assigned User", icon: "Users" },
-    { id: "stream", label: "Stream", icon: "Calendar" },
-   
+    // { id: "stream", label: "Stream", icon: "Calendar" },
+
   ];
 
   const getActivityIcon = (type) => {
@@ -234,7 +240,7 @@ const DealDrawer = ({
       return "Task updated";
     }
 
-     if (activity._scope === "Call") {
+    if (activity._scope === "Call") {
       return `${activity.direction || "Call"} call scheduled`;
     }
 
@@ -633,11 +639,10 @@ const DealDrawer = ({
                       onClick={() => setActiveTab(tab?.id)}
                       className={`
                   flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-smooth
-                  ${
-                    activeTab === tab?.id
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }
+                  ${activeTab === tab?.id
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        }
                 `}
                     >
                       <Icon name={tab?.icon} size={16} />
@@ -659,7 +664,7 @@ const DealDrawer = ({
                               Name
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.name || "—"}
+                              {deal?.name || "None"}
                             </p>
                           </div>
 
@@ -673,7 +678,7 @@ const DealDrawer = ({
                                 {deal.parentName}
                               </p>
                             ) : (
-                              <p className="text-foreground">—</p>
+                              <p className="text-foreground">None</p>
                             )}
                           </div>
 
@@ -687,7 +692,7 @@ const DealDrawer = ({
                                 {deal.status}
                               </p>
                             ) : (
-                              <p className="text-foreground">—</p>
+                              <p className="text-foreground">None</p>
                             )}
                           </div>
 
@@ -701,7 +706,7 @@ const DealDrawer = ({
                                 {deal.priority}
                               </p>
                             ) : (
-                              <p className="text-foreground">—</p>
+                              <p className="text-foreground">None</p>
                             )}
                           </div>
 
@@ -713,7 +718,7 @@ const DealDrawer = ({
                             <p className="text-foreground font-medium">
                               {deal?.dateStart
                                 ? formatDate(deal.dateStart)
-                                : "—"}
+                                : "None"}
                             </p>
                           </div>
 
@@ -723,7 +728,7 @@ const DealDrawer = ({
                               Date Complete
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.dateEnd ? formatDate(deal.dateEnd) : "—"}
+                              {deal?.dateCompleted ? formatDate(deal.dateCompleted) : "None"}
                             </p>
                           </div>
                         </div>
@@ -743,7 +748,7 @@ const DealDrawer = ({
                               Created By
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.createdByName || "—"}
+                              {deal?.createdByName || "None"}
                             </p>
                           </div>
 
@@ -755,7 +760,7 @@ const DealDrawer = ({
                             <p className="text-foreground font-medium">
                               {deal?.createdAt
                                 ? formatDate(deal.createdAt)
-                                : "—"}
+                                : "None"}
                             </p>
                           </div>
 
@@ -791,12 +796,12 @@ const DealDrawer = ({
                           {/* Followers */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              Followers
+                              Teams Names
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.followersNames ? (
+                              {deal?.teamsNames ? (
                                 <div className="flex flex-wrap gap-2">
-                                  {Object.entries(deal.followersNames).map(
+                                  {Object.entries(deal.teamsNames).map(
                                     ([id, name]) => (
                                       <span
                                         key={id}
@@ -808,7 +813,30 @@ const DealDrawer = ({
                                   )}
                                 </div>
                               ) : (
-                                <span>—</span>
+                                <span>None</span>
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Collaborators Names
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {deal?.collaboratorsNames ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {Object.entries(deal.collaboratorsNames).map(
+                                    ([id, name]) => (
+                                      <span
+                                        key={id}
+                                        className="text-sm text-primary font-medium"
+                                      >
+                                        {name}
+                                      </span>
+                                    ),
+                                  )}
+                                </div>
+                              ) : (
+                                <span>None</span>
                               )}
                             </p>
                           </div>
@@ -829,7 +857,7 @@ const DealDrawer = ({
                             </p>
                             <p className="text-foreground font-medium">
                               {deal?.createdAt
-                                ? `${formatDate(deal.createdAt)} by ${deal?.createdByName || "—"}`
+                                ? `${formatDate(deal.createdAt)}  ${deal?.createdByName ? ("by", deal?.createdByName) : ""}`
                                 : "—"}
                             </p>
                           </div>
@@ -841,7 +869,7 @@ const DealDrawer = ({
                             </p>
                             <p className="text-foreground font-medium">
                               {deal?.modifiedAt
-                                ? `${formatDate(deal.modifiedAt)} by ${deal?.modifiedByName || "—"}`
+                                ? `${formatDate(deal.modifiedAt)} ${deal?.modifiedByName ? ("by", deal?.modifiedByName) : ""}`
                                 : "—"}
                             </p>
                           </div>
@@ -850,7 +878,7 @@ const DealDrawer = ({
                     </div>
                   )}
 
-                  {activeTab === "stream" && (
+                  {/* {activeTab === "stream" && (
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-medium text-foreground">
@@ -866,7 +894,7 @@ const DealDrawer = ({
                         </Button>
                       </div>
                       <div className="space-y-4">
-                        {/* add activity form */}
+                   
                         {showActivityForm && (
                           <form onSubmit={handlePostActivity}>
                             <textarea
@@ -911,7 +939,7 @@ const DealDrawer = ({
                             key={stream.id}
                             className="flex space-x-3 p-4 bg-muted/30 rounded-lg"
                           >
-                            {/* AVATAR */}
+                    
                             <Avatar
                               name={stream.createdByName || "System"}
                               size="36"
@@ -924,7 +952,6 @@ const DealDrawer = ({
                               }
                             />
 
-                            {/* CONTENT */}
                             <div className="flex-1">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
@@ -954,9 +981,7 @@ const DealDrawer = ({
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    // onClick={(e) =>
-                                    //   handleQuickAction(e, "edit", deal)
-                                    // }
+                  
                                     className="h-8 w-8"
                                   >
                                     <Icon name="Edit" size={14} />
@@ -973,12 +998,11 @@ const DealDrawer = ({
                                 </div>
                               </div>
 
-                              {/* MESSAGE */}
                               <p className="text-sm text-muted-foreground mt-1">
                                 {getActivityMessage(stream)}
                               </p>
 
-                              {/* STATUS BADGE */}
+     
                               {stream?.data?.value && (
                                 <span
                                   className={`inline-block mt-2 px-2 py-0.5 text-xs rounded-full ${getStatusColor(
@@ -1003,7 +1027,7 @@ const DealDrawer = ({
                         ))}
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                 </div>
               </>

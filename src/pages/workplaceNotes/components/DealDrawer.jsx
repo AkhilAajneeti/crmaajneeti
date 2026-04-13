@@ -12,6 +12,7 @@ import { useUsers } from "hooks/useUsers";
 import { useLeadStream } from "hooks/useLeadStream";
 import { useLeadActivity } from "hooks/useLeadActivity";
 import { useQueryClient } from "@tanstack/react-query";
+import { useWorkPlaceById, useworkplaceStream, useWorkPlaceSubs } from "hooks/useWorkplace";
 
 const DealDrawer = ({
   status,
@@ -56,13 +57,15 @@ const DealDrawer = ({
   const queryClient = useQueryClient();
   const { data: usersData } = useUsers();
   const { data: teamData } = useTeams();
-  const { data: streamData } = useLeadStream(deal?.id, isOpen);
+  const { data: streamData } = useworkplaceStream(deal?.id, isOpen);
   const { data: activityData } = useLeadActivity(deal?.id, isOpen);
+  const { data: workplaceById } = useWorkPlaceById(deal?.id, isOpen);
 
   const users = usersData?.list || [];
   const team = teamData?.list || [];
   const streams = streamData?.list || [];
   const activities = activityData?.list || [];
+  const [isFollowedLocal, setIsFollowedLocal] = useState(workplaceById?.isFollowed);
   useEffect(() => {
     if (mode === "add") {
       setFormData({
@@ -88,6 +91,7 @@ const DealDrawer = ({
       setIsEditing(false);
     }
   }, [deal, mode]);
+
 
   const [massFields, setMassFields] = useState({
     assignedUserId: false,
@@ -395,32 +399,23 @@ const DealDrawer = ({
     // from datetime-local input
     return value.replace("T", " ") + ":00";
   };
+  const { mutate: toggleFollow, isPending } = useWorkPlaceSubs();
 
-  // fetching lead stream from id
-  // useEffect(() => {
-  //   if (!isOpen || !deal?.id) return;
 
-  //   const loadActivity = async () => {
-  //     try {
-  //       const id = deal?.id;
-  //       const res = await leadActivitesById(id);
-  //       console.log("LEAD DETAIL RESPONSE:", res);
-  //       setActivities(res.list || []);
-  //     } catch (err) {
-  //       console.error("Failed to fetch streams", err);
-  //       toast.error("Failed to load activity");
-  //     }
-  //   };
+  useEffect(() => {
+    setIsFollowedLocal(workplaceById?.isFollowed);
+  }, [workplaceById]);
+  const handleFollowToggle = () => {
+    if (!deal?.id || isPending) return;
 
-  //   loadActivity();
-  // }, [isOpen, deal?.id]);
+    // ⚡ instant UI
+    setIsFollowedLocal(prev => !prev);
 
-  // useEffect(() => {
-  //   if (!isOpen) {
-  //     setmockStream([]);
-  //   }
-  // }, [isOpen]);
-  const leadData = leadsDetails || deal;
+    toggleFollow({
+      id: deal.id,
+      isFollowed: workplaceById?.isFollowed,
+    });
+  };
   return (
     <>
       {/* Backdrop */}
@@ -708,17 +703,32 @@ const DealDrawer = ({
                       onClick={() => setActiveTab(tab?.id)}
                       className={`
                   flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-smooth
-                  ${
-                    activeTab === tab?.id
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }
+                  ${activeTab === tab?.id
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        }
                 `}
                     >
                       <Icon name={tab?.icon} size={16} />
                       <span>{tab?.label}</span>
                     </button>
                   ))}
+                  <button
+                    onClick={handleFollowToggle}
+                    disabled={isPending}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 ${isFollowedLocal ? "text-primary-foreground bg-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`}
+                  >
+                    {isFollowedLocal ? (
+                      <span>Followed</span>
+                    ) : (
+                      <>
+                        <Icon name="Rss" size={16} />
+                        <span>Follow</span>
+                      </>
+                    )}
+                  </button>
                 </div>
 
                 {/* Content */}
@@ -729,86 +739,62 @@ const DealDrawer = ({
                       <div className="border border-border rounded-xl p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Name */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Name
+                          <div className="col-span-2">
+                            <p className="text-base text-muted-foreground">
+                              Suject
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.name || "—"}
+                              {workplaceById?.name || "—"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Category
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {workplaceById?.category || "—"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Impact Level
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {workplaceById?.impactLevel || "—"}
                             </p>
                           </div>
 
-                          {/* Phone */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Phone
-                            </p>
-                            {deal?.phoneNumber ? (
-                              <a
-                                href={`tel:${deal.phoneNumber}`}
-                                className="text-primary hover:underline"
-                              >
-                                {deal.phoneNumber}
-                              </a>
-                            ) : (
-                              <p className="text-foreground">—</p>
-                            )}
-                          </div>
 
-                          {/* Email */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Email
-                            </p>
-                            {deal?.emailAddress ? (
-                              <a
-                                href={`mailto:${deal.emailAddress}`}
-                                className="text-primary hover:underline break-all"
-                              >
-                                {deal.emailAddress}
-                              </a>
-                            ) : (
-                              <p className="text-foreground">—</p>
-                            )}
-                          </div>
 
-                          {/* WhatsApp */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Whatsapp
-                            </p>
-                            {deal?.phoneNumber ? (
-                              <a
-                                href={`https://wa.me/${deal.phoneNumber.replace(/\D/g, "")}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline"
-                              >
-                                wa.me/{deal.phoneNumber.replace(/\D/g, "")}
-                              </a>
-                            ) : (
-                              <p className="text-foreground">—</p>
-                            )}
-                          </div>
+
 
                           {/* City */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              City
+                              Note Type
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.addressCity || "—"}
+                              {workplaceById?.noteType || "—"}
+                            </p>
+                          </div>
+                          {/* City */}
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Status
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {workplaceById?.status || "—"}
                             </p>
                           </div>
 
                           {/* Next Contact */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              Next Contact
+                              Incident Date
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.cNextContactAt
-                                ? formatDateTime(deal.cNextContactAt)
+                              {deal?.incidentDate
+                                ? formatDate(workplaceById?.incidentDate)
                                 : "—"}
                             </p>
                           </div>
@@ -816,20 +802,10 @@ const DealDrawer = ({
                           {/* Project Name */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              Project Name
+                              Supporting Document
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.cProjectName || "—"}
-                            </p>
-                          </div>
-
-                          {/* Preference */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Preference
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.cQuestion || "—"}
+                              {workplaceById?.supportingDocument || "—"}
                             </p>
                           </div>
                         </div>
@@ -845,39 +821,29 @@ const DealDrawer = ({
                           {/* Status */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              Status
+                              Created
                             </p>
-                            <span className="inline-flex px-3 py-1 rounded-full text-xs font-medium bg-success/10 text-success">
-                              {deal?.status || "—"}
+                            <span className="inline-flex py-1">
+                              {formatDate(workplaceById?.createdAt)} : {workplaceById?.createdByName || "—"}
                             </span>
                           </div>
 
                           {/* Source */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              Source
+                              Modified
                             </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.source || "—"}
-                            </p>
-                          </div>
-                          {/* Source */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Industry
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.industry || "—"}
-                            </p>
+                            <span className="inline-flex py-1">
+                              {formatDate(workplaceById?.modifiedAt)} : {workplaceById?.modifiedByName || "—"}
+                            </span>
                           </div>
 
-                          {/* Description */}
                           <div className="md:col-span-2">
                             <p className="text-sm text-muted-foreground">
                               Description
                             </p>
                             <p className="text-foreground leading-relaxed mt-1">
-                              {deal?.description || "—"}
+                              {workplaceById?.description || "—"}
                             </p>
                           </div>
                         </div>
@@ -1053,20 +1019,66 @@ const DealDrawer = ({
                               Assigned User
                             </p>
                             <p className="text-foreground font-medium">
-                              {leadData?.assignedUserName || "—"}
+                              {workplaceById?.assignedUserName || "—"}
                             </p>
                           </div>
 
                           {/* Followers */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              Followers
+                              Teams Names
                             </p>
                             <p className="text-foreground font-medium">
-                              {leadsDetails?.followersNames ? (
+                              {workplaceById?.teamsNames ? (
                                 <div className="flex flex-wrap gap-2">
                                   {Object.entries(
-                                    leadsDetails.followersNames,
+                                    workplaceById.teamsNames,
+                                  ).map(([id, name]) => (
+                                    <span
+                                      key={id}
+                                      className="text-sm text-primary font-medium"
+                                    >
+                                      {name}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span>—</span>
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Collaborators Names
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {workplaceById?.collaboratorsNames ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {Object.entries(
+                                    workplaceById.collaboratorsNames
+                                  ).map(([id, name]) => (
+                                    <span
+                                      key={id}
+                                      className="text-sm text-primary font-medium"
+                                    >
+                                      {name}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span>—</span>
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Followers Names
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {workplaceById?.followersNames ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {Object.entries(
+                                    workplaceById.followersNames
                                   ).map(([id, name]) => (
                                     <span
                                       key={id}
@@ -1097,8 +1109,8 @@ const DealDrawer = ({
                               Created
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.createdAt
-                                ? `${formatDateTime(deal.createdAt)} by ${deal?.createdByName || "—"}`
+                              {workplaceById?.createdAt
+                                ? `${formatDateTime(workplaceById.createdAt)} by ${workplaceById?.createdByName || "—"}`
                                 : "—"}
                             </p>
                           </div>
@@ -1109,8 +1121,8 @@ const DealDrawer = ({
                               Last Modified
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.modifiedAt
-                                ? `${formatDateTime(deal.modifiedAt)} by ${deal?.modifiedByName || "—"}`
+                              {workplaceById?.modifiedAt
+                                ? `${formatDateTime(workplaceById.modifiedAt)} by ${workplaceById?.modifiedByName || "—"}`
                                 : "—"}
                             </p>
                           </div>
@@ -1126,11 +1138,10 @@ const DealDrawer = ({
                           <div
                             key={activity.id}
                             onClick={() => toggleActivity(activity.id)}
-                            className={`cursor-pointer rounded-lg p-4 transition-all duration-300${
-                              expandedActivityId === activity.id
-                                ? "bg-muted shadow-sm"
-                                : "bg-muted/30 hover:bg-muted"
-                            }`}
+                            className={`cursor-pointer rounded-lg p-4 transition-all duration-300${expandedActivityId === activity.id
+                              ? "bg-muted shadow-sm"
+                              : "bg-muted/30 hover:bg-muted"
+                              }`}
                           >
                             {/*  */}
                             <div className="flex space-x-3">
@@ -1187,11 +1198,10 @@ const DealDrawer = ({
 
                             {/*  */}
                             <div
-                              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                                expandedActivityId === activity.id
-                                  ? "max-h-[600px] opacity-100 mt-4"
-                                  : "max-h-0 opacity-0"
-                              }`}
+                              className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedActivityId === activity.id
+                                ? "max-h-[600px] opacity-100 mt-4"
+                                : "max-h-0 opacity-0"
+                                }`}
                             >
                               <div className="border-t pt-4 text-sm text-muted-foreground">
                                 <div className="grid grid-cols-2 gap-x-6 gap-y-4">

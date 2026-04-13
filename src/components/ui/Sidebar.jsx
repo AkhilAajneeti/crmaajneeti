@@ -134,6 +134,18 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
     },
     {
+      label: "Complaints",
+      path: "/complaints",
+      icon: "AlertTriangle",
+      badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
+    },
+    {
+      label: "Knowledge Base",
+      path: "/knowledge-base",
+      icon: "LibraryBig",
+      badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
+    },
+    {
       label: "Pipeline",
       path: "/pipeline",
       icon: "Filter",

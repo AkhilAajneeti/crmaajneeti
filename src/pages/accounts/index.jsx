@@ -9,7 +9,6 @@ import AccountsFilters from "./components/AccountsFilters";
 import AccountDrawer from "./components/AccountDrawer";
 import {
   createAccount,
-  fetchAccounts,
   updateAccount,
 } from "services/account.service";
 import toast from "react-hot-toast";
@@ -31,95 +30,26 @@ const AccountsPage = () => {
   const [selectedAccountIds, setSelectedAccountIds] = useState([]);
 
   const [filters, setFilters] = useState({
-    industry: "",
+    search: "",
     type: "",
-    activityDate: "",
+    dateType: "",
+    startDate: "",
+    endDate: "",
   });
   console.log("Selectde account", selectedAccount);
-  const { data, isLoading } = useAccounts({ limit, page });
+  const { data, isLoading } = useAccounts({ limit, page, filters });
   const { data: meta } = useMetaData();
   const queryClient = useQueryClient();
   const mockAccounts = data?.list || [];
-  const industry = meta?.industries || [];
+  const industry = meta?.type || [];
   const accType = meta?.type || [];
   const total = data?.total || 0;
   const handleAccountSuccess = async () => {
-    try {
-      const data = await fetchAccounts({ limit, page });
-      queryClient.invalidateQueries(["accounts", limit, page]);
-    } catch (error) {
-      console.error("Failed to refresh accounts", error);
-    }
+    queryClient.invalidateQueries({ queryKey: ["accounts"] });
+
   };
-  const getDateRangeByFilter = (filter) => {
-    const now = new Date();
-    let start = null;
-    let end = new Date();
 
-    switch (filter) {
-      case "today":
-        start = new Date();
-        start.setHours(0, 0, 0, 0);
-        break;
 
-      case "yesterday":
-        start = new Date();
-        start.setDate(start.getDate() - 1);
-        start.setHours(0, 0, 0, 0);
-
-        end = new Date(start);
-        end.setHours(23, 59, 59, 999);
-        break;
-
-      case "last_7_days":
-        start = new Date();
-        start.setDate(start.getDate() - 7);
-        break;
-
-      case "current_month":
-        start = new Date(now.getFullYear(), now.getMonth(), 1);
-        break;
-
-      case "last_month":
-        start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-        break;
-
-      default:
-        return null;
-    }
-
-    return { startDate: start, endDate: end };
-  };
-  const filteredAccounts = useMemo(() => {
-    return mockAccounts?.filter((account) => {
-      // Industry
-      if (
-        filters.industry &&
-        account?.industry?.toLowerCase() !== filters.industry
-      ) {
-        return false;
-      }
-
-      // Type
-      if (filters.type && account?.type?.toLowerCase() !== filters.type) {
-        return false;
-      }
-
-      // Date filter (Created At)
-      if (filters.activityDate) {
-        const range = getDateRangeByFilter(filters.activityDate);
-        if (!range) return true;
-
-        const createdAt = new Date(account.createdAt);
-        if (createdAt < range.startDate || createdAt > range.endDate) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [mockAccounts, filters]);
 
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -159,8 +89,8 @@ const AccountsPage = () => {
       // 1️⃣ Agar kuch selected hai → sirf wahi export
       const accountsToExport =
         ids && ids.length > 0
-          ? filteredAccounts.filter((acc) => ids.includes(acc.id))
-          : filteredAccounts;
+          ? mockAccounts.filter((acc) => ids.includes(acc.id))
+          : mockAccounts;
 
       if (!accountsToExport.length) {
         toast.error("No accounts to export");
@@ -211,9 +141,8 @@ const AccountsPage = () => {
       const link = document.createElement("a");
 
       link.href = url;
-      link.download = `accounts_export_${
-        new Date().toISOString().split("T")[0]
-      }.csv`;
+      link.download = `accounts_export_${new Date().toISOString().split("T")[0]
+        }.csv`;
 
       document.body.appendChild(link);
       link.click();
@@ -366,7 +295,7 @@ const AccountsPage = () => {
           <AccountsFilters
             onFiltersChange={handleFiltersChange}
             activeFilters={filters}
-            resultCount={filteredAccounts?.length}
+            resultCount={mockAccounts?.length}
             total={total}
             limit={limit}
             page={page}
@@ -374,7 +303,7 @@ const AccountsPage = () => {
 
           {/* Accounts Table */}
           <AccountsTable
-            accounts={filteredAccounts}
+            accounts={mockAccounts}
             onRowClick={handleRowClick}
             onBulkAction={handleBulkAction}
             onSelectionChange={setSelectedAccountIds}

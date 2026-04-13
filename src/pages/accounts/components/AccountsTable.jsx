@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
-import Input from "../../../components/ui/Input";
+
 import Select from "../../../components/ui/Select";
 import { Checkbox } from "../../../components/ui/Checkbox";
 const AccountsTable = ({
@@ -204,15 +204,7 @@ const AccountsTable = ({
       {/* Table Header with Search and Filters */}
       <div className="p-4 border-b border-border space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex-1 max-w-md">
-            <Input
-              type="search"
-              placeholder="Search accounts..."
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e?.target?.value)}
-              className="w-full"
-            />
-          </div>
+
 
           <div className="flex items-center gap-2">
             {selectedRows?.size > 0 && (
@@ -388,7 +380,7 @@ const AccountsTable = ({
                           }
                         >
                           <Icon name="Trash2" size={16} />
-                        </Button>
+                        </Button> 
                       </div>
                     </td>
                   )}

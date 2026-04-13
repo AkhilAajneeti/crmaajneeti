@@ -11,6 +11,7 @@ import { fetchActivity } from "services/activity.service";
 import MultiLineChart from "./components/MultiLineChart";
 import { fetchMeeting } from "services/meeting.service";
 import Button from "../../components/ui/Button";
+import { useLeadsCount } from "hooks/useLeads";
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [leads, setLeads] = useState([]);
@@ -18,6 +19,83 @@ const Dashboard = () => {
   const [meetingsList, setMeetingsList] = useState([]);
   const [activeInsight, setActiveInsight] = useState(null);
   const [insightData, setInsightData] = useState([]);
+
+  // update by filter
+
+  const getTodayRange = () => {
+    const now = new Date();
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+
+    return {
+      start: start.toISOString(),
+      end: now.toISOString(),
+    };
+  };
+  const { start, end } = getTodayRange();
+  // ✅ 1. HOOKS FIRST
+  const thisMonthQuery = useLeadsCount([
+    { type: "currentMonth", attribute: "createdAt" }
+  ]);
+
+  const todayQuery = useLeadsCount([
+    {
+      type: "today",
+      attribute: "createdAt",
+    },
+  ]);
+
+  const interestedQuery = useLeadsCount([
+    {
+      type: "in",
+      attribute: "status",
+      value: ["Interested"],
+    },
+    {
+      type: "currentMonth",
+      attribute: "createdAt",
+    },
+  ]);
+
+  const lastMonthQuery = useLeadsCount([
+    { type: "lastMonth", attribute: "createdAt" }
+  ]);
+
+  const yesterdayQuery = useLeadsCount([
+    { type: "yesterday", attribute: "createdAt" }
+  ]);
+
+  const interestedLastMonthQuery = useLeadsCount([
+    { type: "lastMonth", attribute: "createdAt" },
+    { type: "equals", attribute: "status", value: "Interested" }
+  ]);
+
+  // ✅ 2. EXTRACT DATA
+  const thisMonth = thisMonthQuery.data || 0;
+  const today = todayQuery.data || 0;
+  const interested = interestedQuery.data || 0;
+
+  const lastMonth = lastMonthQuery.data || 0;
+  const yesterday = yesterdayQuery.data || 0;
+  const interestedLastMonth = interestedLastMonthQuery.data || 0;
+
+  // ✅ 3. CALCULATIONS
+  const monthGrowth =
+    lastMonth === 0
+      ? 0
+      : Math.round(((thisMonth - lastMonth) / lastMonth) * 100);
+
+  const todayDiff = today - yesterday;
+
+  const interestedGrowth =
+    interestedLastMonth === 0
+      ? 0
+      : Math.round(
+        ((interested - interestedLastMonth) / interestedLastMonth) * 100
+      );
+
+
   // leads
   useEffect(() => {
     const loadLeads = async () => {
@@ -109,50 +187,7 @@ const Dashboard = () => {
   };
   // calculate
   const now = new Date();
-  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  // this month leads
-  const thisMonthLead = leads.filter(
-    (l) => l.createdAt && isSameMonth(l.createdAt, now),
-  );
 
-  // this last month
-  const lastMonthLead = leads.filter((l) =>
-    isSameMonth(l.createdAt, lastMonth),
-  );
-  // monthly growth
-  const monthGrowth =
-    lastMonthLead.length === 0
-      ? 0
-      : Math.round(
-          ((thisMonthLead.length - lastMonthLead.length) /
-            lastMonthLead.length) *
-            100,
-        );
-
-  // today vs Yesterday
-  const todayLead = leads.filter((l) => isToday(l.createdAt));
-
-  const yesterdayLead = leads.filter((l) => isYesterday(l.createdAt));
-  const todayDiff = todayLead.length - yesterdayLead.length;
-
-  // interrested leads
-  const interestedThisMonth = leads.filter(
-    (l) => l.status === "Interested" && isSameMonth(l.createdAt, now),
-  );
-
-  const interestedLastMonth = leads.filter(
-    (l) => l.status === "Interested" && isSameMonth(l.createdAt, lastMonth),
-  );
-  const interestedGrowth =
-    interestedLastMonth.length === 0
-      ? 0
-      : Math.round(
-          ((interestedThisMonth.length - interestedLastMonth.length) /
-            interestedLastMonth.length) *
-            100,
-        );
-
-  //
   const handleMenuToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -194,7 +229,7 @@ const Dashboard = () => {
   const kpiData = [
     {
       title: "This Month Leads",
-      value: thisMonthLead.length,
+      value: thisMonth,
       change: `${monthGrowth}%`,
       changeType: monthGrowth >= 0 ? "positive" : "negative",
       icon: "Users",
@@ -204,7 +239,7 @@ const Dashboard = () => {
     },
     {
       title: "Today Leads",
-      value: todayLead.length,
+      value: today,
       change: todayDiff >= 0 ? `+${todayDiff}` : `${todayDiff}`,
       changeType: todayDiff >= 0 ? "positive" : "negative",
       icon: "Calendar",
@@ -214,7 +249,7 @@ const Dashboard = () => {
     },
     {
       title: "Interested Leads",
-      value: interestedThisMonth.length,
+      value: interested,
       change: `${interestedGrowth}%`,
       changeType: interestedGrowth >= 0 ? "positive" : "negative",
       icon: "Star",

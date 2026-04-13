@@ -125,8 +125,8 @@ const DealsTable = ({
                   onClick={() => onSort("account")}
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
-                  <span>Project Name</span>
-                  {getSortIcon("Project Name")}
+                  <span>Sector</span>
+                  {getSortIcon("Sector")}
                 </button>
               </th>
               <th className="text-left px-4 py-3">
@@ -141,10 +141,18 @@ const DealsTable = ({
               <th className="d-flex justify-content-center px-4 py-3">
                 <button
                   onClick={() => onSort("Status")}
-                  className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                  className=" d-flex align-items-center justify-content-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
                   <span>Status</span>
-                  {getSortIcon("owner")}
+                  {/* {getSortIcon("owner")} */}
+                </button>
+              </th>
+              <th className="d-flex align-items-center justify-content-center  px-4 py-3">
+                <button
+                  onClick={() => onSort("assignUser")}
+                  className="d-flex align-items-center justify-content-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                >
+                  <span>Assigned User</span>
                 </button>
               </th>
             </tr>
@@ -174,7 +182,7 @@ const DealsTable = ({
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-foreground">{deal?.cProjectName}</div>
+                    <div className="text-foreground">{deal?.cSector}</div>
                   </td>
                   <td className="px-4 py-4">
                     <div className="font-medium text-foreground">
@@ -189,6 +197,15 @@ const DealsTable = ({
                     >
                       <span className={`text-sm text-foreg roundunded-full `}>
                         {deal?.status}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div
+                      className={`flex justify-center items-center space-x-2 px-2 py-1 font-medium rounded-ful`}
+                    >
+                      <span className={`text-sm text-foreg roundunded-full `}>
+                        {deal?.assignedUserName}
                       </span>
                     </div>
                   </td>

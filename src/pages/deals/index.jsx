@@ -37,7 +37,7 @@ const DealsPage = () => {
   const [mode, setMode] = useState("view");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
-  const { data: leadsData, isLoading } = useNewLeads({ limit, page });
+
   const { data: metaData } = useMetaData();
   const { data: leadsDetails } = useLeadDetails(selectedDeal?.id, mode);
 
@@ -51,14 +51,17 @@ const DealsPage = () => {
     projectName: "",
     source: "",
     assignUser: "",
+    dateType: "",        // 👈 NEW (today, before, between, etc.)
     closeDateFrom: "",
     closeDateTo: "",
+    xDays: ""            // 👈 for "Last X Days", "After X Days"
   });
+  const { data: leadsData, isLoading } = useNewLeads({ limit, page, filters });
   const createLeadMutation = useMutation({
     mutationFn: createLead,
     onSuccess: () => {
       toast.success("Lead created");
-      queryClient.invalidateQueries(["leads"]);
+      queryClient.invalidateQueries({ queryKey: ["leads"], exact: false });
     },
   });
   const deleteLeadMutation = useMutation({
@@ -106,79 +109,7 @@ const DealsPage = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Filter and sort deals
-  const filteredAndSortedDeals = useMemo(() => {
-    let filtered = leads?.filter((deal) => {
-      const search = filters?.search?.toLowerCase();
 
-      const matchesSearch =
-        !search ||
-        deal?.name?.toLowerCase()?.includes(search) ||
-        deal?.emailAddress?.toLowerCase()?.includes(search) ||
-        deal?.phoneNumber?.includes(search) ||
-        deal?.accountName?.toLowerCase()?.includes(search);
-
-      const matchesStatus =
-        !filters?.status || deal?.status === filters?.status;
-
-      const matchesSource =
-        !filters?.source || deal?.source === filters?.source;
-
-      const matchesprojectName =
-        !filters?.projectName ||
-        deal?.cProjectName
-          ?.toLowerCase()
-          .includes(filters.projectName.toLowerCase());
-
-      const matchesAssignUser =
-        !filters?.assignUser || deal?.assignedUserId === filters?.assignUser;
-
-      const matchesCreatedFrom =
-        !filters?.closeDateFrom ||
-        new Date(deal?.createdAt?.replace(" ", "T")) >=
-          new Date(filters?.closeDateFrom);
-
-      const matchesCreatedTo =
-        !filters?.closeDateTo ||
-        new Date(deal?.createdAt?.replace(" ", "T")) <=
-          new Date(filters?.closeDateTo);
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesSource &&
-        matchesprojectName &&
-        matchesAssignUser &&
-        matchesCreatedFrom &&
-        matchesCreatedTo
-      );
-    });
-
-    // ✅ SAFE SORTING
-    if (sortConfig?.key) {
-      filtered.sort((a, b) => {
-        let aValue = a?.[sortConfig.key];
-        let bValue = b?.[sortConfig.key];
-
-        if (sortConfig.key === "opportunityAmount") {
-          aValue = Number(aValue ?? 0);
-          bValue = Number(bValue ?? 0);
-        } else if (sortConfig.key === "createdAt") {
-          aValue = new Date(aValue);
-          bValue = new Date(bValue);
-        } else if (typeof aValue === "string") {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [leads, filters, sortConfig]);
 
   const totalPages = Math.ceil(total / limit);
 
@@ -244,16 +175,16 @@ const DealsPage = () => {
   };
 
   const handleSelectAll = (isSelected) => {
-  const currentPageDeals = deals.map((deal) => deal.id);
+    const currentPageDeals = deals.map((deal) => deal.id);
 
-  if (isSelected) {
-    setSelectedDeals([...new Set([...selectedDeals, ...currentPageDeals])]);
-  } else {
-    setSelectedDeals(
-      selectedDeals.filter((id) => !currentPageDeals.includes(id))
-    );
-  }
-};
+    if (isSelected) {
+      setSelectedDeals([...new Set([...selectedDeals, ...currentPageDeals])]);
+    } else {
+      setSelectedDeals(
+        selectedDeals.filter((id) => !currentPageDeals.includes(id))
+      );
+    }
+  };
 
   const handleSort = (key) => {
     setSortConfig((prevConfig) => ({
@@ -277,8 +208,10 @@ const DealsPage = () => {
       projectName: "",
       source: "",
       assignUser: "",
+      dateType: "",        // 👈 NEW (today, before, between, etc.)
       closeDateFrom: "",
       closeDateTo: "",
+      xDays: ""
     });
     setPage(1);
   };
@@ -301,7 +234,7 @@ const DealsPage = () => {
         return;
       }
 
-      const selectedRows = filteredAndSortedDeals.filter((deal) =>
+      const selectedRows = leads.filter((deal) =>
         selectedDeals.includes(deal.id),
       );
 
@@ -381,10 +314,6 @@ const DealsPage = () => {
     }
   };
 
-  // Reset page when filters change
-  useEffect(() => {
-    setPage(1);
-  }, [filters]);
 
   return (
     <>
@@ -416,7 +345,7 @@ const DealsPage = () => {
                   className="linearbg-1 text-white hover:text-white"
                   variant="outline"
                   onClick={() =>
-                    exportLeadsToCSV(filteredAndSortedDeals, "all_leads")
+                    exportLeadsToCSV(leads, "all_leads")
                   }
                 >
                   <Icon name="Download" size={16} className="mr-2" />
@@ -438,13 +367,11 @@ const DealsPage = () => {
               filters={filters}
               onFiltersChange={handleFiltersChange}
               onClearFilters={handleClearFilters}
-              dealCount={filteredAndSortedDeals?.length}
+              dealCount={total}
               onBulkAction={handleBulkAction}
               selectedCount={selectedDeals?.length}
               toggleAnalytics={() => setShowAnalytics((prev) => !prev)}
-              total={total}
-              limit={limit}
-              page={page}
+           
             />
             {/* chartsAnanlysis */}
             {showAnalytics && (
@@ -460,20 +387,20 @@ const DealsPage = () => {
                   </Button>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  <IndustryChart leads={filteredAndSortedDeals} />
+                  <IndustryChart leads={leads} />
 
-                  <MultiLineChart leads={filteredAndSortedDeals} />
+                  <MultiLineChart leads={leads} />
 
-                  <StatusChart leads={filteredAndSortedDeals} />
+                  <StatusChart leads={leads} />
 
-                  <AssignedUserChart leads={filteredAndSortedDeals} />
+                  <AssignedUserChart leads={leads} />
                 </div>
               </div>
             )}
 
             {/* Deals Table */}
             <DealsTable
-              deals={filteredAndSortedDeals}
+              deals={leads}
               selectedDeals={selectedDeals}
               onSelectDeal={handleSelectDeal}
               onSelectAll={handleSelectAll}

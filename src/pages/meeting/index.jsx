@@ -10,7 +10,7 @@ import DealsFilters from "./components/DealsFilters";
 import DealDrawer from "./components/DealDrawer";
 import TablePagination from "./components/TablePagination";
 import { deleteActivity } from "services/leads.service";
-import { useMeetings } from "hooks/useMeetings";
+import { useAllMeetings, useMeetings } from "hooks/useMeetings";
 import { useMeeting } from "hooks/useMeeting";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -32,21 +32,27 @@ const MeetingPage = () => {
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [mode, setMode] = useState("view");
+  const [limit, setLimit] = useState(20);
+  const [page, setPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({
     key: "name",
     direction: "asc",
   });
-  const { data, isLoading } = useMeetings();
-
-  const leads = data?.list || [];
-  const loading = isLoading;
   const [filters, setFilters] = useState({
     search: "",
     status: "",
+    priority: "",
     assignUser: "",
-    closeDateFrom: "",
-    closeDateTo: "",
+    startDate: "",
+    endDate: "",
+    dateType: "",
   });
+  const { data, isLoading } = useAllMeetings({ limit, page, filters });
+
+  const leads = data?.list || [];
+  const total = data?.total || [];
+  const loading = isLoading;
+
   const { data: selectedDealData } = useMeeting(
     selectedDeal?.id,
     isDrawerOpen && !!selectedDeal?.id,
@@ -57,66 +63,8 @@ const MeetingPage = () => {
     setMode("view");
     setIsDrawerOpen(true);
   };
-  // Filter and sort deals
-  const filteredAndSortedDeals = useMemo(() => {
-    let filtered = leads?.filter((deal) => {
-      const search = filters?.search?.toLowerCase();
 
-      const matchesSearch =
-        !search ||
-        deal?.name?.toLowerCase()?.includes(search) ||
-        deal?.parentName?.toLowerCase()?.includes(search);
-
-      const matchesStatus =
-        !filters?.status || deal?.status === filters?.status;
-      const matchesAssignUser =
-        !filters.assignUser ||
-        String(deal.assignedUserId) === String(filters.assignUser);
-
-      const matchesCreatedFrom =
-        !filters?.closeDateFrom ||
-        new Date(deal?.createdAt) >= new Date(filters?.closeDateFrom);
-
-      const matchesCreatedTo =
-        !filters?.closeDateTo ||
-        new Date(deal?.createdAt) <= new Date(filters?.closeDateTo);
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesAssignUser &&
-        matchesCreatedFrom &&
-        matchesCreatedTo
-      );
-    });
-
-    // ✅ SAFE SORTING
-    if (sortConfig?.key) {
-      filtered.sort((a, b) => {
-        let aValue = a?.[sortConfig.key];
-        let bValue = b?.[sortConfig.key];
-
-        if (sortConfig.key === "opportunityAmount") {
-          aValue = Number(aValue ?? 0);
-          bValue = Number(bValue ?? 0);
-        } else if (sortConfig.key === "createdAt") {
-          aValue = new Date(aValue);
-          bValue = new Date(bValue);
-        } else if (typeof aValue === "string") {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [leads, filters, sortConfig]);
-
-  const totalPages = Math.ceil(filteredAndSortedDeals?.length / itemsPerPage);
+  const totalPages = Math.ceil(total / limit);
 
   const handleMenuToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -218,12 +166,12 @@ const MeetingPage = () => {
   const handleClearFilters = () => {
     setFilters({
       search: "",
-      stage: "",
-      owner: "",
-      minValue: "",
-      maxValue: "",
-      closeDateFrom: "",
-      closeDateTo: "",
+      status: "",
+      priority: "",
+      assignUser: "",
+      startDate: "",
+      endDate: "",
+      dateType: "",
     });
     setCurrentPage(1);
   };
@@ -303,6 +251,7 @@ const MeetingPage = () => {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
+    setPage(1);
   }, [filters]);
 
   return (
@@ -343,34 +292,37 @@ const MeetingPage = () => {
               filters={filters}
               onFiltersChange={handleFiltersChange}
               onClearFilters={handleClearFilters}
-              dealCount={filteredAndSortedDeals?.length}
+              dealCount={total}
               onBulkAction={handleBulkAction}
               selectedCount={selectedDeals?.length}
             />
 
             {/* Deals Table */}
             <DealsTable
-              deals={filteredAndSortedDeals}
+              deals={leads}
               selectedDeals={selectedDeals}
               onSelectDeal={handleSelectDeal}
               onSelectAll={handleSelectAll}
               onDealClick={handleDealClick}
               sortConfig={sortConfig}
               onSort={handleSort}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
+              currentPage={page}
+              itemsPerPage={limit}
               onDelete={handleDeleteMeeting}
               isLoading={loading}
             />
 
             {/* Pagination */}
             <TablePagination
-              currentPage={currentPage}
+              currentPage={page}
               totalPages={totalPages}
-              totalItems={filteredAndSortedDeals?.length}
-              itemsPerPage={itemsPerPage}
-              onPageChange={handlePageChange}
-              onItemsPerPageChange={handleItemsPerPageChange}
+              totalItems={total}
+              itemsPerPage={limit}
+              onPageChange={setPage}
+              onItemsPerPageChange={(newLimit) => {
+                setLimit(newLimit);
+                setPage(1);
+              }}
             />
           </div>
         </main>

@@ -86,10 +86,7 @@ const DealsTable = ({
     await onDelete(deal.id); // 👈 parent ko bol rahe ho
   };
 
-  const paginatedDeals = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return deals?.slice(startIndex, startIndex + itemsPerPage);
-  }, [deals, currentPage, itemsPerPage]);
+  const paginatedDeals = deals;
 
   const isAllSelected =
     selectedDeals?.length === paginatedDeals?.length &&

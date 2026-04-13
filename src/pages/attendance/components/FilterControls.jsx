@@ -20,11 +20,16 @@ const FilterControls = ({
   const [assignUser, setAssignUser] = useState([]);
 
   const daysOptions = [
-    { value: "Today", label: "Today" },
-    { value: "Yesterday", label: "Yesterday" },
-    { value: "Last 3 Days", label: "Last 3 Days" },
-    { value: "Last 7 Days", label: "Last 7 Days" },
-    { value: "Current Month", label: "Current Month" },
+    { label: "Today", value: "today" },
+    { label: "Yesterday", value: "yesterday" },
+    { label: "Last 7 Days", value: "last7Days" },
+
+    { label: "Before", value: "before" },
+    { label: "After", value: "after" },
+
+    { label: "Between", value: "between" },
+    { label: "This Month", value: "currentMonth" },
+    { label: "Last Month", value: "lastMonth" },
   ];
 
   const handleFilterChange = (key, value) => {
@@ -44,7 +49,7 @@ const FilterControls = ({
     bulkActions(action);
     setShowBulkActions(false);
   };
-
+  const showDateInputs = ["between", "after", "before"].includes(filters?.dateType);
   const activeFiltersCount = Object.values(filters)?.filter(
     (value) => value !== "" && value !== null && value !== undefined,
   )?.length;
@@ -170,8 +175,8 @@ const FilterControls = ({
         <Select
           placeholder="Filter By Days"
           options={daysOptions}
-          value={filters?.days || ""}
-          onChange={(value) => handleFilterChange("days", value)}
+          value={filters?.dateType || ""}
+          onChange={(value) => handleFilterChange("dateType", value)}
         />
 
         <Select
@@ -180,33 +185,39 @@ const FilterControls = ({
           value={filters?.createdByName || ""}
           onChange={(value) => handleFilterChange("createdByName", value)}
         />
-      </div>
-      {/* Advanced Filters Toggle */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mt-4 pt-4 border-t border-border">
-        <div className="flex flex-col sm:flex-row gap-3 w-full">
-          <Input
-            type="date"
-            placeholder="Close date from"
-            value={filters?.closeDateFrom || ""}
-            onChange={(e) =>
-              handleFilterChange("closeDateFrom", e?.target?.value)
-            }
-          />
-          <Input
-            type="date"
-            placeholder="Close date to"
-            value={filters?.closeDateTo || ""}
-            onChange={(e) =>
-              handleFilterChange("closeDateTo", e?.target?.value)
-            }
-          />
-        </div>
         <Button
           onClick={toggleAnalytics}
           className="linearbg-1 text-white hover:text-white"
         >
           Calender
         </Button>
+      </div>
+      {/* Advanced Filters Toggle */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mt-4 pt-4 border-t border-border">
+        <div className="flex flex-col sm:flex-row gap-3 w-full">
+          {showDateInputs && (
+            <div className="flex gap-2">
+              <Input
+                type="date"
+                value={filters?.closeDateFrom || ""}
+                onChange={(e) =>
+                  handleFilterChange("closeDateFrom", e.target.value)
+                }
+              />
+
+              {filters?.dateType === "between" && (
+                <Input
+                  type="date"
+                  value={filters?.closeDateTo || ""}
+                  onChange={(e) =>
+                    handleFilterChange("closeDateTo", e.target.value)
+                  }
+                />
+              )}
+            </div>
+          )}
+        </div>
+        
       </div>
     </div>
   );

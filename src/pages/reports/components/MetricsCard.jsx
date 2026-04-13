@@ -24,7 +24,7 @@ const MetricsCard = ({ title, value, change, changeType, icon, iconColor, descri
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <div className="flex items-center space-x-3 mb-4">
+          <div className="flex items-center space-x-3 mb-2">
             <div className={`w-12 h-12 ${iconColor} rounded-lg flex items-center justify-center`}>
               <Icon name={icon} size={24} color="white" />
             </div>
@@ -35,18 +35,9 @@ const MetricsCard = ({ title, value, change, changeType, icon, iconColor, descri
           </div>
           
           {description && (
-            <p className="text-sm text-muted-foreground mb-3">{description}</p>
+            <p className="text-sm text-muted-foreground">{description}</p>
           )}
           
-          {/* {change && (
-            <div className="flex items-center space-x-2">
-              <div className={`flex items-center space-x-1 ${getChangeColor()}`}>
-                <Icon name={getChangeIcon()} size={16} />
-                <span className="text-sm font-medium">{change}</span>
-              </div>
-              <span className="text-sm text-muted-foreground">vs last month</span>
-            </div>
-          )} */}
         </div>
       </div>
     </motion.div>

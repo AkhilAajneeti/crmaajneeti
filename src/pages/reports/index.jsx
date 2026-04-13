@@ -12,16 +12,17 @@ import { fetchSources, fetchStatus } from "services/others.service";
 import Button from "components/ui/Button";
 import Icon from "../../components/AppIcon";
 import DealsTable from "./components/DealsTable";
-import { fetchLeads } from "services/leads.service";
+import { useNewLeads } from "hooks/useLeads";
+import { useReport } from "hooks/useReport";
 
 const Reports = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [leads, setLeads] = useState([]);
   const [source, setSource] = useState([]);
   const [status, setStatus] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [limit, setLimit] = useState(20);
+  const [page, setPage] = useState(1);
   const [selectedDeals, setSelectedDeals] = useState([]);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [sortConfig, setSortConfig] = useState({
@@ -31,14 +32,18 @@ const Reports = () => {
   const [filters, setFilters] = useState({
     search: "",
     status: "",
-    days: "",
+    projectName: "",
     source: "",
     assignUser: "",
-    closeDateFrom: "",
-    closeDateTo: "",
+    dateType: "today",        // 👈 NEW (today, before, between, etc.)
+
   });
 
-    useEffect(() => {
+
+  const { data: leadsData, isLoading } = useReport({ limit, page, filters });
+  const leads = leadsData?.list || [];
+  const total = leadsData?.total || 0;
+  useEffect(() => {
     const loadSource = async () => {
       try {
         const data = await fetchSources();
@@ -47,7 +52,7 @@ const Reports = () => {
       } catch (error) {
         console.log("failed to fetch data", error);
       } finally {
-        
+
       }
     };
     loadSource();
@@ -60,11 +65,10 @@ const Reports = () => {
     setFilters({
       search: "",
       status: "",
-      days: "",
+      projectName: "",
       source: "",
       assignUser: "",
-      closeDateFrom: "",
-      closeDateTo: "",
+      dateType: "today",
     });
     setCurrentPage(1);
   };
@@ -79,15 +83,7 @@ const Reports = () => {
       setSelectedDeals(selectedDeals?.filter((id) => id !== dealId));
     }
   };
-  const handleFiltersChange = (newFilters) => {
-    setIsLoading(true);
-    setFilters(newFilters);
 
-    // Simulate data loading
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-  };
 
   // Close sidebar on route change or outside click
   useEffect(() => {
@@ -116,20 +112,7 @@ const Reports = () => {
     };
     loadStatus();
   }, []);
-  useEffect(() => {
-    const loadContact = async () => {
-      try {
-        const data = await fetchLeads();
-        setLeads(data.list);
-        console.log(data.list);
-      } catch (error) {
-        console.log("failed to fetch data", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadContact();
-  }, []);
+
 
   const isWithinSelectedDays = (createdAt, selectedDay) => {
     if (!selectedDay) return true;
@@ -169,76 +152,7 @@ const Reports = () => {
     }
   };
 
-  // Filter and sort deals
-  const filteredAndSortedDeals = useMemo(() => {
-    let filtered = leads?.filter((deal) => {
-      const search = filters?.search?.toLowerCase();
 
-      const matchesSearch =
-        !search ||
-        deal?.name?.toLowerCase()?.includes(search) ||
-        deal?.emailAddress?.toLowerCase()?.includes(search) ||
-        deal?.phoneNumber?.includes(search) ||
-        deal?.accountName?.toLowerCase()?.includes(search);
-
-      const matchesStatus =
-        !filters?.status || deal?.status === filters?.status;
-
-      const matchesSource =
-        !filters?.source || deal?.source === filters?.source;
-
-      const matchesDays =
-        !filters?.days || isWithinSelectedDays(deal?.createdAt, filters?.days);
-
-      const matchesAssignUser =
-        !filters?.assignUser || deal?.assignedUserId === filters?.assignUser;
-
-      const matchesCreatedFrom =
-        !filters?.closeDateFrom ||
-        new Date(deal?.createdAt?.replace(" ", "T")) >=
-          new Date(filters?.closeDateFrom);
-
-      const matchesCreatedTo =
-        !filters?.closeDateTo ||
-        new Date(deal?.createdAt?.replace(" ", "T")) <=
-          new Date(filters?.closeDateTo);
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesSource &&
-        matchesAssignUser &&
-        matchesCreatedFrom &&
-        matchesCreatedTo &&
-        matchesDays
-      );
-    });
-
-    // ✅ SAFE SORTING
-    if (sortConfig?.key) {
-      filtered.sort((a, b) => {
-        let aValue = a?.[sortConfig.key];
-        let bValue = b?.[sortConfig.key];
-
-        if (sortConfig.key === "opportunityAmount") {
-          aValue = Number(aValue ?? 0);
-          bValue = Number(bValue ?? 0);
-        } else if (sortConfig.key === "createdAt") {
-          aValue = new Date(aValue);
-          bValue = new Date(bValue);
-        } else if (typeof aValue === "string") {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [leads, filters, sortConfig]);
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -247,7 +161,7 @@ const Reports = () => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1);
   };
-  const totalPages = Math.ceil(filteredAndSortedDeals?.length / itemsPerPage);
+  const totalPages = Math.ceil(total / limit);
   const handleSort = (key) => {
     setSortConfig((prevConfig) => ({
       key,
@@ -269,8 +183,8 @@ const Reports = () => {
     };
 
     // 🔥 IMPORTANT CHANGE
-    const currentMonthLeads = filteredAndSortedDeals;
-    const lastMonthLeads = []; // ya same rakhna ho to filteredAndSortedDeals
+    const currentMonthLeads = leads;
+    const lastMonthLeads = []; // ya same rakhna ho to leads
 
     const buildMetric = (title, statusName, icon, iconColor, description) => {
       const current = countByStatus(currentMonthLeads, statusName);
@@ -318,10 +232,10 @@ const Reports = () => {
         "Leads marked as not interested",
       ),
     ];
-  }, [filteredAndSortedDeals]);
+  }, [leads]);
 
   const repConversionData = useMemo(() => {
-    if (!filteredAndSortedDeals?.length) return [];
+    if (!leads?.length) return [];
 
     const WON_STATUSES = ["Converted"];
 
@@ -348,7 +262,7 @@ const Reports = () => {
 
     const grouped = {};
 
-    filteredAndSortedDeals.forEach((lead) => {
+    leads.forEach((lead) => {
       if (!lead.createdAt || !lead.assignedUserId) return;
 
       const leadDate = new Date(lead.createdAt.replace(" ", "T"));
@@ -392,6 +306,7 @@ const Reports = () => {
           : 0,
       }));
 
+
       // ✅ Week-over-week growth (last vs previous)
       const last = trend[trend.length - 1]?.value || 0;
       const prev = trend[trend.length - 2]?.value || 0;
@@ -418,10 +333,13 @@ const Reports = () => {
         ][index % 6],
       };
     });
-  }, [filteredAndSortedDeals]);
-
+  }, [leads]);
+  const handleFiltersChange = (newFilters) => {
+    setFilters(newFilters);
+    setPage(1); // 🔥 IMPORTANT
+  };
   const monthlyWinRateData = useMemo(() => {
-    if (!filteredAndSortedDeals?.length) return [];
+    if (!leads?.length) return [];
 
     const months = [
       "Jan",
@@ -451,7 +369,7 @@ const Reports = () => {
     }, {});
 
     // 🔥 Step 2: Fill actual data
-    filteredAndSortedDeals.forEach((lead) => {
+    leads.forEach((lead) => {
       if (!lead.createdAt) return;
 
       const date = new Date(lead.createdAt.replace(" ", "T"));
@@ -479,16 +397,16 @@ const Reports = () => {
           : 0,
       };
     });
-  }, [filteredAndSortedDeals]);
+  }, [leads]);
 
   const pieData = useMemo(() => {
-    const won = filteredAndSortedDeals.filter(
+    const won = leads.filter(
       (l) => l.status === "Interested",
     ).length;
-    const newLead = filteredAndSortedDeals.filter(
+    const newLead = leads.filter(
       (l) => l.status === "New",
     ).length;
-    const Sitevisit = filteredAndSortedDeals.filter(
+    const Sitevisit = leads.filter(
       (l) => l.status === "Site Visit Scheduled",
     ).length;
 
@@ -502,16 +420,16 @@ const Reports = () => {
       { name: "New Leads", value: newLead, fill: "#a3d9a5" },
       { name: "Site Visit Scheduled", value: Sitevisit, fill: "#06B6D4" },
     ];
-  }, [filteredAndSortedDeals]);
+  }, [leads]);
 
   const monthlyInsights = useMemo(() => {
-    if (!filteredAndSortedDeals?.length) return null;
+    if (!leads?.length) return null;
 
     const WON_STATUSES = ["Converted"];
 
     const monthly = {};
 
-    filteredAndSortedDeals.forEach((lead) => {
+    leads.forEach((lead) => {
       if (!lead.createdAt) return;
 
       const date = new Date(lead.createdAt.replace(" ", "T"));
@@ -558,7 +476,7 @@ const Reports = () => {
       overallWinRate,
       totalDeals,
     };
-  }, [filteredAndSortedDeals]);
+  }, [leads]);
   const summary = useMemo(() => {
     if (!monthlyWinRateData?.length) return null;
 
@@ -660,7 +578,7 @@ const Reports = () => {
               source={source}
               onFiltersChange={handleFiltersChange}
               onClearFilters={handleClearFilters}
-              dealCount={filteredAndSortedDeals?.length}
+              dealCount={leads?.length}
               selectedCount={selectedDeals?.length}
               toggleAnalytics={() => setShowAnalytics((prev) => !prev)}
             />
@@ -697,31 +615,26 @@ const Reports = () => {
             )}
             {/* table */}
             <DealsTable
-              deals={filteredAndSortedDeals}
+              deals={leads}
               sortConfig={sortConfig}
               onSelectDeal={handleSelectDeal}
               onSort={handleSort}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
+              currentPage={page}
+              itemsPerPage={limit}
               isLoading={isLoading}
             />
             <TablePagination
-              currentPage={currentPage}
+              currentPage={page}
               totalPages={totalPages}
-              totalItems={filteredAndSortedDeals?.length}
-              itemsPerPage={itemsPerPage}
-              onPageChange={handlePageChange}
-              onItemsPerPageChange={handleItemsPerPageChange}
+              totalItems={total}
+              itemsPerPage={limit}
+              onPageChange={(p) => setPage(p)}
+              onItemsPerPageChange={(val) => {
+                setLimit(val);
+                setPage(1);
+              }}
             />
 
-            {/* Revenue Forecasting - Full Width */}
-            {/* <div className="mb-8">
-              
-              <RevenueChart />
-            </div> */}
-
-            {/* Export Controls */}
-            {/* <ExportControls /> */}
 
             {/* Additional Insights */}
             <motion.div

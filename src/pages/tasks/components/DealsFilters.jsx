@@ -19,29 +19,41 @@ const DealsFilters = ({
   const [assignUser, setAssignUser] = useState([]);
   const [status, setStatus] = useState([]);
 
+  const ACTIVITY_DATE_FILTERS = [
+    { label: "Today", value: "today" },
+    { label: "Yesterday", value: "yesterday" },
+    { label: "Last 7 Days", value: "last7Days" },
 
+    { label: "Before", value: "before" },
+    { label: "After", value: "after" },
+
+    { label: "Between", value: "between" },
+    { label: "This Month", value: "currentMonth" },
+    { label: "Last Month", value: "lastMonth" },
+  ];
+  const showDateInputs = ["between", "after", "before"].includes(filters?.dateType);
   // 
-   useEffect(() => {
-      const loadData = async () => {
-        try {
-          const [statusRes] = await Promise.all([
-            fetchStatus(),
-          ]);
-  
-          setStatus(statusRes.options || []);
-        } catch (err) {
-          console.error("Failed to load data", err);
-        }
-      };
-  
-      loadData();
-    }, []);
-    const statusOptions = status
-      .filter((item) => item !== "")
-      .map((item) => ({
-        value: item,
-        label: item,
-      }));
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [statusRes] = await Promise.all([
+          fetchStatus(),
+        ]);
+
+        setStatus(statusRes.options || []);
+      } catch (err) {
+        console.error("Failed to load data", err);
+      }
+    };
+
+    loadData();
+  }, []);
+  const statusOptions = status
+    .filter((item) => item !== "")
+    .map((item) => ({
+      value: item,
+      label: item,
+    }));
   const priorityOptions = [
     { value: "", label: "All Status" },
     { value: "Low", label: "Low" },
@@ -200,27 +212,39 @@ const DealsFilters = ({
           value={filters?.assignUser || ""}
           onChange={(value) => handleFilterChange("assignUser", value)}
         />
+        <Select
+          options={ACTIVITY_DATE_FILTERS}
+          value={filters?.dateType || ""}
+          onChange={(value) =>
+            handleFilterChange("dateType", value)}
+          placeholder="Filter by date"
+          className="min-w-0"
+        />
+        {/* Date Range Inputs */}
+        {showDateInputs && (
+          <div className="flex gap-2">
+            <Input
+              type="date"
+              value={filters?.startDate || ""}
+              onChange={(e) =>
+                handleFilterChange("startDate", e.target.value)
+              }
+            />
+
+            {filters?.dateType === "between" && (
+              <Input
+                type="date"
+                value={filters?.endDate || ""}
+                onChange={(e) =>
+                  handleFilterChange("endDate", e.target.value)
+                }
+              />
+            )}
+          </div>
+        )}
       </div>
       {/* Advanced Filters Toggle */}
-      <div className="hidden lg:flex items-center justify-between mt-4 pt-4 border-t border-border">
-        <div className="flex items-center space-x-4">
-          <Input
-            type="date"
-            placeholder="Close date from"
-            value={filters?.closeDateFrom || ""}
-            onChange={(e) =>
-              handleFilterChange("closeDateFrom", e?.target?.value)
-            }
-          />
-          <Input
-            type="date"
-            placeholder="Close date to"
-            value={filters?.closeDateTo || ""}
-            onChange={(e) =>
-              handleFilterChange("closeDateTo", e?.target?.value)
-            }
-          />
-        </div>
+      <div className="hidden items-center justify-between mt-4 pt-4 border-t border-border">
 
         <Button variant="outline" size="sm">
           <Icon name="Download" size={16} className="mr-1" />

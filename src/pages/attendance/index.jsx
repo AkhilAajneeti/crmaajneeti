@@ -12,6 +12,7 @@ import Icon from "../../components/AppIcon";
 import DealsTable from "./components/DealsTable";
 import AttendanceCalendar from "./components/AttendanceCalendar";
 import { useCalender } from "hooks/useCalender";
+import AttendanceDrawer from "./components/AttendanceDrawer";
 
 const Attendance = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -21,6 +22,10 @@ const Attendance = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedDeals, setSelectedDeals] = useState([]);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  // drawer
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState("create"); // create | edit | view
+  const [selectedDeal, setSelectedDeal] = useState(null);
   const [limit, setLimit] = useState(20);
   const [page, setPage] = useState(1);
   const [dateRange, setDateRange] = useState({
@@ -31,24 +36,24 @@ const Attendance = () => {
     key: "createdAt",
     direction: "desc",
   });
-  const { data, isLoading } = useCalender({
-    limit,
-    page,
-    startDate: dateRange.start,
-    endDate: dateRange.end,
-  });
-  const mockcalender = data?.list || [];
-  console.log(mockcalender);
-  const total = data?.total || 0;
-
   const [filters, setFilters] = useState({
     search: "",
     status: "",
-    days: "",
+    dateType: "",
     createdByName: "",
     closeDateFrom: "",
     closeDateTo: "",
   });
+  const { data, isLoading } = useCalender({
+    limit,
+    page,
+    filters
+  });
+  
+  const mockcalender = data?.list || [];
+  const total = data?.total || 0;
+
+
   const STATUS = ["Approved", "Pending"];
   useEffect(() => {
     const loadSource = async () => {
@@ -71,12 +76,12 @@ const Attendance = () => {
     setFilters({
       search: "",
       status: "",
-      days: "",
+      dateType: "",
       createdByName: "",
       closeDateFrom: "",
       closeDateTo: "",
     });
-    setCurrentPage(1);
+    setPage(1);
   };
 
   const handleSidebarClose = () => {
@@ -91,6 +96,7 @@ const Attendance = () => {
   };
   const handleFiltersChange = (newFilters) => {
     setFilters(newFilters);
+    setPage(1);
   };
 
   // Close sidebar on route change or outside click
@@ -120,132 +126,15 @@ const Attendance = () => {
     loadStatus();
   }, []);
 
-  const isWithinSelectedDays = (createdAt, selectedDay) => {
-    if (!selectedDay) return true;
-
-    const createdDate = new Date(createdAt?.replace(" ", "T"));
-    const today = new Date();
-
-    // Reset time for accurate comparison
-    today.setHours(0, 0, 0, 0);
-
-    const compareDate = new Date(createdDate);
-    compareDate.setHours(0, 0, 0, 0);
-
-    const diffInDays = (today - compareDate) / (1000 * 60 * 60 * 24);
-
-    switch (selectedDay) {
-      case "Today":
-        return diffInDays === 0;
-
-      case "Yesterday":
-        return diffInDays === 1;
-
-      case "Last 3 Days":
-        return diffInDays >= 0 && diffInDays <= 2;
-
-      case "Last 7 Days":
-        return diffInDays >= 0 && diffInDays <= 6;
-
-      case "Current Month":
-        return (
-          createdDate.getMonth() === today.getMonth() &&
-          createdDate.getFullYear() === today.getFullYear()
-        );
-
-      default:
-        return true;
-    }
-  };
-
-  // Filter and sort deals
-  const filteredAndSortedDeals = useMemo(() => {
-    let filtered = mockcalender?.filter((deal) => {
-      const search = filters?.search?.toLowerCase();
-
-      const matchesSearch =
-        !search ||
-        deal?.name?.toLowerCase()?.includes(search) ||
-        deal?.description?.toLowerCase()?.includes(search) ||
-        deal?.requestType?.includes(search) ||
-        deal?.department?.toLowerCase()?.includes(search);
-
-      const matchesStatus =
-        !filters?.status || deal?.status === filters?.status;
-
-      const matchesDays =
-        !filters?.days || isWithinSelectedDays(deal?.createdAt, filters?.days);
-
-      const matchescreatedByName =
-        !filters?.createdByName || deal?.createdById === filters?.createdByName;
-      // update
-      const createdDate = deal?.createdAt
-        ? new Date(deal.createdAt.split(" ")[0]) // safe parsing
-        : null;
-
-      const fromDate = filters?.closeDateFrom
-        ? new Date(filters.closeDateFrom)
-        : null;
-
-      const toDate = filters?.closeDateTo
-        ? new Date(filters.closeDateTo)
-        : null;
-
-      // 👉 IMPORTANT: include full end day
-      if (toDate) {
-        toDate.setHours(23, 59, 59, 999);
-      }
-
-      const matchesCreatedFrom =
-        !fromDate || (createdDate && createdDate >= fromDate);
-
-      const matchesCreatedTo =
-        !toDate || (createdDate && createdDate <= toDate);
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchescreatedByName &&
-        matchesCreatedFrom &&
-        matchesCreatedTo &&
-        matchesDays
-      );
-    });
-
-    // ✅ SAFE SORTING
-    if (sortConfig?.key) {
-      filtered.sort((a, b) => {
-        let aValue = a?.[sortConfig.key];
-        let bValue = b?.[sortConfig.key];
-
-        if (sortConfig.key === "opportunityAmount") {
-          aValue = Number(aValue ?? 0);
-          bValue = Number(bValue ?? 0);
-        } else if (sortConfig.key === "createdAt") {
-          aValue = new Date(aValue);
-          bValue = new Date(bValue);
-        } else if (typeof aValue === "string") {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [mockcalender, filters, sortConfig]);
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    setPage(1);
   };
 
   const handleItemsPerPageChange = (newItemsPerPage) => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1);
   };
-  const totalPages = Math.ceil(filteredAndSortedDeals?.length / itemsPerPage);
+  const totalPages = Math.ceil(total / limit);
   const handleSort = (key) => {
     setSortConfig((prevConfig) => ({
       key,
@@ -258,14 +147,14 @@ const Attendance = () => {
 
   const metricsData = useMemo(() => {
     const countByType = (data, type) =>
-      data?.filter((deal) => deal?.requestType === type)?.length || 0;
+      mockcalender?.filter((deal) => deal?.requestType === type)?.length || 0;
 
-    const currentData = filteredAndSortedDeals;
+    const currentData = mockcalender;
 
     return [
       {
         title: "Total Leaves",
-        value: currentData?.length || 0,
+        value: total || 0,
         icon: "TrendingUp",
         iconColor: "bg-success",
         description: "All leave requests",
@@ -286,14 +175,39 @@ const Attendance = () => {
       },
       {
         title: "Full Day",
-        value: countByType(currentData, "Full Day"),
+        value: countByType(currentData, "Leave"),
         icon: "Calendar",
         iconColor: "bg-blue-400",
         description: "Full day leaves",
       },
     ];
-  }, [filteredAndSortedDeals]);
+  }, [mockcalender, total]);
+  // ✅ CREATE
+  const handleCreate = () => {
+    setDrawerMode("create");
+    setSelectedDeal(null);
+    setIsDrawerOpen(true);
+  };
 
+  // ✅ VIEW (row click)
+  const handleView = (deal) => {
+    setDrawerMode("view");
+    setSelectedDeal(deal);
+    setIsDrawerOpen(true);
+  };
+
+  // ✅ EDIT
+  const handleEdit = (deal) => {
+    setDrawerMode("edit");
+    setSelectedDeal(deal);
+    setIsDrawerOpen(true);
+  };
+
+  // ✅ CLOSE
+  const handleDrawerClose = () => {
+    setIsDrawerOpen(false);
+    setSelectedDeal(null);
+  };
   return (
     <>
       <Helmet>
@@ -332,7 +246,7 @@ const Attendance = () => {
                     <span>Live data</span>
                   </div>
                   <Button
-                   
+                    onClick={handleCreate}
                     className="linearbg-1 text-white hover:text-white"
                   >
                     Create Attendance Request
@@ -369,7 +283,7 @@ const Attendance = () => {
               status={STATUS}
               onFiltersChange={handleFiltersChange}
               onClearFilters={handleClearFilters}
-              dealCount={filteredAndSortedDeals?.length}
+              dealCount={total}
               selectedCount={selectedDeals?.length}
               toggleAnalytics={() => setShowAnalytics((prev) => !prev)}
             />
@@ -377,7 +291,7 @@ const Attendance = () => {
             {/* Charts Grid */}
             {showAnalytics && (
               <>
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-end items-end mb-4">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -398,13 +312,16 @@ const Attendance = () => {
             )}
             {/* table */}
             <DealsTable
-              deals={filteredAndSortedDeals}
+              deals={mockcalender}
               selectedDeals={selectedDeals}
               sortConfig={sortConfig}
               onSelectDeal={handleSelectDeal}
               onSort={handleSort}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
+              onDealClick={handleView}   // ✅ ADD
+              onEdit={handleEdit}        // ✅ ADD
+              onDelete={(deal) => console.log("delete", deal)} // optional
+              currentPage={page}
+              itemsPerPage={limit}
               isLoading={isLoading}
               setPage={setPage}
               total={total}
@@ -412,15 +329,30 @@ const Attendance = () => {
               setLimit={setLimit}
             />
             <TablePagination
-              currentPage={currentPage}
+              currentPage={page}
               totalPages={totalPages}
-              totalItems={filteredAndSortedDeals?.length}
-              itemsPerPage={itemsPerPage}
-              onPageChange={handlePageChange}
-              onItemsPerPageChange={handleItemsPerPageChange}
+              totalItems={total}
+              itemsPerPage={limit}
+              onPageChange={setPage}
+              onItemsPerPageChange={(val) => {
+                setLimit(val);
+                setPage(1);
+              }}
             />
           </div>
         </main>
+        <AttendanceDrawer
+          isOpen={isDrawerOpen}          // ✅ REQUIRED
+          onClose={handleDrawerClose}
+          onDealClick={handleView}
+          onEdit={handleEdit}
+          mode={drawerMode}
+          data={selectedDeal}   // ✅ single record
+          onSuccess={() => {
+            setIsDrawerOpen(false);
+          }}
+          isLoading={isLoading}
+        />
       </div>
     </>
   );

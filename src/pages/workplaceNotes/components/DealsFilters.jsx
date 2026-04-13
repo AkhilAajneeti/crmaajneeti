@@ -27,7 +27,18 @@ const DealsFilters = ({
     { value: "export", label: "Export Selected", icon: "Download" },
     { value: "delete", label: "Delete Selected", icon: "Trash2" },
   ];
+  const ACTIVITY_DATE_FILTERS = [
+    { label: "Today", value: "today" },
+    { label: "Yesterday", value: "yesterday" },
+    { label: "Last 7 Days", value: "last7Days" },
 
+    { label: "Before", value: "before" },
+    { label: "After", value: "after" },
+
+    { label: "Between", value: "between" },
+    { label: "This Month", value: "currentMonth" },
+    { label: "Last Month", value: "lastMonth" },
+  ];
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -45,6 +56,12 @@ const DealsFilters = ({
 
     loadData();
   }, []);
+  const showDateInputs = [
+    "between",
+    "after",
+    "before",
+    "on"
+  ].includes(filters?.dateType);
   const sourceOptions = source
     .filter((item) => item !== "")
     .map((item) => ({
@@ -57,6 +74,10 @@ const DealsFilters = ({
       value: item,
       label: item,
     }));
+  const noteTypeOptions = [
+    { value: "Positive", label: "Positive" },
+    { value: "Negative", label: "Negative" },
+  ];
 
   const handleFilterChange = (key, value) => {
     onFiltersChange({
@@ -89,7 +110,7 @@ const DealsFilters = ({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
         <div className="flex items-center space-x-4">
           <h2 className="text-lg font-semibold text-foreground">
-            Leads ({total})
+            Notes ({total})
           </h2>
           {activeFiltersCount > 0 && (
             <div className="flex items-center space-x-2">
@@ -179,7 +200,7 @@ const DealsFilters = ({
       >
         <Input
           type="search"
-          placeholder="Search leads..."
+          placeholder="Search workplace notes..."
           value={filters?.search || ""}
           onChange={(e) => handleFilterChange("search", e?.target?.value)}
           className="lg:col-span-2"
@@ -192,17 +213,18 @@ const DealsFilters = ({
           onChange={(value) => handleFilterChange("status", value)}
         />
 
-        <Input
-          placeholder="Project Name"
-          value={filters?.projectName || ""}
-          onChange={(e) => handleFilterChange("projectName", e.target.value)}
+        <Select
+          placeholder="Note Type"
+          options={noteTypeOptions}
+          value={filters?.noteType || ""}
+          onChange={(value) => handleFilterChange("noteType", value)}
         />
 
         <Select
-          placeholder="Source"
-          options={sourceOptions}
-          value={filters?.source || ""}
-          onChange={(value) => handleFilterChange("source", value)}
+          placeholder="Date Type"
+          options={ACTIVITY_DATE_FILTERS}
+          value={filters?.dateType || ""}
+          onChange={(value) => handleFilterChange("dateType", value)}
         />
         <Select
           placeholder="Assign User"
@@ -214,22 +236,26 @@ const DealsFilters = ({
       {/* Advanced Filters Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 pt-4 border-t border-border gap-3">
         <div className="flex flex-col sm:flex-row gap-3 w-full">
-          <Input
-            type="date"
-            placeholder="Close date from"
-            value={filters?.closeDateFrom || ""}
-            onChange={(e) =>
-              handleFilterChange("closeDateFrom", e?.target?.value)
-            }
-          />
-          <Input
-            type="date"
-            placeholder="Close date to"
-            value={filters?.closeDateTo || ""}
-            onChange={(e) =>
-              handleFilterChange("closeDateTo", e?.target?.value)
-            }
-          />
+          {showDateInputs && (
+            <div className="flex gap-2">
+              <Input
+                type="date"
+                value={filters?.closeDateFrom || ""}
+                onChange={(e) =>
+                  handleFilterChange("closeDateFrom", e.target.value)
+                }
+              />
+              {filters?.dateType === "between" && (
+                <Input
+                  type="date"
+                  value={filters?.closeDateTo || ""}
+                  onChange={(e) =>
+                    handleFilterChange("closeDateTo", e.target.value)
+                  }
+                />
+              )}
+            </div>
+          )}
         </div>
         <RoleGuard allowedRoles={["admin", "manager"]}>
           <Button onClick={toggleAnalytics} className="linearbg-1 text-white hover:text-white">

@@ -30,7 +30,6 @@ const DealDrawer = ({
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
-
   const [showActivityForm, setActivityForm] = useState(false);
   const [activityText, setActivityText] = useState("");
   const [postingActivity, setPostingActivity] = useState(false);
@@ -63,6 +62,7 @@ const DealDrawer = ({
   const team = teamData?.list || [];
   const streams = streamData?.list || [];
   const activities = activityData?.list || [];
+  console.log("leadDetails", leadsDetails);
   useEffect(() => {
     if (mode === "add") {
       setFormData({
@@ -708,11 +708,10 @@ const DealDrawer = ({
                       onClick={() => setActiveTab(tab?.id)}
                       className={`
                   flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-smooth
-                  ${
-                    activeTab === tab?.id
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }
+                  ${activeTab === tab?.id
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        }
                 `}
                     >
                       <Icon name={tab?.icon} size={16} />
@@ -734,7 +733,7 @@ const DealDrawer = ({
                               Name
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.name || "—"}
+                              {deal?.name || "None"}
                             </p>
                           </div>
 
@@ -748,10 +747,10 @@ const DealDrawer = ({
                                 href={`tel:${deal.phoneNumber}`}
                                 className="text-primary hover:underline"
                               >
-                                {deal.phoneNumber}
+                                {deal?.phoneNumber || "None"}
                               </a>
                             ) : (
-                              <p className="text-foreground">—</p>
+                              <p className="text-foreground">None</p>
                             )}
                           </div>
 
@@ -765,10 +764,10 @@ const DealDrawer = ({
                                 href={`mailto:${deal.emailAddress}`}
                                 className="text-primary hover:underline break-all"
                               >
-                                {deal.emailAddress}
+                                {deal?.emailAddress || "None"}
                               </a>
                             ) : (
-                              <p className="text-foreground">—</p>
+                              <p className="text-foreground">None</p>
                             )}
                           </div>
 
@@ -787,7 +786,7 @@ const DealDrawer = ({
                                 wa.me/{deal.phoneNumber.replace(/\D/g, "")}
                               </a>
                             ) : (
-                              <p className="text-foreground">—</p>
+                              <p className="text-foreground">None</p>
                             )}
                           </div>
 
@@ -797,7 +796,7 @@ const DealDrawer = ({
                               City
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.addressCity || "—"}
+                              {deal?.addressCity || "None"}
                             </p>
                           </div>
 
@@ -809,7 +808,7 @@ const DealDrawer = ({
                             <p className="text-foreground font-medium">
                               {deal?.cNextContactAt
                                 ? formatDateTime(deal.cNextContactAt)
-                                : "—"}
+                                : "None"}
                             </p>
                           </div>
 
@@ -819,7 +818,7 @@ const DealDrawer = ({
                               Project Name
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.cProjectName || "—"}
+                              {deal?.cProjectName || "None"}
                             </p>
                           </div>
 
@@ -829,7 +828,7 @@ const DealDrawer = ({
                               Preference
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.cQuestion || "—"}
+                              {deal?.cQuestion || "None"}
                             </p>
                           </div>
                         </div>
@@ -867,7 +866,7 @@ const DealDrawer = ({
                               Industry
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.industry || "—"}
+                              {deal?.cSector || "—"}
                             </p>
                           </div>
 
@@ -945,7 +944,7 @@ const DealDrawer = ({
                             </div>
                           </form>
                         )}
-                        {streams?.map((activity) => (
+                        {streams.length > 0 ? (streams?.map((activity) => (
                           <div
                             key={activity.id}
                             className="flex space-x-3 p-4 bg-muted/30 rounded-lg"
@@ -1037,7 +1036,18 @@ const DealDrawer = ({
                               )}
                             </div>
                           </div>
-                        ))}
+                        ))) : (
+                          <div className="flex flex-col items-center justify-center py-10 text-center">
+                            <img
+                              src="/public/assets/images/comment.png"
+                              alt="No Activities"
+                              className="w-40 opacity-80"
+                            />
+                            <p className="mt-3 text-sm text-muted-foreground">
+                              Currently you don't have any comments
+                            </p>
+                          </div>
+                        ) }
                       </div>
                     </div>
                   )}
@@ -1077,7 +1087,31 @@ const DealDrawer = ({
                                   ))}
                                 </div>
                               ) : (
-                                <span>—</span>
+                                <span>None</span>
+                              )}
+                            </p>
+                          </div>
+                          {/* Followers */}
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Followers
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {leadsDetails?.teamsNames ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {Object.entries(
+                                    leadsDetails.teamsNames,
+                                  ).map(([id, name]) => (
+                                    <span
+                                      key={id}
+                                      className="text-sm text-primary font-medium"
+                                    >
+                                      {name}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span>None</span>
                               )}
                             </p>
                           </div>
@@ -1126,11 +1160,10 @@ const DealDrawer = ({
                           <div
                             key={activity.id}
                             onClick={() => toggleActivity(activity.id)}
-                            className={`cursor-pointer rounded-lg p-4 transition-all duration-300${
-                              expandedActivityId === activity.id
-                                ? "bg-muted shadow-sm"
-                                : "bg-muted/30 hover:bg-muted"
-                            }`}
+                            className={`cursor-pointer rounded-lg p-4 transition-all duration-300${expandedActivityId === activity.id
+                              ? "bg-muted shadow-sm"
+                              : "bg-muted/30 hover:bg-muted"
+                              }`}
                           >
                             {/*  */}
                             <div className="flex space-x-3">
@@ -1187,11 +1220,10 @@ const DealDrawer = ({
 
                             {/*  */}
                             <div
-                              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                                expandedActivityId === activity.id
-                                  ? "max-h-[600px] opacity-100 mt-4"
-                                  : "max-h-0 opacity-0"
-                              }`}
+                              className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedActivityId === activity.id
+                                ? "max-h-[600px] opacity-100 mt-4"
+                                : "max-h-0 opacity-0"
+                                }`}
                             >
                               <div className="border-t pt-4 text-sm text-muted-foreground">
                                 <div className="grid grid-cols-2 gap-x-6 gap-y-4">

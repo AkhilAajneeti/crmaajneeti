@@ -7,13 +7,15 @@ import { deleteLead } from "services/leads.service";
 const DealsTable = ({
   deals,
   selectedDeals,
-  onSelectAll,
   onDealClick,
+  onSelectAll,
   sortConfig,
   onSort,
   currentPage,
   itemsPerPage,
   isLoading,
+  onEdit,      
+  onDelete,   
 }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
 
@@ -100,6 +102,7 @@ const DealsTable = ({
       </td>
     </tr>
   );
+  
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       {/* Desktop Table */}
@@ -152,6 +155,11 @@ const DealsTable = ({
                   {getSortIcon("Project Name")}
                 </button>
               </th>
+              <th className="text-left px-4 py-3">
+                <button className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth">
+                  <span>Action</span>
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -174,7 +182,7 @@ const DealsTable = ({
                   className="hover:bg-muted/30 cursor-pointer transition-smooth"
                 >
                   <td className="px-4 py-4" onClick={() => onDealClick(deal)}>
-                    <div className="font-medium text-foreground">
+                    <div className="font-medium text-foreground truncate max-w-[400px]">
                       {deal?.name}
                     </div>
                   </td>
@@ -197,8 +205,33 @@ const DealsTable = ({
                       </span>
                     </div>
                   </td>
-                   <td className="px-4 py-4">
+                  <td className="px-4 py-4">
                     <div className="text-foreground">{formatDate(deal?.startDate)}</div>
+                  </td>
+
+                  <td className="p-4" onClick={(e) => e?.stopPropagation()}>
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(deal);
+                        }}
+                      >
+                        <Icon name="Edit" size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:bg-red-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(deal);
+                        }}>
+                        <Icon name="Trash2" size={16} />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))

@@ -37,9 +37,7 @@ const WorkPlace = () => {
   const [mode, setMode] = useState("view");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
-  const { data: WorkPlace, isLoading } = useWorkPlace({ limit, page });
   const { data: metaData } = useMetaData();
-  const { data: workDetails } = useLeadDetails(selectedDeal?.id, mode);
 
   const [sortConfig, setSortConfig] = useState({
     key: "createdAt",
@@ -48,12 +46,15 @@ const WorkPlace = () => {
   const [filters, setFilters] = useState({
     search: "",
     status: "",
-    projectName: "",
+    noteType: "",
     source: "",
     assignUser: "",
+    dateType: "",
     closeDateFrom: "",
     closeDateTo: "",
   });
+  const { data: WorkPlace, isLoading } = useWorkPlace({ limit, page, filters });
+  const { data: workDetails } = useLeadDetails(selectedDeal?.id, mode);
   const createLeadMutation = useMutation({
     mutationFn: createLead,
     onSuccess: () => {
@@ -73,7 +74,7 @@ const WorkPlace = () => {
   const source = metaData?.sources || [];
   const status = metaData?.status || [];
   const industry = metaData?.industries || [];
-  const total = work?.total || 0;
+  const total = WorkPlace?.total || 0;
   const exportworkToCSV = (rows, fileName = "work_export") => {
     if (!rows || rows.length === 0) {
       toast.error("No data to export");
@@ -106,79 +107,6 @@ const WorkPlace = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Filter and sort deals
-  const filteredAndSortedDeals = useMemo(() => {
-    let filtered = work?.filter((deal) => {
-      const search = filters?.search?.toLowerCase();
-
-      const matchesSearch =
-        !search ||
-        deal?.name?.toLowerCase()?.includes(search) ||
-        deal?.emailAddress?.toLowerCase()?.includes(search) ||
-        deal?.phoneNumber?.includes(search) ||
-        deal?.accountName?.toLowerCase()?.includes(search);
-
-      const matchesStatus =
-        !filters?.status || deal?.status === filters?.status;
-
-      const matchesSource =
-        !filters?.source || deal?.source === filters?.source;
-
-      const matchesprojectName =
-        !filters?.projectName ||
-        deal?.cProjectName
-          ?.toLowerCase()
-          .includes(filters.projectName.toLowerCase());
-
-      const matchesAssignUser =
-        !filters?.assignUser || deal?.assignedUserId === filters?.assignUser;
-
-      const matchesCreatedFrom =
-        !filters?.closeDateFrom ||
-        new Date(deal?.createdAt?.replace(" ", "T")) >=
-          new Date(filters?.closeDateFrom);
-
-      const matchesCreatedTo =
-        !filters?.closeDateTo ||
-        new Date(deal?.createdAt?.replace(" ", "T")) <=
-          new Date(filters?.closeDateTo);
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesSource &&
-        matchesprojectName &&
-        matchesAssignUser &&
-        matchesCreatedFrom &&
-        matchesCreatedTo
-      );
-    });
-
-    // ✅ SAFE SORTING
-    if (sortConfig?.key) {
-      filtered.sort((a, b) => {
-        let aValue = a?.[sortConfig.key];
-        let bValue = b?.[sortConfig.key];
-
-        if (sortConfig.key === "opportunityAmount") {
-          aValue = Number(aValue ?? 0);
-          bValue = Number(bValue ?? 0);
-        } else if (sortConfig.key === "createdAt") {
-          aValue = new Date(aValue);
-          bValue = new Date(bValue);
-        } else if (typeof aValue === "string") {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [work, filters, sortConfig]);
 
   const totalPages = Math.ceil(total / limit);
 
@@ -274,9 +202,10 @@ const WorkPlace = () => {
     setFilters({
       search: "",
       status: "",
-      projectName: "",
+      noteType: "",
       source: "",
       assignUser: "",
+      dateType: "",
       closeDateFrom: "",
       closeDateTo: "",
     });
@@ -301,7 +230,7 @@ const WorkPlace = () => {
         return;
       }
 
-      const selectedRows = filteredAndSortedDeals.filter((deal) =>
+      const selectedRows = work.filter((deal) =>
         selectedDeals.includes(deal.id),
       );
 
@@ -353,7 +282,7 @@ const WorkPlace = () => {
   };
 
   const handlePageChange = (page) => {
-    setCurrentPage(page);
+    setPage(page);
   };
 
   const handleItemsPerPageChange = (newItemsPerPage) => {
@@ -405,7 +334,7 @@ const WorkPlace = () => {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
-                  work
+                  Work Place Notes
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   Track and manage your sales opportunities
@@ -416,7 +345,7 @@ const WorkPlace = () => {
                   className="linearbg-1 text-white hover:text-white"
                   variant="outline"
                   onClick={() =>
-                    exportworkToCSV(filteredAndSortedDeals, "all_work")
+                    exportworkToCSV(work, "all_work")
                   }
                 >
                   <Icon name="Download" size={16} className="mr-2" />
@@ -438,7 +367,7 @@ const WorkPlace = () => {
               filters={filters}
               onFiltersChange={handleFiltersChange}
               onClearFilters={handleClearFilters}
-              dealCount={filteredAndSortedDeals?.length}
+              dealCount={total}
               onBulkAction={handleBulkAction}
               selectedCount={selectedDeals?.length}
               toggleAnalytics={() => setShowAnalytics((prev) => !prev)}
@@ -460,20 +389,20 @@ const WorkPlace = () => {
                   </Button>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  <IndustryChart work={filteredAndSortedDeals} />
+                  <IndustryChart work={work} />
 
-                  <MultiLineChart work={filteredAndSortedDeals} />
+                  <MultiLineChart work={work} />
 
-                  <StatusChart work={filteredAndSortedDeals} />
+                  <StatusChart work={work} />
 
-                  <AssignedUserChart work={filteredAndSortedDeals} />
+                  <AssignedUserChart work={work} />
                 </div>
               </div>
             )}
 
             {/* Deals Table */}
             <DealsTable
-              deals={filteredAndSortedDeals}
+              deals={work}
               selectedDeals={selectedDeals}
               onSelectDeal={handleSelectDeal}
               onSelectAll={handleSelectAll}

@@ -1,7 +1,6 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import { useMemo, useState, useRef } from "react";
-
 const TYPE_CONFIG = {
   Leave: {
     bg: "#EDE9FE",
@@ -150,40 +149,7 @@ const PopoverCard = ({ event, position, onClose }) => {
   );
 };
 
-const SummaryBadge = ({ attendanceData }) => {
-  const counts = {};
-  attendanceData?.forEach((i) => {
-    counts[i.requestType] = (counts[i.requestType] || 0) + 1;
-  });
-
-  return (
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-      {Object.entries(TYPE_CONFIG).map(([key, cfg]) => (
-        <div
-          key={key}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 7,
-            background: cfg.bg,
-            border: `1px solid ${cfg.border}33`,
-            borderRadius: 8,
-            padding: "5px 11px",
-          }}
-        >
-          <span style={{ fontSize: 15, fontWeight: 700, color: cfg.border }}>
-            {counts[key] || 0}
-          </span>
-          <span style={{ fontSize: 12, color: cfg.text, fontWeight: 500 }}>
-            {cfg.label}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const AttendanceCalendar = ({ attendanceData, onDateChange }) => {
+const AttendanceCalendar = ({ attendanceData, onDateChange, }) => {
   const [popover, setPopover] = useState(null);
   const calRef = useRef(null);
 
@@ -228,38 +194,7 @@ const AttendanceCalendar = ({ attendanceData, onDateChange }) => {
       }}
     >
       {/* Header */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 16,
-          border: "1px solid #E5E7EB",
-          padding: "16px 20px",
-          marginBottom: 16,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 12,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-        }}
-      >
-        <div>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 18,
-              fontWeight: 700,
-              color: "#111827",
-            }}
-          >
-            Attendance Calendar
-          </h2>
-          <p style={{ margin: "2px 0 0", fontSize: 13, color: "#9CA3AF" }}>
-            {attendanceData?.length || 0} total requests
-          </p>
-        </div>
-        <SummaryBadge attendanceData={attendanceData} />
-      </div>
+
 
       {/* Calendar Card */}
       <div
@@ -442,6 +377,7 @@ const AttendanceCalendar = ({ attendanceData, onDateChange }) => {
               end,
             });
           }}
+
           eventContent={(arg) => {
             const cfg = TYPE_CONFIG[arg.event.extendedProps.requestType];
             return (
@@ -467,10 +403,13 @@ const AttendanceCalendar = ({ attendanceData, onDateChange }) => {
                 >
                   {cfg?.label || arg.event.title}
                 </span>
+
               </div>
+
             );
           }}
         />
+
       </div>
 
       {/* Popover */}

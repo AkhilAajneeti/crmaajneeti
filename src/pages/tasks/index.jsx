@@ -18,8 +18,7 @@ import {
   deleteActivity,
 } from "services/tasks.service";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTasks } from "hooks/useTasks";
-import { useTask } from "hooks/useTask";
+import { useTasks, useTasksAll, useTasksById } from "hooks/useTasks";
 const TaskPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
@@ -28,6 +27,8 @@ const TaskPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [mode, setMode] = useState("view");
+  const [limit, setLimit] = useState(20);
+  const [page, setPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({
     key: "name",
     direction: "asc",
@@ -37,14 +38,17 @@ const TaskPage = () => {
     status: "",
     priority: "",
     assignUser: "",
-    closeDateFrom: "",
-    closeDateTo: "",
+    startDate: "",
+    endDate: "",
+    dateType: "",
   });
   const queryClient = useQueryClient();
   const { data, isLoading } = useTasks();
+  const { data: allTasksData } = useTasksAll({ limit, page,filters });
+  const tasks = allTasksData?.list || [];
+  const total = allTasksData?.total || 0;
+  const totalPages = Math.ceil(total / limit);
 
-  const leads = data?.list || [];
-  const loading = isLoading;
 
   // Mock deals data
   const handleDealClick = async (deal) => {
@@ -52,78 +56,12 @@ const TaskPage = () => {
     setMode("view");
     setIsDrawerOpen(true);
   };
-  const { data: selectedDealData } = useTask(
-  selectedDeal?.id,
-  isDrawerOpen && !!selectedDeal?.id
-);
+  const { data: selectedDealData } = useTasksById(
+    selectedDeal?.id,
+    isDrawerOpen && !!selectedDeal?.id
+  );
 
-  // Filter and sort deals
-  const filteredAndSortedDeals = useMemo(() => {
-    let filtered = leads?.filter((deal) => {
-      const search = filters?.search?.toLowerCase();
 
-      const matchesSearch =
-        !search ||
-        deal?.name?.toLowerCase()?.includes(search) ||
-        deal?.emailAddress?.toLowerCase()?.includes(search) ||
-        deal?.phoneNumber?.includes(search) ||
-        deal?.accountName?.toLowerCase()?.includes(search);
-
-      const matchesStatus =
-        !filters?.status || deal?.status === filters?.status;
-
-      const matchesPriority =
-        !filters?.priority || deal?.priority === filters?.priority;
-
-      const matchesAssignUser =
-        !filters.assignUser ||
-        String(deal.assignedUserId) === String(filters.assignUser);
-
-      const matchesCreatedFrom =
-        !filters?.closeDateFrom ||
-        new Date(deal?.createdAt) >= new Date(filters?.closeDateFrom);
-
-      const matchesCreatedTo =
-        !filters?.closeDateTo ||
-        new Date(deal?.createdAt) <= new Date(filters?.closeDateTo);
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesPriority &&
-        matchesAssignUser &&
-        matchesCreatedFrom &&
-        matchesCreatedTo
-      );
-    });
-
-    // ✅ SAFE SORTING
-    if (sortConfig?.key) {
-      filtered.sort((a, b) => {
-        let aValue = a?.[sortConfig.key];
-        let bValue = b?.[sortConfig.key];
-
-        if (sortConfig.key === "opportunityAmount") {
-          aValue = Number(aValue ?? 0);
-          bValue = Number(bValue ?? 0);
-        } else if (sortConfig.key === "createdAt") {
-          aValue = new Date(aValue);
-          bValue = new Date(bValue);
-        } else if (typeof aValue === "string") {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [leads, filters, sortConfig]);
-
-  const totalPages = Math.ceil(filteredAndSortedDeals?.length / itemsPerPage);
 
   const exportLeadsToCSV = (rows, fileName = "leads_export") => {
     if (!rows || rows.length === 0) {
@@ -267,14 +205,11 @@ const TaskPage = () => {
 
   const handleSelectAll = (isSelected) => {
     if (isSelected) {
-      const currentPageDeals = filteredAndSortedDeals
-        ?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-        ?.map((deal) => deal?.id);
+      const currentPageDeals = tasks.map((deal) => deal.id);
+
       setSelectedDeals([...new Set([...selectedDeals, ...currentPageDeals])]);
     } else {
-      const currentPageDeals = filteredAndSortedDeals
-        ?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-        ?.map((deal) => deal?.id);
+      const currentPageDeals = tasks.map((deal) => deal.id);
       setSelectedDeals(
         selectedDeals?.filter((id) => !currentPageDeals?.includes(id)),
       );
@@ -302,8 +237,9 @@ const TaskPage = () => {
       status: "",
       priority: "",
       assignUser: "",
-      closeDateFrom: "",
-      closeDateTo: "",
+      startDate: "",
+      endDate: "",
+      dateType: "",
     });
     setCurrentPage(1);
   };
@@ -319,7 +255,7 @@ const TaskPage = () => {
         return;
       }
 
-      const selectedRows = filteredAndSortedDeals.filter((deal) =>
+      const selectedRows = tasks.filter((deal) =>
         selectedDeals.includes(deal.id),
       );
 
@@ -349,6 +285,7 @@ const TaskPage = () => {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
+    setPage(1);
   }, [filters]);
 
   return (
@@ -382,7 +319,7 @@ const TaskPage = () => {
                 <Button
                   variant="outline"
                   onClick={() =>
-                    exportLeadsToCSV(filteredAndSortedDeals, "all_leads")
+                    exportLeadsToCSV(tasks, "all_leads")
                   }
                 >
                   <Icon name="Download" size={16} className="mr-2" />
@@ -400,34 +337,35 @@ const TaskPage = () => {
               filters={filters}
               onFiltersChange={handleFiltersChange}
               onClearFilters={handleClearFilters}
-              dealCount={filteredAndSortedDeals?.length}
+              dealCount={total}
               onBulkAction={handleBulkAction}
               selectedCount={selectedDeals?.length}
             />
 
             {/* Deals Table */}
             <DealsTable
-              deals={filteredAndSortedDeals}
+              deals={tasks}
               selectedDeals={selectedDeals}
               onSelectDeal={handleSelectDeal}
               onSelectAll={handleSelectAll}
               onDealClick={handleDealClick}
               sortConfig={sortConfig}
               onSort={handleSort}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
               onDelete={handleDeleteLead}
-              isLoading={loading}
+              isLoading={isLoading}
             />
 
             {/* Pagination */}
             <TablePagination
-              currentPage={currentPage}
+              currentPage={page}
               totalPages={totalPages}
-              totalItems={filteredAndSortedDeals?.length}
-              itemsPerPage={itemsPerPage}
-              onPageChange={handlePageChange}
-              onItemsPerPageChange={handleItemsPerPageChange}
+              totalItems={total}
+              itemsPerPage={limit}
+              onPageChange={(p) => setPage(p)}
+              onItemsPerPageChange={(newLimit) => {
+                setLimit(newLimit);
+                setPage(1);
+              }}
             />
           </div>
         </main>
