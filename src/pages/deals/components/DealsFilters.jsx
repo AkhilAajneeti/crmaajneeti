@@ -28,23 +28,40 @@ const DealsFilters = ({
     { value: "delete", label: "Delete Selected", icon: "Trash2" },
   ];
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [statusRes, sourceRes] = await Promise.all([
-          fetchStatus(),
-          fetchSources(),
-        ]);
-
-        setStatus(statusRes.options || []);
-        setSource(sourceRes.options || []);
-      } catch (err) {
-        console.error("Failed to load data", err);
-      }
-    };
-
-    loadData();
-  }, []);
+  // Source
+  const sourceOptions = [
+    { value: "Call", label: "Call" },
+    { value: "Email", label: "Email" },
+    { value: "Existing Customer", label: "Existing Customer" },
+    { value: "Partner", label: "Partner" },
+    { value: "Public Relations", label: "Public Relations" },
+    { value: "Web Site", label: "Web Site" },
+    { value: "Campaign", label: "Campaign" },
+    { value: "Other", label: "Other" },
+    { value: "Facebook", label: "Facebook" }, // ✅ added
+    { value: "IVR", label: "IVR" }            // ✅ added
+  ];
+  // Status
+  const statusOptions = [
+    { value: "Call Later", label: "Call Later" },
+    { value: "Call Not Connecting", label: "Call Not Connecting" },
+    { value: "Call Not Picked", label: "Call Not Picked" },
+    { value: "Converted", label: "Converted" },
+    { value: "Dead", label: "Dead" },
+    { value: "Duplicate", label: "Duplicate" },
+    { value: "Follow Up", label: "Follow Up" },
+    { value: "Future Prospect", label: "Future Prospect" },
+    { value: "In Process", label: "In Process" },
+    { value: "Interested", label: "Interested" },
+    { value: "Invalid", label: "Invalid" },
+    { value: "Low Budget | Low Intent", label: "Low Budget | Low Intent" },
+    { value: "New", label: "New" },
+    { value: "Not interested", label: "Not interested" },
+    { value: "Proposal Shared", label: "Proposal Shared" },
+    { value: "Qualified", label: "Qualified" },
+    { value: "Webinar", label: "Webinar" },        // ✅ added
+    { value: "Z Old Leads", label: "Z Old Leads" } // ✅ added
+  ];
   const ACTIVITY_DATE_FILTERS = [
     { label: "Today", value: "today" },
     { label: "Yesterday", value: "yesterday" },
@@ -58,18 +75,7 @@ const DealsFilters = ({
     { label: "Last Month", value: "lastMonth" },
   ];
 
-  const sourceOptions = source
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const statusOptions = status
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+
   const showDateInputs = [
     "between",
     "after",
@@ -217,11 +223,11 @@ const DealsFilters = ({
           onChange={(value) => handleFilterChange("status", value)}
         />
 
-        <Input
+        {/* <Input
           placeholder="Project Name"
           value={filters?.projectName || ""}
           onChange={(e) => handleFilterChange("projectName", e.target.value)}
-        />
+        /> */}
 
         <Select
           placeholder="Source"

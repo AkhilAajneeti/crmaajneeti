@@ -14,17 +14,51 @@ const PipelineFilters = ({ filters, onFiltersChange, onResetFilters }) => {
   const status = meta?.status?.options || [];
   const userList = users?.list || [];
   // Source
-  const sourceOptions = source.map((item) => ({
-    value: item.value || item,
-    label: item.label || item,
-  }));
-
+  const sourceOptions = [
+    { value: "Call", label: "Call" },
+    { value: "Email", label: "Email" },
+    { value: "Existing Customer", label: "Existing Customer" },
+    { value: "Partner", label: "Partner" },
+    { value: "Public Relations", label: "Public Relations" },
+    { value: "Web Site", label: "Web Site" },
+    { value: "Campaign", label: "Campaign" },
+    { value: "Other", label: "Other" },
+    { value: "Facebook", label: "Facebook" }, // ✅ added
+    { value: "IVR", label: "IVR" }            // ✅ added
+  ];
   // Status
-  const statusOptions = status.map((item) => ({
-    value: item.value || item,
-    label: item.label || item,
-  }));
+  const statusOptions = [
+    { value: "Call Later", label: "Call Later" },
+    { value: "Call Not Connecting", label: "Call Not Connecting" },
+    { value: "Call Not Picked", label: "Call Not Picked" },
+    { value: "Converted", label: "Converted" },
+    { value: "Dead", label: "Dead" },
+    { value: "Duplicate", label: "Duplicate" },
+    { value: "Follow Up", label: "Follow Up" },
+    { value: "Future Prospect", label: "Future Prospect" },
+    { value: "In Process", label: "In Process" },
+    { value: "Interested", label: "Interested" },
+    { value: "Invalid", label: "Invalid" },
+    { value: "Low Budget | Low Intent", label: "Low Budget | Low Intent" },
+    { value: "New", label: "New" },
+    { value: "Not interested", label: "Not interested" },
+    { value: "Proposal Shared", label: "Proposal Shared" },
+    { value: "Qualified", label: "Qualified" },
+    { value: "Webinar", label: "Webinar" },        // ✅ added
+    { value: "Z Old Leads", label: "Z Old Leads" } // ✅ added
+  ];
+  const ACTIVITY_DATE_FILTERS = [
+    { label: "Today", value: "today" },
+    { label: "Yesterday", value: "yesterday" },
+    { label: "Last 7 Days", value: "last7Days" },
 
+    { label: "Before", value: "before" },
+    { label: "After", value: "after" },
+
+    { label: "Between", value: "between" },
+    { label: "This Month", value: "currentMonth" },
+    { label: "Last Month", value: "lastMonth" },
+  ];
   // Users
   const userOptions = userList.map((user) => ({
     value: user.id,
@@ -32,13 +66,7 @@ const PipelineFilters = ({ filters, onFiltersChange, onResetFilters }) => {
   }));
   // assign user filter
 
-  // age filter
-  const ageOptions = [
-    { value: "all", label: "All Ages" },
-    { value: "0-7", label: "0–7 Days" },
-    { value: "7-30", label: "7–30 Days" },
-    { value: "30+", label: "30+ Days" },
-  ];
+
 
   const handleFilterChange = (key, value) => {
     onFiltersChange({
@@ -49,16 +77,22 @@ const PipelineFilters = ({ filters, onFiltersChange, onResetFilters }) => {
 
   const getActiveFiltersCount = () => {
     let count = 0;
-
-    if (filters?.health && filters?.health !== "all") count++;
-    if (filters?.nextContact && filters?.nextContact !== "all") count++;
-    if (filters?.leadAge && filters?.leadAge !== "all") count++;
-    if (filters?.search && filters?.search?.trim()) count++;
+    if (filters?.status && filters.status !== "") count++;
+    if (filters?.source && filters.source !== "") count++;
+    if (filters?.assignedUser && filters.assignedUser !== "") count++;
+    if (filters?.dateType) count++;
+    if (filters?.search) count++;
 
     return count;
   };
 
   const activeFiltersCount = getActiveFiltersCount();
+  const showDateInputs = [
+    "between",
+    "after",
+    "before",
+    "on"
+  ].includes(filters?.dateType);
 
   return (
     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
@@ -128,11 +162,33 @@ const PipelineFilters = ({ filters, onFiltersChange, onResetFilters }) => {
 
           {/* Age */}
           <Select
-            placeholder="Lead Age"
-            options={ageOptions}
-            value={filters?.leadAge || "all"}
-            onChange={(value) => handleFilterChange("leadAge", value)}
+            className="min-w-0"
+            placeholder="Filter by date"
+            options={ACTIVITY_DATE_FILTERS}
+            value={filters?.dateType || ""}
+            onChange={(value) => handleFilterChange("dateType", value)}
           />
+          {/* Date Range Inputs */}
+          {showDateInputs && (
+            <div className="flex gap-2">
+              <Input
+                type="date"
+                value={filters?.closeDateFrom || ""}
+                onChange={(e) =>
+                  handleFilterChange("closeDateFrom", e.target.value)
+                }
+              />
+              {filters?.dateType === "between" && (
+                <Input
+                  type="date"
+                  value={filters?.closeDateTo || ""}
+                  onChange={(e) =>
+                    handleFilterChange("closeDateTo", e.target.value)
+                  }
+                />
+              )}
+            </div>
+          )}
         </div>
 
         {/* Custom Date Range */}
@@ -175,7 +231,7 @@ const PipelineFilters = ({ filters, onFiltersChange, onResetFilters }) => {
             {filters?.owner && filters?.owner !== "all" && (
               <span className="inline-flex items-center px-3 py-1 text-sm bg-accent text-accent-foreground rounded-full">
                 Owner:{" "}
-                {ownerOptions?.find((o) => o?.value === filters?.owner)?.label}
+                {userOptions?.find((o) => o?.value === filters?.owner)?.label}
                 <button
                   onClick={() => handleFilterChange("owner", "all")}
                   className="ml-2 hover:text-accent-foreground/80"

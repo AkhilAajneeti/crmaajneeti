@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -12,10 +12,19 @@ import {
 import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
+import { fetchLeadsCount } from "services/leads.service";
 
 const MultiLineChart = ({ leads = [] }) => {
   // const [selectedYear, setSelectedYear] = useState(2024);
   const [viewType, setViewType] = useState("monthly");
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [loadingMonthly, setLoadingMonthly] = useState(false);
+
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [loadingWeekly, setLoadingWeekly] = useState(false);
+
+  const [dailyData, setDailyData] = useState([]);
+  const [loadingDaily, setLoadingDaily] = useState(false);
   const now = new Date();
   const currentYearLeads = leads.filter((l) => {
     const d = new Date(l.createdAt);
@@ -52,39 +61,50 @@ const MultiLineChart = ({ leads = [] }) => {
 
   // get monthly data
 
-  const getMonthlyData = () => {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
+  const getMonthlyDataFromAPI = async () => {
     const year = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
 
-    return months.map((month, index) => {
-      // filter month leads
-      const monthLeads = leads.filter((l) => {
-        const d = new Date(l.createdAt);
-        return d.getFullYear() === year && d.getMonth() === index;
-      });
-      return {
-        label: month,
-        facebook: monthLeads.filter((l) => l.source === "Facebook").length,
-        ivr: monthLeads.filter((l) => l.source === "IVR").length,
-        website: monthLeads.filter((l) => l.source === "Web Site").length,
-      };
-    });
+    return Promise.all(
+      Array.from({ length: 12 }, async (_, i) => {
+        const start = new Date(year, i, 1);
+        const end = new Date(year, i + 1, 0);
+        end.setHours(23, 59, 59, 999);
+
+        if (i > currentMonth) {
+          return {
+            label: start.toLocaleString("default", { month: "short" }),
+            facebook: 0,
+            ivr: 0,
+            website: 0,
+          };
+        }
+
+        const [facebook, ivr, website] = await Promise.all([
+          fetchLeadsCount([
+            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
+            { type: "in", attribute: "source", value: ["Facebook"] },
+          ]),
+          fetchLeadsCount([
+            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
+            { type: "in", attribute: "source", value: ["IVR"] },
+          ]),
+          fetchLeadsCount([
+            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
+            { type: "in", attribute: "source", value: ["Web Site"] },
+          ]),
+        ]);
+
+        return {
+          label: start.toLocaleString("default", { month: "short" }),
+          facebook,
+          ivr,
+          website,
+        };
+      })
+    );
   };
-
-  const getWeeklyData = () => {
+  const getWeeklyDataFromAPI = async () => {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth();
@@ -97,50 +117,113 @@ const MultiLineChart = ({ leads = [] }) => {
       { label: "W5", start: 29, end: 31 },
     ];
 
-    return weeks.map((w) => {
-      const weekLeads = leads.filter((l) => {
-        const d = new Date(l.createdAt);
-        return (
-          d.getFullYear() === year &&
-          d.getMonth() === month &&
-          d.getDate() >= w.start &&
-          d.getDate() <= w.end
-        );
-      });
+    return Promise.all(
+      weeks.map(async (w) => {
+        const start = new Date(year, month, w.start);
+        start.setHours(0, 0, 0, 0);
 
-      return {
-        label: w.label,
-        facebook: weekLeads.filter((l) => l.source === "Facebook").length,
-        ivr: weekLeads.filter((l) => l.source === "IVR").length,
-        website: weekLeads.filter((l) => l.source === "Web Site").length,
-      };
-    });
+        const lastDate = new Date(year, month + 1, 0).getDate();
+        const endDay = Math.min(w.end, lastDate);
+
+        const end = new Date(year, month, endDay);
+        end.setHours(23, 59, 59, 999);
+
+        const [facebook, ivr, website] = await Promise.all([
+          fetchLeadsCount([
+            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
+            { type: "in", attribute: "source", value: ["Facebook"] },
+          ]),
+          fetchLeadsCount([
+            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
+            { type: "in", attribute: "source", value: ["IVR"] },
+          ]),
+          fetchLeadsCount([
+            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
+            { type: "in", attribute: "source", value: ["Web Site"] },
+          ]),
+        ]);
+
+        return { label: w.label, facebook, ivr, website };
+      })
+    );
   };
+  const getDailyDataFromAPI = async () => {
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
 
-  const getDailyData = () => {
-    return [...Array(7)].map((_, i) => {
-      const day = new Date();
-      day.setDate(day.getDate() - (6 - i));
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
 
-      const dailyLeads = leads.filter(
-        (l) => new Date(l.createdAt).toDateString() === day.toDateString(),
-      );
-      return {
-        label: day.toLocaleDateString("en-IN", { weekday: "short" }),
-        facebook: dailyLeads.filter((l) => l.source === "Facebook").length,
-        ivr: dailyLeads.filter((l) => l.source === "IVR").length,
-        website: dailyLeads.filter((l) => l.source === "Web Site").length,
-      };
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+
+      return { date, start, end };
     });
+
+    return Promise.all(
+      days.map(async (d) => {
+        const [facebook, ivr, website] = await Promise.all([
+          fetchLeadsCount([
+            { type: "between", attribute: "createdAt", value: [d.start.toISOString(), d.end.toISOString()] },
+            { type: "in", attribute: "source", value: ["Facebook"] },
+          ]),
+          fetchLeadsCount([
+            { type: "between", attribute: "createdAt", value: [d.start.toISOString(), d.end.toISOString()] },
+            { type: "in", attribute: "source", value: ["IVR"] },
+          ]),
+          fetchLeadsCount([
+            { type: "between", attribute: "createdAt", value: [d.start.toISOString(), d.end.toISOString()] },
+            { type: "in", attribute: "source", value: ["Web Site"] },
+          ]),
+        ]);
+
+        return {
+          label: d.date.toLocaleDateString("en-IN", { weekday: "short" }),
+          facebook,
+          ivr,
+          website,
+        };
+      })
+    );
   };
+  useEffect(() => {
+    if (viewType !== "monthly") return;
+
+    setLoadingMonthly(true);
+
+    getMonthlyDataFromAPI()
+      .then(setMonthlyData)
+      .finally(() => setLoadingMonthly(false));
+  }, [viewType]);
+  useEffect(() => {
+    if (viewType !== "weekly") return;
+
+    setLoadingWeekly(true);
+
+    getWeeklyDataFromAPI()
+      .then(setWeeklyData)
+      .finally(() => setLoadingWeekly(false));
+  }, [viewType]);
+  useEffect(() => {
+    if (viewType !== "daily") return;
+
+    setLoadingDaily(true);
+
+    getDailyDataFromAPI()
+      .then(setDailyData)
+      .finally(() => setLoadingDaily(false));
+  }, [viewType]);
+
+
   const chartData = (() => {
     switch (viewType) {
       case "weekly":
-        return getWeeklyData();
+        return weeklyData;
       case "daily":
-        return getDailyData();
+        return dailyData;
       default:
-        return getMonthlyData();
+        return monthlyData;
     }
   })();
 
@@ -148,6 +231,10 @@ const MultiLineChart = ({ leads = [] }) => {
   const ivrTotal = chartData.reduce((sum, item) => sum + item.ivr, 0);
   const websiteTotal = chartData.reduce((sum, item) => sum + item.website, 0);
   const Total = facebookTotal + ivrTotal + websiteTotal;
+  const isLoading =
+    (viewType === "monthly" && loadingMonthly) ||
+    (viewType === "weekly" && loadingWeekly) ||
+    (viewType === "daily" && loadingDaily);
   return (
     <motion.div
       className="bg-card border border-border rounded-xl p-6 shadow-elevation-1"
@@ -155,7 +242,7 @@ const MultiLineChart = ({ leads = [] }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
         <div>
           <h3 className="text-lg font-semibold text-card-foreground">
             Lead Source Performance
@@ -183,58 +270,139 @@ const MultiLineChart = ({ leads = [] }) => {
         className="h-80"
         aria-label="Monthly Lead Source Performance Bar Chart"
       >
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={chartData}
-            margin={
-              isMobile
-                ? { top: 0, right: 0, left: 0, bottom: 5 }
-                : { top: 20, right: 30, left: 20, bottom: 5 }
-            }
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#2e2e2e" />
+        {
+          isLoading ? (
+            <div className="w-full h-full relative px-6 pb-6">
 
-            <XAxis dataKey="label" stroke="#888" fontSize={12} />
+              {/* Grid */}
+              <div className="absolute inset-0 grid grid-cols-12 grid-rows-4">
+                {Array.from({ length: 48 }).map((_, i) => (
+                  <div key={i} className="border-[0.5px] border-gray-300/40" />
+                ))}
+              </div>
 
-            <YAxis
-              stroke="#888"
-              fontSize={12}
-              width={35}
-              allowDecimals={false}
-              domain={[0, "dataMax + 1"]}
-            />
+              {/* Lines */}
+              <div className="absolute inset-0 flex flex-col justify-end pb-6">
 
-            <Tooltip content={<CustomTooltip />} />
+                {[
+                  [220, 260, 190, 240, 230, 20, 220, 100, 0, 20, 20, 160], // facebook
+                  [180, 280, 200, 210, 150, 0, 120, 40, 0, 110, 120, 110], // ivr
+                  [120, 140, 210, 130, 210, 0, 150, 80, 0, 140, 140, 0], // website
+                ].map((heights, lineIndex) => (
 
-            <Legend />
+                  <div key={lineIndex} className="absolute inset-0 flex items-end justify-between px-2">
 
-            {/* Main Leads Line */}
-            <Line
-              type="monotone"
-              dataKey="facebook"
-              stroke="#1877F2"
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              activeDot={{ r: 6 }}
-            />
+                    {heights.map((h, i) => (
+                      <div key={i} className="relative flex items-center w-full">
 
-            <Line
-              type="monotone"
-              dataKey="ivr"
-              stroke="#22c55e"
-              strokeWidth={2}
-              dot={{ r: 4 }}
-            />
+                        {/* Dot */}
+                        <motion.div
+                          className="w-2 h-2 bg-gray-400/70 rounded-full z-10"
+                          style={{ transform: `translateY(-${h}px)` }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: i * 0.05 + lineIndex * 0.2 }}
+                        />
 
-            <Line
-              type="monotone"
-              dataKey="website"
-              stroke="#f59e0b"
-              strokeWidth={2}
-              dot={{ r: 4 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+                        {/* Horizontal line */}
+                        {i !== heights.length - 1 && (
+                          <motion.div
+                            className="flex-1 h-[2px] bg-gray-300/60"
+                            style={{
+                              transform: `translateY(-${h}px)`
+                            }}
+                            initial={{ scaleX: 0 }}
+                            animate={{ scaleX: 1 }}
+                            transition={{
+                              duration: 0.4,
+                              delay: i * 0.05 + lineIndex * 0.2,
+                            }}
+                          >
+                            {/* shimmer */}
+                            <motion.div
+                              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                              animate={{ x: ["-100%", "100%"] }}
+                              transition={{
+                                repeat: Infinity,
+                                duration: 1.2,
+                                ease: "linear",
+                              }}
+                            />
+                          </motion.div>
+                        )}
+
+                      </div>
+                    ))}
+
+                  </div>
+                ))}
+
+              </div>
+
+              {/* X labels */}
+              <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="h-3 w-6 bg-gray-300/60 rounded animate-pulse" />
+                ))}
+              </div>
+
+              {/* Axis line */}
+              <div className="absolute bottom-6 left-0 right-0 h-[1px] bg-gray-300/50" />
+            </div>
+          ) : (<ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={chartData}
+              margin={
+                isMobile
+                  ? { top: 20, right: 0, left: -20, bottom: 5 }
+                  : { top: 20, right: 30, left: 20, bottom: 5 }
+              }
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#2e2e2e" />
+
+              <XAxis dataKey="label" stroke="#888" fontSize={12} />
+
+              <YAxis
+                stroke="#888"
+                fontSize={12}
+                width={35}
+                allowDecimals={false}
+                domain={[0, "dataMax + 1"]}
+              />
+
+              <Tooltip content={<CustomTooltip />} />
+
+              <Legend />
+
+              {/* Main Leads Line */}
+              <Line
+                type="monotone"
+                dataKey="facebook"
+                stroke="#1877F2"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+
+              <Line
+                type="monotone"
+                dataKey="ivr"
+                stroke="#22c55e"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
+
+              <Line
+                type="monotone"
+                dataKey="website"
+                stroke="#f59e0b"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>)
+        }
+
       </div>
 
       <div className="mt-4 pt-4 border-t border-border">

@@ -180,7 +180,15 @@ const AccountsFilters = ({ onFiltersChange, activeFilters, resultCount, total, l
       {isExpanded && (
         <div className="sm:hidden mt-4 pt-4 border-t border-border">
           <div className="space-y-3">
-
+            <Input
+              type="search"
+              placeholder="Search by account name..."
+              value={activeFilters?.search || ""}
+              onChange={(e) =>
+                handleFilterChange("search", e.target.value)
+              }
+              className="border px-3 py-2 rounded-md w-full"
+            />
 
             <Select
               options={typeOptions}

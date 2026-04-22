@@ -3,6 +3,7 @@ import IndustryChart from "./IndustryChart";
 import StatusChart from "./StatusChart";
 
 const RightRail = ({ leads = [] }) => {
+ 
   return (
     <div className="space-y-6">
       {/* Industry Chart */}

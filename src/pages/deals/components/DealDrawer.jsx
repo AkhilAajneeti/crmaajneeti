@@ -16,7 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 const DealDrawer = ({
   status,
   source,
-  industry,
+
   deal,
   isOpen,
   onClose,
@@ -42,7 +42,7 @@ const DealDrawer = ({
     emailAddress: "",
     whatsapp: "",
     addressCity: "",
-    cProjectName: "",
+
     cNextContactAt: "",
     cQuestion: "",
     assignedUserId: "",
@@ -50,7 +50,7 @@ const DealDrawer = ({
     status: "",
     source: "",
     description: "",
-    industry: "",
+    cOTPVerified: "No",
   });
   const queryClient = useQueryClient();
   const { data: usersData } = useUsers();
@@ -72,7 +72,7 @@ const DealDrawer = ({
         emailAddress: "",
         whatsapp: "",
         addressCity: "",
-        cProjectName: "",
+
         cNextContactAt: "",
         cQuestion: "",
         assignedUserId: "",
@@ -80,7 +80,7 @@ const DealDrawer = ({
         status: "New",
         source: "",
         description: "",
-        industry: "",
+        cOTPVerified: "No",
       });
       setIsEditing(true); // form open
     } else if (deal && mode === "view") {
@@ -96,6 +96,40 @@ const DealDrawer = ({
     teamId: false,
     cNextContactAt: false,
   });
+  // Source
+  const sourceOptions = [
+    { value: "Call", label: "Call" },
+    { value: "Email", label: "Email" },
+    { value: "Existing Customer", label: "Existing Customer" },
+    { value: "Partner", label: "Partner" },
+    { value: "Public Relations", label: "Public Relations" },
+    { value: "Web Site", label: "Web Site" },
+    { value: "Campaign", label: "Campaign" },
+    { value: "Other", label: "Other" },
+    { value: "Facebook", label: "Facebook" }, // ✅ added
+    { value: "IVR", label: "IVR" }            // ✅ added
+  ];
+  // Status
+  const statusOptions = [
+    { value: "Call Later", label: "Call Later" },
+    { value: "Call Not Connecting", label: "Call Not Connecting" },
+    { value: "Call Not Picked", label: "Call Not Picked" },
+    { value: "Converted", label: "Converted" },
+    { value: "Dead", label: "Dead" },
+    { value: "Duplicate", label: "Duplicate" },
+    { value: "Follow Up", label: "Follow Up" },
+    { value: "Future Prospect", label: "Future Prospect" },
+    { value: "In Process", label: "In Process" },
+    { value: "Interested", label: "Interested" },
+    { value: "Invalid", label: "Invalid" },
+    { value: "Low Budget | Low Intent", label: "Low Budget | Low Intent" },
+    { value: "New", label: "New" },
+    { value: "Not interested", label: "Not interested" },
+    { value: "Proposal Shared", label: "Proposal Shared" },
+    { value: "Qualified", label: "Qualified" },
+    { value: "Webinar", label: "Webinar" },        // ✅ added
+    { value: "Z Old Leads", label: "Z Old Leads" } // ✅ added
+  ];
 
   const toggleMassField = (field) => {
     setMassFields((prev) => ({
@@ -359,24 +393,7 @@ const DealDrawer = ({
     value: t.id,
     label: t.name,
   }));
-  const sourceOptions = source
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const statusOptions = status
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const industryOptions = industry
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+
 
   const handleSelectChange = (name, value) => {
     setFormData((prev) => ({
@@ -539,13 +556,7 @@ const DealDrawer = ({
 
                     {/* Project & Next Contact */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Project Name"
-                        value={formData.cProjectName || ""}
-                        onChange={(e) =>
-                          handleChange("cProjectName", e.target.value)
-                        }
-                      />
+
                       <Input
                         type="datetime-local"
                         label="Next Contact"
@@ -554,30 +565,33 @@ const DealDrawer = ({
                           handleChange("cNextContactAt", e.target.value)
                         }
                       />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                      <Input
-                        label="Preference"
-                        value={formData.cQuestion || ""}
-                        onChange={(e) =>
-                          handleChange("cQuestion", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="bg-card border border-border rounded-lg p-4 space-y-4">
                       <Select
-                        label="Industry"
-                        value={formData.industry || ""}
-                        options={industryOptions} // 👉 later API se teams
-                        onChange={(value) =>
-                          handleSelectChange("industry", value)
-                        }
+                        label="OPT Verified"
+                        value={formData.cOTPVerified || ""}
+                        options={[
+                          { value: "Yes", label: "Yes" },
+                          { value: "No", label: "No" }
+                        ]}
+                        onChange={(value) => handleChange("cOTPVerified", value)}
                       />
                     </div>
                   </div>
-
+                  <div className="bg-card border border-border rounded-lg p-4 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Select
+                        label="Status"
+                        value={formData.status || "New"}
+                        options={statusOptions}
+                        onChange={(value) => handleChange("status", value)}
+                      />
+                      <Select
+                        label="Source"
+                        value={formData.source || ""}
+                        options={sourceOptions}
+                        onChange={(value) => handleChange("source", value)}
+                      />
+                    </div>
+                  </div>
                   {/* ================= Assigned User ================= */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
@@ -588,6 +602,7 @@ const DealDrawer = ({
                         onChange={(value) =>
                           handleSelectChange("assignedUserId", value)
                         }
+                        searchable
                       />
                     </div>
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
@@ -606,18 +621,17 @@ const DealDrawer = ({
                   <div className="bg-card border border-border rounded-lg p-4 space-y-4">
                     <h3 className="font-medium text-foreground">Details</h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Select
-                        label="Status"
-                        value={formData.status || "New"}
-                        options={statusOptions}
-                        onChange={(value) => handleChange("status", value)}
-                      />
-                      <Select
-                        label="Source"
-                        value={formData.source || ""}
-                        options={sourceOptions}
-                        onChange={(value) => handleChange("source", value)}
+
+                    <div className="col-span-2">
+                      <textarea
+                        className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        label="Question"
+                        rows={4}
+                        value={formData.cQuestion || ""}
+                        placeholder="Question"
+                        onChange={(e) =>
+                          handleChange("cQuestion", e.target.value)
+                        }
                       />
                     </div>
                     <div className="col-span-2">
@@ -811,17 +825,15 @@ const DealDrawer = ({
                                 : "None"}
                             </p>
                           </div>
-
-                          {/* Project Name */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              Project Name
+                              OTP Verified
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.cProjectName || "None"}
+                              {deal?.cOTPVerified|| "No"}
                             </p>
                           </div>
-
+                          
                           {/* Preference */}
                           <div>
                             <p className="text-sm text-muted-foreground">
@@ -861,14 +873,7 @@ const DealDrawer = ({
                             </p>
                           </div>
                           {/* Source */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Industry
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.cSector || "—"}
-                            </p>
-                          </div>
+
 
                           {/* Description */}
                           <div className="md:col-span-2">
@@ -1047,7 +1052,7 @@ const DealDrawer = ({
                               Currently you don't have any comments
                             </p>
                           </div>
-                        ) }
+                        )}
                       </div>
                     </div>
                   )}

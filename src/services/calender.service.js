@@ -248,3 +248,54 @@ export const fetchAttendanceById = async (id) => {
     }
     return await res.json();
 };
+
+export const createNewAttendance = async (payload) => {
+    const token = localStorage.getItem("auth_token");
+    try {
+        const res = await fetch("https://gateway.aajneetiadvertising.com/CAttendanceRequest", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", token: token },
+
+            body: JSON.stringify(payload),
+        });
+        const data = await res.json(); // ✅ FIX
+
+        if (!res.ok) {
+            throw new Error(data?.message || "Something went wrong");
+        }
+
+        return data; // ✅ now frontend gets response
+    } catch (err) {
+        console.error("Create Attendance API Error:", err);
+        throw err;
+    }
+
+
+    return text ? JSON.parse(text) : null;
+};
+
+
+export const updateAttendance = async (id, payload) => {
+    const token = localStorage.getItem("auth_token");
+    console.log(id, payload, versionNumber);
+    const res = await fetch(
+        `https://gateway.aajneetiadvertising.com/Account/${id}`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                token: token,
+            },
+            body: JSON.stringify(payload),
+        },
+    );
+
+    const text = await res.text();
+    console.log("response from servicejs", res);
+    if (!res.ok) {
+        throw new Error(text || "Attendance update failed");
+    }
+
+    return text ? JSON.parse(text) : null;
+};

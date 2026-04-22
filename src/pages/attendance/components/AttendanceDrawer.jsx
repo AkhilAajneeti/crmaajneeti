@@ -3,7 +3,8 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Avatar from "react-avatar";
 import toast from "react-hot-toast";
-
+import ReactSelect from "react-select";
+import makeAnimated from "react-select/animated";
 import Input from "../../../components/ui/Input";
 import {
   accActivitesById,
@@ -22,6 +23,7 @@ import { fetchAccStreamById } from "services/account.service";
 import { deleteTasks } from "services/tasks.service";
 import { useAccountById } from "hooks/useAccounts";
 import { useCalenderById } from "hooks/useCalender";
+import { createNewAttendance, updateAttendance } from "services/calender.service";
 const AttendanceDrawer = ({
   data,
   accType,
@@ -61,79 +63,41 @@ const AttendanceDrawer = ({
   });
 
   const isMassUpdate = drawerMode === "mass-update";
-  
+  const animatedComponents = makeAnimated();
   const { data: account, isLoading } = useCalenderById(data?.id);
-  console.log("entering inside fetc",account);
+  console.log("entering inside fetc", account);
   // Form state for create/edit mode
   const [formData, setFormData] = useState({
-    name: "",
-    website: "",
-    industry: "",
-    type: "",
-    phoneNumber: "+91",
-    emailAddress: "",
+    name: "", // reason
+    department: "",
+    employeeCode: "",
+    requestType: "",
+    status: "Pending",
+    startDate: "",
+    endDate: "",
+    leaveBalance: 0,
+    leaveConsumed: 0,
     description: "",
-    assignedUserId: "",
-    teamId: "",
-    billingAddressStreet: "",
-    billingAddressCity: "",
-    billingAddressState: "",
-    billingAddressPostalCode: "",
-    billingAddressCountry: "",
-    shippingAddressStreet: "",
-    shippingAddressCity: "",
-    shippingAddressState: "",
-    shippingAddressCountry: "",
-    shippingAddressPostalCode: "",
+    reportingManagerEmail: "",
+    teamsIds: [],
+    collaboratorsIds: []
   });
-
   useEffect(() => {
     if (account && (drawerMode === "view" || drawerMode === "edit")) {
-      // Populate form with account data
       setFormData({
-        name: account?.company || account?.name || "",
-        website: account?.website || "",
-        industry: account?.industry || "",
-        phoneNumber: account?.phoneNumber || "",
-        type: account?.type || "",
-        emailAddress: account?.emailAddress || "",
+        name: account?.name || "",
+        department: account?.department || "",
+        employeeCode: account?.employeeCode || "",
+        requestType: account?.requestType || "",
+        status: account?.status || "Pending",
+        startDate: account?.startDate || "",
+        endDate: account?.endDate || "",
+        leaveBalance: account?.leaveBalance || 0,
+        leaveConsumed: account?.leaveConsumed || 0,
         description: account?.description || "",
-        assignedUserId: account?.assignedUserId || "",
-        teamId: account?.teamId || "",
-        billingAddressStreet: account?.billingAddressStreet || "",
-        billingAddressCity: account?.billingAddressCity || "",
-        billingAddressState: account?.billingAddressState || "",
-        billingAddressPostalCode: account?.billingAddressPostalCode || "",
-        billingAddressCountry: account?.billingAddressCountry || "",
-        shippingAddressStreet: account?.shippingAddressStreet || "",
-        shippingAddressCity: account?.shippingAddressCity || "",
-        shippingAddressState: account?.shippingAddressState || "",
-        shippingAddressCountry: account?.shippingAddressCountry || "",
-        shippingAddressPostalCode: account?.shippingAddressPostalCode || "",
-      });
-    } else if (drawerMode === "create") {
-      // Reset form for new account
-      setFormData({
-        name: "",
-        website: "",
-        industry: "",
-        type: "",
-        phoneNumber: "",
-        emailAddress: "",
-        description: "",
-        assignedUserId: "",
-        teamId: "",
-        billingAddressStreet: "",
-        billingAddressCity: "",
-        billingAddressState: "",
-        billingAddressPostalCode: "",
-        billingAddressCountry: "",
-        shippingAddressStreet: "",
-        shippingAddressCity: "",
-        shippingAddressState: "",
-        shippingAddressCountry: "",
-        shippingAddressPostalCode: "",
-        // versionNumber: account?.versionNumber|| null,
+        reportingManagerEmail: account?.reportingManagerEmail || "",
+        teamsIds: account?.teamsIds || [],
+        collaboratorsIds: account?.collaboratorsIds || []
       });
     }
   }, [account, drawerMode]);
@@ -342,7 +306,7 @@ const AttendanceDrawer = ({
       console.log("UPDATE ACCOUNT PAYLOAD", payload);
       console.log("UPDATE versionNumber", account?.versionNumber);
 
-      await updateAccount(account.id, payload, account?.versionNumber);
+      await updateAttendance(account.id, payload);
 
       onSuccess(); // refresh table
       onClose(); // close drawer
@@ -352,29 +316,31 @@ const AttendanceDrawer = ({
     }
   };
   const handleCreate = async () => {
-    if (!validateForm()) return;
-
     try {
-      setIsLoading(true);
-      if (formData.phoneNumber.length !== 10) {
-        toast.error("Phone number must be 10 digits");
-        return;
-      }
       const payload = {
-        ...formData,
+        name: formData.name,
+        department: formData.department,
+        employeeCode: formData.employeeCode,
+        requestType: formData.requestType,
+        status: formData.status,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        leaveBalance: Number(formData.leaveBalance),
+        leaveConsumed: Number(formData.leaveConsumed),
+        description: formData.description,
+        reportingManagerEmail: formData.reportingManagerEmail,
+        teamsIds: formData.teamsIds,
+        collaboratorsIds: formData.collaboratorsIds
       };
 
-      console.log("CREATE ACCOUNT PAYLOAD", payload);
+      console.log("CREATE ATTENDANCE PAYLOAD", payload);
 
-      await createAccount(payload);
+      await createNewAttendance(payload);
 
-      onSuccess(); // refresh table
-      onClose(); // close drawer
+      onSuccess();
+      onClose();
     } catch (err) {
-      console.error("Create failed:", err);
-      alert("Failed to create account");
-    } finally {
-      setIsLoading(false);
+      console.error(err);
     }
   };
 
@@ -622,6 +588,20 @@ const AttendanceDrawer = ({
     }
   };
 
+  const requestTyp = [
+    { value: "Contribution Credit", label: "Contribution Credit" },
+    { value: "Short Leave", label: "Short Leave" },
+    { value: "Leave", label: "Leave" },
+    { value: "Half Day", label: "Half Day" }
+  ];
+  const handleFieldListChange = (selectedOptions) => {
+    const selected = selectedOptions || [];
+
+    setFormData((prev) => ({
+      ...prev,
+      fieldList: selected,
+    }));
+  };
   return (
     <>
       {/* Backdrop */}
@@ -646,13 +626,13 @@ const AttendanceDrawer = ({
               <div>
                 <h2 className="text-xl font-semibold text-foreground">
                   {drawerMode === "create"
-                    ? "Add Account"
+                    ? "Add Request"
                     : drawerMode === "edit"
-                      ? "Edit Account"
+                      ? "Edit Request"
                       : account?.company}
                 </h2>
                 <h3 className="text-lg font-semibold text-foreground">
-                  {drawerMode === "view" ? "Account Details" : ""}
+                  {drawerMode === "view" ? "Attendance Request Details" : ""}
                 </h3>
               </div>
             </div>
@@ -696,232 +676,195 @@ const AttendanceDrawer = ({
               <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Name <span className="text-destructive">*</span>
+                    Reason <span className="text-destructive">*</span>
                   </label>
-                  <Input
+                  <textarea
                     name="name"
-                    value={formData?.name}
+                    value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="Acme Corporation"
-                    required
+                    placeholder="Enter reason"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Website
-                  </label>
-                  <Input
-                    name="website"
-                    type="url"
-                    value={formData?.website}
-                    onChange={handleInputChange}
-                    placeholder="https://www.acme.com"
-                  />
-                </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Phone
+                      Department
                     </label>
                     <Input
-                      name="phoneNumber"
-                      type="tel"
-                      value={formData?.phoneNumber}
+                      name="department"
+                      value={formData.department}
                       onChange={handleInputChange}
-                      placeholder="+911234567891"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Email
+                      Employee Code
                     </label>
                     <Input
-                      name="emailAddress"
-                      type="email"
-                      value={formData?.emailAddress}
+                      name="employeeCode"
+                      value={formData.employeeCode}
                       onChange={handleInputChange}
-                      placeholder="example123@gmail.com"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Billing Address
-                  </label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Input
-                        name="billingAddressStreet"
-                        type="text"
-                        value={formData?.billingAddressStreet}
-                        onChange={handleInputChange}
-                        placeholder="Street"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="billingAddressCity"
-                        type="text"
-                        value={formData?.billingAddressCity}
-                        onChange={handleInputChange}
-                        placeholder="City"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="billingAddressState"
-                        type="text"
-                        value={formData?.billingAddressState}
-                        onChange={handleInputChange}
-                        placeholder="State"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="billingAddressPostalCode"
-                        type="text"
-                        value={formData?.billingAddressPostalCode}
-                        onChange={handleInputChange}
-                        placeholder="text"
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <Input
-                        name="billingAddressCountry"
-                        type="text"
-                        value={formData?.billingAddressCountry}
-                        onChange={handleInputChange}
-                        placeholder="Country"
-                      />
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Request Type
+                    </label>
+                    <Select
+                      value={formData.requestType}
+                      options={requestTyp}
+                      onChange={(v) => handleChange("requestType", v)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Status
+                    </label>
+                    <Select
+                      value={formData.status}
+                      options={[
+                        { value: "Pending", label: "Pending" },
+                        { value: "Approved", label: "Approved" },
+                        { value: "Rejected", label: "Rejected" }
+                      ]}
+                      onChange={(v) => handleChange("status", v)}
+                    />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Shipping Address
-                  </label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Input
-                        name="shippingAddressStreet"
-                        type="text"
-                        value={formData?.shippingAddressStreet}
-                        onChange={handleInputChange}
-                        placeholder="Street"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="shippingAddressCity"
-                        type="text"
-                        value={formData?.shippingAddressCity}
-                        onChange={handleInputChange}
-                        placeholder="City"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="shippingAddressState"
-                        type="text"
-                        value={formData?.shippingAddressState}
-                        onChange={handleInputChange}
-                        placeholder="State"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="shippingAddressPostalCode"
-                        type="text"
-                        value={formData?.shippingAddressPostalCode}
-                        onChange={handleInputChange}
-                        placeholder="text"
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <Input
-                        name="shippingAddressCountry"
-                        type="text"
-                        value={formData?.shippingAddressCountry}
-                        onChange={handleInputChange}
-                        placeholder="Country"
-                      />
-                    </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Input
+                      type="date"
+                      label="Start Date"
+                      value={formData.startDate}
+                      onChange={(e) => handleChange("startDate", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      type="date"
+                      label="End Date"
+                      value={formData.endDate}
+                      onChange={(e) => handleChange("endDate", e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Leave Balance
+                    </label>
+                    <Input
+                      name="leaveBalance"
+                      type="number"
+                      value={formData.leaveBalance}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Leave Duration (Total Number of Days)
+                    </label>
+                    <Input
+                      name="leaveConsumed"
+                      type="number"
+                      value={formData.leaveConsumed}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
 
-                <div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Assigned User
-                      </label>
-                      <Select
-                        name="assignedUserId"
-                        value={formData.assignedUserId || ""}
-                        options={userOptions} // 👉 later API se users
-                        onChange={(value) =>
-                          handleSelectChange("assignedUserId", value)
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Teams
-                      </label>
-                      <Select
-                        name="teamId"
-                        value={formData.teamId || ""}
-                        options={teamOptions}
-                        onChange={(value) =>
-                          handleSelectChange("teamId", value)
-                        }
-                        placeholder="Select Team"
-                      />
-                    </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 rounded-xl p-4 border border-[#7BC47F] shadow-sm hover:shadow-md transition bg-background">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Reporting Manager
+                    </label>
+                    <Select
+                      name="teamId"
+                      value={formData.teamId || ""}
+                      options={teamOptions}
+                      onChange={(value) =>
+                        handleSelectChange("teamId", value)
+                      }
+                      placeholder="Select Team"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Teams
+                    </label>
+                    <Select
+                      name="teamId"
+                      value={formData.teamId || ""}
+                      options={teamOptions}
+                      onChange={(value) =>
+                        handleSelectChange("teamId", value)
+                      }
+                      placeholder="Select Team"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      CC
+                    </label>
+                    <ReactSelect
+                      isMulti
+                      closeMenuOnSelect={false}
+                      components={animatedComponents}
+                      options={userOptions}
+                      value={formData.fieldList}
+                      onChange={handleFieldListChange}
+                      placeholder="Select Field List..."
+                      classNamePrefix="react-select"
+                      styles={{
+                        control: (base, state) => ({
+                          ...base,
+                          minHeight: "42px",
+                          borderColor: state.isFocused ? "#a3d9a5" : "#a3d9a5",
+                          boxShadow: "none",
+                          "&:hover": { borderColor: "#6366f1" },
+                        }),
+                        multiValue: (base) => ({
+                          ...base,
+                          backgroundColor: "#EEF2FF",
+                        }),
+                        multiValueLabel: (base) => ({
+                          ...base,
+                          color: "#000",
+                          fontWeight: 500,
+                        }),
+                        multiValueRemove: (base) => ({
+                          ...base,
+                          color: "#e8a8a0",
+                          ":hover": {
+                            backgroundColor: "#e8a8a0",
+                            color: "#fff",
+                          },
+                        }),
+                      }}
+                    />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Details
-                  </label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Select
-                        label="Type"
-                        name="type"
-                        value={formData.type}
-                        options={accountType}
-                        onChange={(value) => handleSelectChange("type", value)}
-                      />
-                    </div>
-                    <div>
-                      <Select
-                        label="Industry"
-                        name="industry"
-                        value={formData.industry || ""}
-                        options={IndustryOptions}
-                        onChange={(value) =>
-                          handleSelectChange("industry", value)
-                        }
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <textarea
-                        name="description"
-                        value={formData?.description}
-                        onChange={handleInputChange}
-                        placeholder="Brief description of the company..."
-                        rows={3}
-                        className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-                </div>
 
                 <div className="flex items-center space-x-3 pt-4">
                   <Button
@@ -1048,9 +991,9 @@ const AttendanceDrawer = ({
                       <div className="p-6 space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-foreground mb-2">
-                            Name <span className="text-destructive">*</span>
+                            Reason <span className="text-destructive">*</span>
                           </label>
-                          <Input
+                          <textarea
                             name="name"
                             value={formData?.name}
                             onChange={handleInputChange}
@@ -1061,7 +1004,7 @@ const AttendanceDrawer = ({
 
                         <div>
                           <label className="block text-sm font-medium text-foreground mb-2">
-                            Website
+                            Department
                           </label>
                           <Input
                             name="website"
@@ -1075,204 +1018,173 @@ const AttendanceDrawer = ({
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-foreground mb-2">
-                              Phone
+                              Employee Code
                             </label>
                             <Input
                               name="phoneNumber"
                               type="tel"
                               value={formData?.phoneNumber}
                               onChange={handleInputChange}
-                              placeholder="1234567891"
+                              placeholder="+911234567891"
                             />
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-foreground mb-2">
-                              Email
+                              Request Type
                             </label>
+                            <Select
+                              name="requestType"
+                              value={formData.teamId || ""}
+                              options={requestOptions}
+                              onChange={(value) =>
+                                handleSelectChange("teamId", value)
+                              }
+                              placeholder="Select Team"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            Status
+                          </label>
+                          <Select
+                            name="teamId"
+                            value={formData.teamId || ""}
+                            options={teamOptions}
+                            onChange={(value) =>
+                              handleSelectChange("teamId", value)
+                            }
+                            placeholder="Select Team"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
                             <Input
-                              name="emailAddress"
-                              type="email"
-                              value={formData?.emailAddress}
-                              onChange={handleInputChange}
-                              placeholder="example123@gmail.com"
+                              type="datetime-local"
+                              label="Start Date"
+                              value={formData.startDate || ""}
+                              onChange={(e) =>
+                                handleChange("startDate", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Input
+                              type="datetime-local"
+                              label="Due Date"
+                              value={formData.dueDate || ""}
+                              onChange={(e) =>
+                                handleChange("dueDate", e.target.value)
+                              }
                             />
                           </div>
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-foreground mb-2">
-                            Billing Address
+                            Leave Balance
                           </label>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Input
-                                name="billingAddressStreet"
-                                type="text"
-                                value={formData?.billingAddressStreet}
-                                onChange={handleInputChange}
-                                placeholder="Street"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="billingAddressCity"
-                                type="text"
-                                value={formData?.billingAddressCity}
-                                onChange={handleInputChange}
-                                placeholder="City"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="billingAddressState"
-                                type="text"
-                                value={formData?.billingAddressState}
-                                onChange={handleInputChange}
-                                placeholder="State"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="billingAddressPostalCode"
-                                type="text"
-                                value={formData?.billingAddressPostalCode}
-                                onChange={handleInputChange}
-                                placeholder="text"
-                              />
-                            </div>
-                            <div className="col-span-2">
-                              <Input
-                                name="billingAddressCountry"
-                                type="text"
-                                value={formData?.billingAddressCountry}
-                                onChange={handleInputChange}
-                                placeholder="Country"
-                              />
-                            </div>
-                          </div>
+                          <Input
+                            name="phoneNumber"
+                            type="tel"
+                            value={formData?.phoneNumber}
+                            onChange={handleInputChange}
+                            placeholder="+911234567891"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            Leave Duration (Total Number of Days)
+                          </label>
+                          <Input
+                            name="phoneNumber"
+                            type="tel"
+                            value={formData?.phoneNumber}
+                            onChange={handleInputChange}
+                            placeholder="+911234567891"
+                          />
+                        </div>
+
+                        <div className="col-span-2">
+                          <textarea
+                            name="description"
+                            value={formData?.description}
+                            onChange={handleInputChange}
+                            placeholder="Brief description of the company..."
+                            rows={3}
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-foreground mb-2">
-                            Shipping Address
+                            Reporting Manager
                           </label>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Input
-                                name="shippingAddressStreet"
-                                type="text"
-                                value={formData?.shippingAddressStreet}
-                                onChange={handleInputChange}
-                                placeholder="Street"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="shippingAddressCity"
-                                type="text"
-                                value={formData?.shippingAddressCity}
-                                onChange={handleInputChange}
-                                placeholder="City"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="shippingAddressState"
-                                type="text"
-                                value={formData?.shippingAddressState}
-                                onChange={handleInputChange}
-                                placeholder="State"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="shippingAddressPostalCode"
-                                type="text"
-                                value={formData?.shippingAddressPostalCode}
-                                onChange={handleInputChange}
-                                placeholder="text"
-                              />
-                            </div>
-                            <div className="col-span-2">
-                              <Input
-                                name="shippingAddressCountry"
-                                type="text"
-                                value={formData?.shippingAddressCountry}
-                                onChange={handleInputChange}
-                                placeholder="Country"
-                              />
-                            </div>
-                          </div>
+                          <Select
+                            name="teamId"
+                            value={formData.teamId || ""}
+                            options={teamOptions}
+                            onChange={(value) =>
+                              handleSelectChange("teamId", value)
+                            }
+                            placeholder="Select Team"
+                          />
                         </div>
-
-                        <div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-foreground mb-2">
-                                Assigned User
-                              </label>
-                              <Select
-                                name="assignedUserId"
-                                value={formData.assignedUserId || ""}
-                                options={userOptions} // 👉 later API se users
-                                onChange={(value) =>
-                                  handleSelectChange("assignedUserId", value)
-                                }
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-foreground mb-2">
-                                Teams
-                              </label>
-                              <Select
-                                name="teamId"
-                                value={formData.teamId || ""}
-                                options={teamOptions}
-                                onChange={(value) =>
-                                  handleSelectChange("teamId", value)
-                                }
-                                placeholder="Select Team"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
                         <div>
                           <label className="block text-sm font-medium text-foreground mb-2">
-                            Details
+                            Teams
                           </label>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Select
-                                label="Type"
-                                value={formData.type}
-                                options={accountType}
-                                disabled={!massFields.type}
-                                onChange={(v) => handleChange("type", v)}
-                              />
-                            </div>
-                            <div>
-                              <Select
-                                label="Industry"
-                                name="industry"
-                                value={formData.industry || ""}
-                                options={IndustryOptions}
-                                onChange={(value) =>
-                                  handleSelectChange("industry", value)
-                                }
-                              />
-                            </div>
-                            <div className="col-span-2">
-                              <textarea
-                                name="description"
-                                value={formData?.description}
-                                onChange={handleInputChange}
-                                placeholder="Brief description of the company..."
-                                rows={3}
-                                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                              />
-                            </div>
-                          </div>
+                          <Select
+                            name="teamId"
+                            value={formData.teamId || ""}
+                            options={teamOptions}
+                            onChange={(value) =>
+                              handleSelectChange("teamId", value)
+                            }
+                            placeholder="Select Team"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            CC
+                          </label>
+                          <ReactSelect
+                            isMulti
+                            closeMenuOnSelect={false}
+                            components={animatedComponents}
+                            options={userOptions}
+                            value={formData.fieldList}
+                            onChange={handleFieldListChange}
+                            placeholder="Select Field List..."
+                            classNamePrefix="react-select"
+                            styles={{
+                              control: (base, state) => ({
+                                ...base,
+                                minHeight: "42px",
+                                borderColor: state.isFocused ? "#a3d9a5" : "#a3d9a5",
+                                boxShadow: "none",
+                                "&:hover": { borderColor: "#6366f1" },
+                              }),
+                              multiValue: (base) => ({
+                                ...base,
+                                backgroundColor: "#EEF2FF",
+                              }),
+                              multiValueLabel: (base) => ({
+                                ...base,
+                                color: "#000",
+                                fontWeight: 500,
+                              }),
+                              multiValueRemove: (base) => ({
+                                ...base,
+                                color: "#e8a8a0",
+                                ":hover": {
+                                  backgroundColor: "#e8a8a0",
+                                  color: "#fff",
+                                },
+                              }),
+                            }}
+                          />
                         </div>
 
                         <div className="flex items-center space-x-3 pt-4">
@@ -1360,7 +1272,7 @@ const AttendanceDrawer = ({
                                 Start Date
                               </p>
                               <p className="text-foreground font-medium">
-                                {account?.type || "None"}
+                                {account?.startDate || "None"}
                               </p>
                             </div>
                             <div>
@@ -1368,7 +1280,7 @@ const AttendanceDrawer = ({
                                 End Date
                               </p>
                               <p className="text-foreground font-medium">
-                                {account?.industry || "None"}
+                                {account?.endDate || "None"}
                               </p>
                             </div>
                             <div>
@@ -1376,7 +1288,7 @@ const AttendanceDrawer = ({
                                 Leave Balance
                               </p>
                               <p className="text-foreground font-medium">
-                                {account?.type || "None"}
+                                {account?.leaveBalance || "None"}
                               </p>
                             </div>
                             <div>
@@ -1384,7 +1296,7 @@ const AttendanceDrawer = ({
                                 Leave Duration
                               </p>
                               <p className="text-foreground font-medium">
-                                {account?.industry || "None"}
+                                {account?.leaveConsumed || "None"}
                               </p>
                             </div>
                             <div className="md:col-span-2">

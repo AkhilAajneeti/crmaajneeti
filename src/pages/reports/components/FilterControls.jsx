@@ -65,25 +65,49 @@ const FilterControls = ({
     value: acc.id, // 👈 important (ID use karo)
     label: acc.name,
   }));
-  const sourceOptions = source
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const statusOptions = status
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+
+  // Source
+  const sourceOptions = [
+    { value: "Call", label: "Call" },
+    { value: "Email", label: "Email" },
+    { value: "Existing Customer", label: "Existing Customer" },
+    { value: "Partner", label: "Partner" },
+    { value: "Public Relations", label: "Public Relations" },
+    { value: "Web Site", label: "Web Site" },
+    { value: "Campaign", label: "Campaign" },
+    { value: "Other", label: "Other" },
+    { value: "Facebook", label: "Facebook" }, // ✅ added
+    { value: "IVR", label: "IVR" }            // ✅ added
+  ];
+  // Status
+  const statusOptions = [
+    { value: "Call Later", label: "Call Later" },
+    { value: "Call Not Connecting", label: "Call Not Connecting" },
+    { value: "Call Not Picked", label: "Call Not Picked" },
+    { value: "Converted", label: "Converted" },
+    { value: "Dead", label: "Dead" },
+    { value: "Duplicate", label: "Duplicate" },
+    { value: "Follow Up", label: "Follow Up" },
+    { value: "Future Prospect", label: "Future Prospect" },
+    { value: "In Process", label: "In Process" },
+    { value: "Interested", label: "Interested" },
+    { value: "Invalid", label: "Invalid" },
+    { value: "Low Budget | Low Intent", label: "Low Budget | Low Intent" },
+    { value: "New", label: "New" },
+    { value: "Not interested", label: "Not interested" },
+    { value: "Proposal Shared", label: "Proposal Shared" },
+    { value: "Qualified", label: "Qualified" },
+    { value: "Webinar", label: "Webinar" },        // ✅ added
+    { value: "Z Old Leads", label: "Z Old Leads" } // ✅ added
+  ];
+
   return (
     <div className="bg-card border border-border rounded-lg p-4 mb-6">
       {/* Header Row */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
         <div className="flex items-center space-x-4">
           <h2 className="text-lg font-semibold text-foreground">
-            leads ({dealCount?.toLocaleString()})
+            Leads ({dealCount?.toLocaleString()})
           </h2>
           {activeFiltersCount > 0 && (
             <div className="flex items-center space-x-2">
@@ -173,7 +197,7 @@ const FilterControls = ({
       >
         <Input
           type="search"
-          placeholder="Search deals..."
+          placeholder="Search leads..."
           value={filters?.search || ""}
           onChange={(e) => handleFilterChange("search", e?.target?.value)}
           className="lg:col-span-2"
@@ -204,6 +228,7 @@ const FilterControls = ({
           options={assignUserOptions}
           value={filters?.assignUser || ""}
           onChange={(value) => handleFilterChange("assignUser", value)}
+          searchable
         />
       </div>
       {/* Advanced Filters Toggle */}
@@ -221,7 +246,7 @@ const FilterControls = ({
               {filters?.dateType === "between" && (
                 <Input
                   type="date"
-                  value={filters?.closeDateTo  || ""}
+                  value={filters?.closeDateTo || ""}
                   onChange={(value) =>
                     handleFilterChange("closeDateTo ", value)
                   }

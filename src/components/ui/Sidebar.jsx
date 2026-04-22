@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Icon from "../AppIcon";
 import Button from "./Button";
-import { useLeads,} from "hooks/useLeads";
+import { useLeads, } from "hooks/useLeads";
 import { useTasks } from "hooks/useTasks";
 import { useMeetings } from "hooks/useMeetings";
 import { useProjects } from "hooks/useProjects";
@@ -90,12 +90,12 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       icon: "Projector",
       badge: todayMeetingsCount == 0 ? " " : todayMeetingsCount,
     },
-    {
-      label: "Training",
-      path: "/call",
-      icon: "Phone",
-      badge: trainingCountll == 0 ? " " : trainingCountll,
-    },
+    // {
+    //   label: "Training",
+    //   path: "/call",
+    //   icon: "Phone",
+    //   badge: trainingCountll == 0 ? " " : trainingCountll,
+    // },
     // {
     //   label: "Activities",
     //   path: "/activities",
@@ -236,10 +236,9 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                     className={`
                       w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg
                       transition-smooth group
-                      ${
-                        isActive
-                          ? "linearbg-1 text-white shadow-sm"
-                          : "text-muted-foreground hover:text-foreground hover:bg-mahroon"
+                      ${isActive
+                        ? "linearbg-1 text-white shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-mahroon"
                       }
                     `}
                     aria-current={isActive ? "page" : undefined}
@@ -258,10 +257,9 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                       <span
                         className={`
                           px-2 py-0.5 text-xs font-medium rounded-full
-                          ${
-                            isActive
-                              ? "bg-primary-foreground/20 text-primary-foreground"
-                              : "bg-mahroon-400 text-accent-foreground"
+                          ${isActive
+                            ? "bg-primary-foreground/20 text-primary-foreground"
+                            : "bg-mahroon-400 text-accent-foreground"
                           }
                         `}
                       >

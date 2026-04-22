@@ -18,7 +18,14 @@ const DealsFilters = ({
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [assignUser, setAssignUser] = useState([]);
   const [status, setStatus] = useState([]);
-
+  const statusOptions = [
+    { value: "Canceled", label: "Canceled" },
+    { value: "Completed", label: "Completed" },
+    { value: "Deferred", label: "Deferred" },
+    { value: "Not Started", label: "Not Started" },
+    { value: "Pending", label: "Pending" },
+    { value: "Started", label: "Started" }
+  ];
   const ACTIVITY_DATE_FILTERS = [
     { label: "Today", value: "today" },
     { label: "Yesterday", value: "yesterday" },
@@ -48,12 +55,7 @@ const DealsFilters = ({
 
     loadData();
   }, []);
-  const statusOptions = status
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+
   const priorityOptions = [
     { value: "", label: "All Status" },
     { value: "Low", label: "Low" },
@@ -211,6 +213,7 @@ const DealsFilters = ({
           options={assignUserOptions}
           value={filters?.assignUser || ""}
           onChange={(value) => handleFilterChange("assignUser", value)}
+          searchable
         />
         <Select
           options={ACTIVITY_DATE_FILTERS}

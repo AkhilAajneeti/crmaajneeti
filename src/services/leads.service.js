@@ -454,29 +454,46 @@ export const leadActivitesById = async (id) => {
 
 
 // for dashboard
+// 🔥 GLOBAL CACHE (top of file)
+const leadsCountCache = new Map();
+const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+
 export const fetchLeadsCount = async (filters = []) => {
+  const cacheKey = JSON.stringify(filters);
+  const cached = leadsCountCache.get(cacheKey);
+
+  // ✅ Return cached if valid
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.value;
+  }
+
   const token = localStorage.getItem("auth_token");
 
   const query = filters
     .map((f, i) => {
       let q = `whereGroup[${i}][type]=${f.type}&whereGroup[${i}][attribute]=${f.attribute}`;
 
-      // ✅ handle array values (like status IN, between etc.)
       if (Array.isArray(f.value)) {
         f.value.forEach((v) => {
           q += `&whereGroup[${i}][value][]=${encodeURIComponent(v)}`;
         });
-      }
-      // ✅ handle single value
-      else if (f.value !== undefined && f.value !== "") {
+      } else if (f.value !== undefined && f.value !== "") {
         q += `&whereGroup[${i}][value]=${encodeURIComponent(f.value)}`;
       }
 
-      // 🔥 IMPORTANT: required for date filters in your CRM
       if (
-        ["today", "yesterday", "currentMonth", "lastMonth", "last7Days"].includes(
-          f.type
-        )
+        [
+          "today",
+          "yesterday",
+          "currentMonth",
+          "lastMonth",
+          "last7Days",
+          "between",
+          "before",
+          "after",
+          "lessThan",
+          "greaterThan"
+        ].includes(f.type)
       ) {
         q += `&whereGroup[${i}][dateTime]=true`;
       }
@@ -486,8 +503,6 @@ export const fetchLeadsCount = async (filters = []) => {
     .join("&");
 
   const url = `https://gateway.aajneetiadvertising.com/Lead?${query}&maxSize=1`;
-
-  console.log("FINAL KPI API:", url); // debug
 
   const res = await fetch(url, {
     method: "GET",
@@ -506,8 +521,17 @@ export const fetchLeadsCount = async (filters = []) => {
   }
 
   const data = await res.json();
-  return data.total || 0;
+  const total = data.total || 0;
+
+  // ✅ Save to cache
+  leadsCountCache.set(cacheKey, {
+    value: total,
+    timestamp: Date.now(),
+  });
+
+  return total;
 };
+
 export const fetchThisMonthLeadsCount = async () => {
   const token = localStorage.getItem("auth_token");
 

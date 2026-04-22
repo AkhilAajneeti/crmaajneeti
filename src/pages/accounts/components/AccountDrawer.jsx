@@ -86,6 +86,71 @@ const AccountDrawer = ({
     shippingAddressCountry: "",
     shippingAddressPostalCode: "",
   });
+  const accountType = [
+    { value: "", label: "All Types" },
+    { value: "CPL", label: "CPL" },
+    { value: "Retainer", label: "Retainer" },
+  ];
+  const IndustryOptions = [
+    { value: "", label: "All Types" },
+
+    { value: "Advertising", label: "Advertising" },
+    { value: "Aerospace", label: "Aerospace" },
+    { value: "Agriculture", label: "Agriculture" },
+    { value: "Apparel & Accessories", label: "Apparel & Accessories" },
+    { value: "Architecture", label: "Architecture" },
+    { value: "Automotive", label: "Automotive" },
+    { value: "Banking", label: "Banking" },
+    { value: "Biotechnology", label: "Biotechnology" },
+
+    { value: "Building Materials & Equipment", label: "Building Materials & Equipment" },
+    { value: "Chemical", label: "Chemical" },
+    { value: "Computer", label: "Computer" },
+    { value: "Construction", label: "Construction" },
+    { value: "Consulting", label: "Consulting" },
+    { value: "Creative", label: "Creative" },
+    { value: "Culture", label: "Culture" },
+    { value: "Defense", label: "Defense" },
+    { value: "Education", label: "Education" },
+
+    { value: "Electric Power", label: "Electric Power" },
+    { value: "Electronics", label: "Electronics" },
+    { value: "Energy", label: "Energy" },
+    { value: "Entertainment & Leisure", label: "Entertainment & Leisure" },
+    { value: "Finance", label: "Finance" },
+    { value: "Food & Beverage", label: "Food & Beverage" },
+    { value: "Grocery", label: "Grocery" },
+    { value: "Healthcare", label: "Healthcare" },
+    { value: "Hospitality", label: "Hospitality" },
+
+    { value: "Insurance", label: "Insurance" },
+    { value: "Legal", label: "Legal" },
+    { value: "Manufacturing", label: "Manufacturing" },
+    { value: "Marketing", label: "Marketing" },
+    { value: "Mass Media", label: "Mass Media" },
+    { value: "Mining", label: "Mining" },
+    { value: "Music", label: "Music" },
+    { value: "Petroleum", label: "Petroleum" },
+    { value: "Publishing", label: "Publishing" },
+
+    { value: "Real Estate", label: "Real Estate" },
+    { value: "Retail", label: "Retail" },
+    { value: "Service", label: "Service" },
+    { value: "Shipping", label: "Shipping" },
+    { value: "Software", label: "Software" },
+    { value: "Sports", label: "Sports" },
+    { value: "Support", label: "Support" },
+    { value: "Technology", label: "Technology" },
+    { value: "Telecommunications", label: "Telecommunications" },
+
+    { value: "Television", label: "Television" },
+    { value: "Testing, Inspection & Certification", label: "Testing, Inspection & Certification" },
+    { value: "Transportation", label: "Transportation" },
+    { value: "Travel", label: "Travel" },
+    { value: "Venture Capital", label: "Venture Capital" },
+    { value: "Water", label: "Water" },
+    { value: "Wholesale", label: "Wholesale" }
+  ];
 
   useEffect(() => {
     if (account && (drawerMode === "view" || drawerMode === "edit")) {
@@ -323,18 +388,7 @@ const AccountDrawer = ({
     value: t.id,
     label: t.name,
   }));
-  const IndustryOptions = industry
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const accountType = accType
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+
 
   const handleUpdate = async () => {
     if (!validateForm()) return;
@@ -679,11 +733,10 @@ const AccountDrawer = ({
                     onClick={() => setActiveTab(tab.id)}
                     className={`
           flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors
-          ${
-            activeTab === tab.id
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }
+          ${activeTab === tab.id
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                      }
         `}
                   >
                     <Icon name={tab.icon} size={16} />
@@ -870,6 +923,7 @@ const AccountDrawer = ({
                         onChange={(value) =>
                           handleSelectChange("assignedUserId", value)
                         }
+                        searchable
                       />
                     </div>
                     <div>
@@ -1363,8 +1417,8 @@ const AccountDrawer = ({
                               </p>
                               <p className="text-foreground leading-relaxed">
                                 {account?.billingAddressStreet ||
-                                account?.billingAddressCity ||
-                                account?.billingAddressState ? (
+                                  account?.billingAddressCity ||
+                                  account?.billingAddressState ? (
                                   <>
                                     {account?.billingAddressStreet && (
                                       <>
@@ -1375,17 +1429,17 @@ const AccountDrawer = ({
 
                                     {(account?.billingAddressCity ||
                                       account?.billingAddressState) && (
-                                      <>
-                                        {account?.billingAddressCity}
-                                        {account?.billingAddressCity &&
-                                        account?.billingAddressState
-                                          ? ", "
-                                          : ""}
-                                        {account?.billingAddressState}{" "}
-                                        {account?.billingAddressPostalCode}
-                                        <br />
-                                      </>
-                                    )}
+                                        <>
+                                          {account?.billingAddressCity}
+                                          {account?.billingAddressCity &&
+                                            account?.billingAddressState
+                                            ? ", "
+                                            : ""}
+                                          {account?.billingAddressState}{" "}
+                                          {account?.billingAddressPostalCode}
+                                          <br />
+                                        </>
+                                      )}
 
                                     {account?.billingAddressCountry}
                                   </>
@@ -1402,8 +1456,8 @@ const AccountDrawer = ({
                               </p>
                               <p className="text-foreground leading-relaxed">
                                 {account?.shippingAddressStreet ||
-                                account?.shippingAddressCity ||
-                                account?.shippingAddressState ? (
+                                  account?.shippingAddressCity ||
+                                  account?.shippingAddressState ? (
                                   <>
                                     {account?.shippingAddressStreet && (
                                       <>
@@ -1414,17 +1468,17 @@ const AccountDrawer = ({
 
                                     {(account?.shippingAddressCity ||
                                       account?.shippingAddressState) && (
-                                      <>
-                                        {account?.shippingAddressCity}
-                                        {account?.shippingAddressCity &&
-                                        account?.shippingAddressState
-                                          ? ", "
-                                          : ""}
-                                        {account?.shippingAddressState}{" "}
-                                        {account?.shippingAddressPostalCode}
-                                        <br />
-                                      </>
-                                    )}
+                                        <>
+                                          {account?.shippingAddressCity}
+                                          {account?.shippingAddressCity &&
+                                            account?.shippingAddressState
+                                            ? ", "
+                                            : ""}
+                                          {account?.shippingAddressState}{" "}
+                                          {account?.shippingAddressPostalCode}
+                                          <br />
+                                        </>
+                                      )}
 
                                     {account?.shippingAddressCountry}
                                   </>
@@ -1478,9 +1532,9 @@ const AccountDrawer = ({
                               <p className="text-foreground font-medium">
                                 {account?.teamsIds?.length
                                   ? account.teamsIds
-                                      .map((id) => account?.teamsNames?.[id])
-                                      .filter(Boolean)
-                                      .join(", ")
+                                    .map((id) => account?.teamsNames?.[id])
+                                    .filter(Boolean)
+                                    .join(", ")
                                   : "None"}
                               </p>
                             </div>
@@ -1903,11 +1957,10 @@ const AccountDrawer = ({
 
                         {/* EXPANDED CONTENT */}
                         <div
-                          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                            isOpen
-                              ? "max-h-[500px] opacity-100 mt-4"
-                              : "max-h-0 opacity-0"
-                          }`}
+                          className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen
+                            ? "max-h-[500px] opacity-100 mt-4"
+                            : "max-h-0 opacity-0"
+                            }`}
                         >
                           <div className="border-t pt-4 grid grid-cols-2 gap-4 text-sm">
                             <div>

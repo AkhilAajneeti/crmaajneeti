@@ -456,9 +456,9 @@ const DealDrawer = ({
                 {isMassUpdate
                   ? "Mass Update Tasks"
                   : mode === "add"
-                    ? "Add Task"
+                    ? "New Meeting"
                     : isEditing
-                      ? "Edit Task"
+                      ? "Edit Meeting"
                       : deal?.name}
               </h2>
               <span

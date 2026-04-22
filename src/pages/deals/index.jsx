@@ -357,7 +357,7 @@ const DealsPage = () => {
                   className="linearbg-1 text-white hover:text-white"
                 >
                   <Icon name="Plus" size={16} className="mr-2" />
-                  New Deal
+                  New Lead
                 </Button>
               </div>
             </div>

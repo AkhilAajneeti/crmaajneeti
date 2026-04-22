@@ -338,7 +338,7 @@ const Complaints = () => {
                   Complaints
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  Track and manage your sales opportunities
+                  Monitor, prioritize, and resolve customer issues in one place
                 </p>
               </div>
               <div className="flex items-center space-x-3">
@@ -368,7 +368,7 @@ const Complaints = () => {
               filters={filters}
               onFiltersChange={handleFiltersChange}
               onClearFilters={handleClearFilters}
-              dealCount={leads?.length}
+              total={total}
               onBulkAction={handleBulkAction}
               selectedCount={selectedDeals?.length}
               toggleAnalytics={() => setShowAnalytics((prev) => !prev)}

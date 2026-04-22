@@ -403,30 +403,7 @@ const DealDrawer = ({
     return value.replace("T", " ") + ":00";
   };
 
-  // fetching lead stream from id
-  // useEffect(() => {
-  //   if (!isOpen || !deal?.id) return;
-
-  //   const loadActivity = async () => {
-  //     try {
-  //       const id = deal?.id;
-  //       const res = await leadActivitesById(id);
-  //       console.log("LEAD DETAIL RESPONSE:", res);
-  //       setActivities(res.list || []);
-  //     } catch (err) {
-  //       console.error("Failed to fetch streams", err);
-  //       toast.error("Failed to load activity");
-  //     }
-  //   };
-
-  //   loadActivity();
-  // }, [isOpen, deal?.id]);
-
-  // useEffect(() => {
-  //   if (!isOpen) {
-  //     setmockStream([]);
-  //   }
-  // }, [isOpen]);
+  
   const leadData = leadsDetails || deal;
   return (
     <>
@@ -448,11 +425,11 @@ const DealDrawer = ({
             <div className="flex items-center space-x-3">
               <h2 className="text-xl font-semibold text-foreground">
                 {mode === "mass-update"
-                  ? `Mass Update (${selectedIds.length}) Leads`
+                  ? `Mass Update (${selectedIds.length}) Article`
                   : mode === "add"
-                    ? "Add Lead"
+                    ? "Add Article"
                     : isEditing
-                      ? "Edit Lead"
+                      ? "Edit Article"
                       : deal?.name}
               </h2>
               <span

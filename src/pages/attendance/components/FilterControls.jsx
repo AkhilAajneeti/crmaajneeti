@@ -159,7 +159,7 @@ const FilterControls = ({
       >
         <Input
           type="search"
-          placeholder="Search deals..."
+          placeholder="Search attendance..."
           value={filters?.search || ""}
           onChange={(e) => handleFilterChange("search", e?.target?.value)}
           className="lg:col-span-2"

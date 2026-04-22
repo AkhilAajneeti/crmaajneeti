@@ -12,11 +12,9 @@ import MultiLineChart from "./components/MultiLineChart";
 import { fetchMeeting } from "services/meeting.service";
 import Button from "../../components/ui/Button";
 import { useLeadsCount } from "hooks/useLeads";
+import { useQuery } from "@tanstack/react-query";
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [leads, setLeads] = useState([]);
-  const [activities, setActivities] = useState([]);
-  const [meetingsList, setMeetingsList] = useState([]);
   const [activeInsight, setActiveInsight] = useState(null);
   const [insightData, setInsightData] = useState([]);
 
@@ -97,45 +95,24 @@ const Dashboard = () => {
 
 
   // leads
-  useEffect(() => {
-    const loadLeads = async () => {
-      try {
-        const data = await fetchLeads();
-        setLeads(data.list);
-        console.log(data.list);
-      } catch (error) {
-        console.log("failed to fetch data", error);
-      } finally {
-      }
-    };
-    loadLeads();
-  }, []);
-  // acctivity
-  useEffect(() => {
-    const loadActivity = async () => {
-      try {
-        const data = await fetchActivity();
-        setActivities(data.list);
-        console.log(data.list);
-      } catch (error) {
-        console.log("failed to fetch data", error);
-      } finally {
-      }
-    };
-    loadActivity();
-  }, []);
-  useEffect(() => {
-    const loadMeetings = async () => {
-      try {
-        const data = await fetchMeeting();
-        setMeetingsList(data.list || []);
-      } catch (error) {
-        console.log("Failed to fetch meetings", error);
-      }
-    };
+  const { data, isLoading } = useQuery({
+    queryKey: ["leads"],
+    queryFn: fetchLeads
+  });
+  const leads = data?.list || [];
 
-    loadMeetings();
-  }, []);
+  // acctivity
+  const { data: activityData = [] } = useQuery({
+    queryKey: ["activity"],
+    queryFn: fetchActivity
+  });
+  const { data: meetingData = [] } = useQuery({
+    queryKey: ["meetings"],
+    queryFn: fetchMeeting
+  });
+
+  const meetingsList = meetingData?.list || [];
+  const activities = activityData?.list || [];
   const isSameMonth = (date1, date2) => {
     const d1 = new Date(date1);
     return (
@@ -273,7 +250,7 @@ const Dashboard = () => {
           </p>
         </div>
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 m-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5 m-3 sm:m-5">
           {kpiData?.map((kpi, index) => (
             <motion.div
               key={index}
@@ -281,11 +258,15 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <KPICard {...kpi} />
+              <KPICard {...kpi} isLoading={
+                thisMonthQuery.isLoading ||
+                todayQuery.isLoading ||
+                interestedQuery.isLoading
+              } />
             </motion.div>
           ))}
         </div>
-        <div className="flex">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
           {/* Main Content */}
           <div className="flex-1 p-4 lg:p-0 xl:pr-0">
             <motion.div
@@ -293,18 +274,19 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              {/* Page Header */}
+
 
               {/* Pipeline Chart */}
-              <div className="m-5">
+              <div className="sm:m-5 py-3">
                 <PipelineChart leads={leads} />
               </div>
-              <div className="m-5">
+              <div className="sm:m-5 py-3">
                 <MultiLineChart leads={leads} />
               </div>
 
+
               {/* Recent Activities */}
-              <div className="m-5">
+              <div className="sm:m-5 py-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Meetings Held */}
                   <div
@@ -581,7 +563,7 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
           </div>
 
           {/* Right Rail */}
-          <div className="hidden xl:block w-96 p-6 border-l border-border bg-background">
+          <div className="hidden xl:block max-w-96 p-6 border-l border-border bg-background">
             <RightRail leads={leads} />
           </div>
         </div>

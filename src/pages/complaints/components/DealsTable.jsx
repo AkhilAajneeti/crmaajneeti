@@ -11,8 +11,6 @@ const DealsTable = ({
   onDealClick,
   sortConfig,
   onSort,
-  page,
-  setPage,
   onDelete,
   isLoading,
 }) => {
@@ -41,6 +39,16 @@ const DealsTable = ({
       Broker: "bg-purple-100 text-purple-800",
       "Call Not Picked": "bg-red-100 text-red-800",
       Invalid: "bg-gray-100 text-gray-700",
+    };
+
+    return colors?.[stage] || "bg-gray-100 text-gray-800";
+  };
+  const getPriorityColor = (stage) => {
+    const colors = {
+      Urgent: "bg-red-100 text-red-800",
+      High: "bg-purple-100 text-purple-800",
+      Normal: "bg-green-100 text-green-800",
+      Low: "bg-purple-100 text-purple-800",
     };
 
     return colors?.[stage] || "bg-gray-100 text-gray-800";
@@ -79,12 +87,8 @@ const DealsTable = ({
     await onDelete(deal.id); // 👈 parent ko bol rahe ho
   };
 
-  // const paginatedDeals = useMemo(() => {
-  //   if (!deals?.length) return [];
-  //   const startIndex = (page - 1) * setPage;
-  //   return deals?.slice(startIndex, startIndex + setPage);
-  // }, [deals, page, setPage]);
-const paginatedDeals = deals;
+
+  const paginatedDeals = deals;
   const isAllSelected =
     selectedDeals?.length === paginatedDeals?.length &&
     paginatedDeals?.length > 0;
@@ -172,19 +176,11 @@ const paginatedDeals = deals;
                   onClick={() => onSort("cProjectName")}
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
-                  <span>Sector</span>
+                  <span>Account</span>
                   {getSortIcon("Project Name")}
                 </button>
               </th>
-              <th className="text-left px-4 py-3">
-                <button
-                  onClick={() => onSort("Source")}
-                  className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
-                >
-                  <span>Source</span>
-                  {getSortIcon("value")}
-                </button>
-              </th>
+
               <th className="text-left px-4 py-3">
                 <button
                   onClick={() => onSort("Status")}
@@ -196,11 +192,11 @@ const paginatedDeals = deals;
               </th>
               <th className="text-left px-4 py-3">
                 <button
-                  onClick={() => onSort("email")}
+                  onClick={() => onSort("Source")}
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
-                  <span>Next Contact</span>
-                  {getSortIcon("stage")}
+                  <span>Priority</span>
+                  {getSortIcon("value")}
                 </button>
               </th>
               <th className="text-left px-4 py-3">
@@ -231,7 +227,7 @@ const paginatedDeals = deals;
               <tr>
                 <td colSpan="9">
                   <div className="flex items-center justify-center h-[200px] text-gray-400 text-sm">
-                    No leads available
+                    No Complaints Available
                   </div>
                 </td>
               </tr>
@@ -258,11 +254,11 @@ const paginatedDeals = deals;
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-foreground">{deal?.cSector}</div>
+                    <div className="text-foreground">{deal?.accountName}</div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="font-medium text-foreground">
-                      {deal?.source}
+                    <div className={`flex justify-center items-center space-x-2 px-2 py-1 font-medium rounded-full ${getPriorityColor(deal?.priority)}`}>
+                      {deal?.priority}
                     </div>
                   </td>
                   <td className="px-4 py-4">
@@ -276,13 +272,7 @@ const paginatedDeals = deals;
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-4">
-                    <span
-                      className={`inline-flex px-1 py-1 text-xs font-medium rounded-full`}
-                    >
-                      {formatDate(deal?.cNextContactAt)}
-                    </span>
-                  </td>
+
                   <td className="px-4 py-4">
                     <div className="text-sm text-foreground">
                       {formatDate(deal?.createdAt)}
@@ -299,9 +289,8 @@ const paginatedDeals = deals;
                   </td>
                   <td className="px-4 py-4">
                     <div
-                      className={`flex items-center space-x-1 transition-opacity ${
-                        hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
-                      }`}
+                      className={`flex items-center space-x-1 transition-opacity ${hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
+                        }`}
                     >
                       <Button
                         variant="ghost"

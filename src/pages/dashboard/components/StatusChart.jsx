@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Pie,
   PieChart,
@@ -9,12 +9,14 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
-import Button from "../../../components/ui/Button";
+import Select from "../../../components/ui/Select";
+import Input from "../../../components/ui/Input";
+import { fetchLeadsCount } from "services/leads.service";
 
 const COLORS = [
   "#06b6d4", // cyan
   "#8b5cf6", // purple
- "#2563eb", // blue
+  "#2563eb", // blue
   "#f59e0b", // amber
   "#ef4444", // red
   "#10b981", // green
@@ -23,85 +25,221 @@ const COLORS = [
   "#e11d48", // rose
 ];
 const STATUS_OPTIONS = [
-  "Interested",
-  "Not Interested",
-  "Follow up",
-  "Site Visit Scheduled",
-  "Low Budget",
-  "Purchased",
+  "Call Later",
+  "Call Not Connecting",
+  "Call Not Picked",
   "Converted",
-  "Deal Closed",
+  "Dead",
+  "Duplicate",
+  "Follow Up",
+  "Future Prospect",
+  "In Process",
+  "Interested",
+  "Invalid",
+  "Low Budget | Low Intent",
+  "New",
+  "Not interested",
   "Proposal Shared",
+  "Qualified",
+  "Webinar",
 ];
 
-const StatusChart = ({ leads = [] }) => {
-  const [viewType, setViewType] = useState("month");
+const StatusChart = () => {
+  const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const ACTIVITY_DATE_FILTERS = [
+    { label: "Today", value: "today" },
+    { label: "Yesterday", value: "yesterday" },
+    { label: "Last 7 Days", value: "last7Days" },
 
-  // 🔥 Filter leads based on view type
-  const filteredLeads = useMemo(() => {
-    const now = new Date();
+    { label: "This Month", value: "currentMonth" },
+    { label: "Last Month", value: "lastMonth" },
+  ];
+  const [filters, setFilters] = useState({
+    dateType: "today",        // 👈 NEW (today, before, between, etc.)
+    closeDateFrom: "",
+    closeDateTo: "",
+    xDays: ""            // 👈 for "Last X Days", "After X Days"
+  });
+  const showXDaysInput = [
+    "lastXDays",
+    "nextXDays",
+    "olderThanXDays",
+    "afterXDays"
+  ].includes(filters?.dateType);
 
-    if (viewType === "today") {
-      return leads.filter(
-        (l) => new Date(l.createdAt).toDateString() === now.toDateString(),
-      );
+
+  // 🔥 Group by industry
+  const buildDateFilter = (filters) => {
+    const { dateType, closeDateFrom, closeDateTo, xDays } = filters;
+
+    if (!dateType) return null;
+
+    // ✅ TODAY
+    if (dateType === "today") {
+      return {
+        type: "today",
+        attribute: "createdAt",
+        dateTime: true,
+      };
     }
 
-    if (viewType === "yesterday") {
-      const yesterday = new Date();
-      yesterday.setDate(now.getDate() - 1);
+    // ✅ YESTERDAY
+    if (dateType === "yesterday") {
+      const today = new Date();
+      const y = new Date(today);
+      y.setDate(today.getDate() - 1);
 
-      return leads.filter(
-        (l) =>
-          new Date(l.createdAt).toDateString() === yesterday.toDateString(),
-      );
+      const start = new Date(y.setHours(0, 0, 0, 0)).toISOString();
+      const end = new Date(y.setHours(23, 59, 59, 999)).toISOString();
+
+      return {
+        type: "between",
+        attribute: "createdAt",
+        value: [start, end],
+        dateTime: true,
+      };
+    }
+    // ✅ LAST 7 DAYS
+    if (dateType === "last7Days") {
+      const today = new Date();
+      const past = new Date();
+      past.setDate(today.getDate() - 6);
+
+      return {
+        type: "between",
+        attribute: "createdAt",
+        value: [
+          new Date(past.setHours(0, 0, 0, 0)).toISOString(),
+          new Date(today.setHours(23, 59, 59, 999)).toISOString(),
+        ],
+        dateTime: true,
+      };
     }
 
-    if (viewType === "week") {
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - now.getDay());
-      startOfWeek.setHours(0, 0, 0, 0);
+    // ✅ CURRENT MONTH
+    if (dateType === "currentMonth") {
+      const today = new Date();
 
-      return leads.filter((l) => {
-        const d = new Date(l.createdAt);
-        return d >= startOfWeek && d <= now;
-      });
+      return {
+        type: "between",
+        attribute: "createdAt",
+        value: [
+          new Date(today.getFullYear(), today.getMonth(), 1).toISOString(),
+          new Date().toISOString(),
+        ],
+        dateTime: true,
+      };
     }
 
-    if (viewType === "month") {
-      return leads.filter((l) => {
-        const d = new Date(l.createdAt);
-        return (
-          d.getMonth() === now.getMonth() &&
-          d.getFullYear() === now.getFullYear()
-        );
-      });
+    // ✅ LAST MONTH
+    if (dateType === "lastMonth") {
+      const today = new Date();
+
+      return {
+        type: "between",
+        attribute: "createdAt",
+        value: [
+          new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString(),
+          new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59).toISOString(),
+        ],
+        dateTime: true,
+      };
     }
 
-    return leads;
-  }, [leads, viewType]);
+    // ✅ LAST X DAYS
+    if (dateType === "lastXDays" && xDays) {
+      const today = new Date();
+      const past = new Date();
+      past.setDate(today.getDate() - Number(xDays));
 
-  // 🔥 Filter leads based on view type
-  const chartData = useMemo(() => {
-    const grouped = {};
+      const start = new Date(past.setHours(0, 0, 0, 0)).toISOString();
+      const end = new Date(today.setHours(23, 59, 59, 999)).toISOString();
 
-    STATUS_OPTIONS.forEach((status) => {
-      grouped[status] = 0;
-    });
+      return {
+        type: "between",
+        attribute: "createdAt",
+        value: [start, end],
+        dateTime: true,
+      };
+    }
 
-    filteredLeads.forEach((lead) => {
-      const status = lead.status;
+    // ✅ BEFORE
+    if (dateType === "before" && closeDateFrom) {
+      return {
+        type: "before",
+        attribute: "createdAt",
+        value: new Date(closeDateFrom).toISOString(),
+        dateTime: true,
+      };
+    }
 
-      if (grouped[status] !== undefined) {
-        grouped[status] += 1;
-      }
-    });
+    // ✅ AFTER
+    if (dateType === "after" && closeDateFrom) {
+      return {
+        type: "after",
+        attribute: "createdAt",
+        value: new Date(closeDateFrom).toISOString(),
+        dateTime: true,
+      };
+    }
 
-    return STATUS_OPTIONS.map((status) => ({
+    return null;
+  };
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+  const IMPORTANT_STATUSES = [
+    "Converted",
+    "Proposal Shared",
+    "Interested",
+    "Follow Up",
+    "New",
+    "Not interested"
+  ];
+  const getStatusData = async (filtersState) => {
+    const dateFilter = buildDateFilter(filtersState);
+    const baseFilters = dateFilter ? [dateFilter] : [];
+
+    // ✅ Only call important statuses (6 calls instead of 17)
+    const results = await Promise.all(
+      IMPORTANT_STATUSES.map((status) =>
+        fetchLeadsCount([
+          ...baseFilters,
+          {
+            type: "equals",
+            attribute: "status",
+            value: status,
+          },
+        ])
+      )
+    );
+
+    const data = IMPORTANT_STATUSES.map((status, i) => ({
       name: status,
-      value: grouped[status],
-    })).filter((item) => item.value > 0);
-  }, [filteredLeads]);
+      value: results[i],
+    }));
+
+    // ✅ Get total count (1 extra call)
+    const total = await fetchLeadsCount(baseFilters);
+
+    const knownTotal = results.reduce((sum, val) => sum + val, 0);
+
+    // ✅ Add "Others"
+    const others = Math.max(total - knownTotal, 0);
+
+    if (others > 0) {
+      data.push({
+        name: "Others",
+        value: others,
+      });
+    }
+
+    return data;
+  };
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
   const isEmpty = total === 0;
@@ -121,6 +259,16 @@ const StatusChart = ({ leads = [] }) => {
     return null;
   };
 
+  useEffect(() => {
+    if (!filters.dateType) return;
+
+    setLoading(true);
+
+    getStatusData(filters)
+      .then(setChartData)
+      .finally(() => setLoading(false));
+  }, [filters]);
+
   return (
     <motion.div
       className="bg-card border border-border rounded-xl p-6 shadow-elevation-1"
@@ -138,22 +286,27 @@ const StatusChart = ({ leads = [] }) => {
             Lead distribution across Status
           </p>
         </div>
-        <div className="w-full overflow-x-auto mt-5 scrollbar-hide">
-          <div className="flex gap-1 mt-5 min-w-max">
-            {["today", "yesterday", "week", "month"].map((type) => (
-              <Button
-                key={type}
-                size="sm"
-                variant={viewType === type ? "default" : "outline"}
-                onClick={() => setViewType(type)}
-                className="capitalize"
-              >
-                {type === "today" && "Today"}
-                {type === "yesterday" && "Yesterday"}
-                {type === "week" && "This Week"}
-                {type === "month" && "This Month"}
-              </Button>
-            ))}
+        <div className="w-full mt-5 scrollbar-hide">
+          <div className="flex gap-1 mt-5 w-full">
+            <Select
+              className="w-full"
+              placeholder="Filter by date"
+              options={ACTIVITY_DATE_FILTERS}
+              value={filters?.dateType || ""}
+              onChange={(value) => handleFilterChange("dateType", value)}
+            />
+
+            {/* X Days Input */}
+            {showXDaysInput && (
+              <Input
+                type="number"
+                placeholder="Enter days"
+                value={filters?.xDays || ""}
+                onChange={(e) =>
+                  handleFilterChange("xDays", e.target.value)
+                }
+              />
+            )}
           </div>
         </div>
       </div>

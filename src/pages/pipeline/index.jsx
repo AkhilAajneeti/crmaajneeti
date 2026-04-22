@@ -8,7 +8,7 @@ import PipelineColumn from "./components/PipelineColumn";
 import PipelineFilters from "./components/PipelineFilters";
 import AddDealModal from "./components/AddDealModal";
 import PipelineStats from "./components/PipelineStats";
-import { deleteActivity, deleteLead, fetchLeads } from "services/leads.service";
+import { deleteActivity, deleteLead, fetchLeads, fetchLeadsCount, fetchNewLeads } from "services/leads.service";
 import VersionHistoryModal from "./components/VersionHistoryModal";
 import toast from "react-hot-toast";
 import { Droppable, Draggable, DragDropContext } from "@hello-pangea/dnd";
@@ -22,44 +22,106 @@ const Pipeline = () => {
   const [selectedStage, setSelectedStage] = useState(null);
   const [deals, setDeals] = useState([]);
   const [filters, setFilters] = useState({
-    search: "",
-    owner: "all",
-    priority: "all",
-    dateRange: "all",
-    minValue: 0,
-    maxValue: 0,
-    startDate: "",
-    endDate: "",
+    status: "",
+    assignedUser: "",
+    source: "",
+    dateType: "",
+    closeDateFrom: "",
+    closeDateTo: "",
   });
+  const [kpiStats, setKpiStats] = useState({
+    active: 0,
+    future: 0,
+    inProcess: 0,
+    lowBudget: 0,
+    oldLeads: 0,
+  });
+
   useEffect(() => {
-    const loadLeads = async () => {
+    const loadStats = async () => {
       try {
-        const data = await fetchLeads();
-        const normalizedDeals = (data.list || []).map((item) => ({
-          id: item.id,
-          title: item.name,
-          stage: classifyDeal(item) || "active_daily",
-          status: item.status,
-          source: item.source,
-          value: item.opportunityAmount || 0,
-          cProject: item.cProject,
-          owner: {
-            id: item.assignedUserId,
-            name: item.assignedUserName,
-          },
-          createdAt: item.createdAt,
-          cNextContact: item.cNextContactAt,
-        }));
+        const [active, future, inProcess, lowBudget, oldLeads] =
+          await Promise.all([
+            fetchLeadsCount([
+              { type: "equals", attribute: "status", value: "New" },
+              { type: "currentMonth", attribute: "createdAt" },
+            ]),
+            fetchLeadsCount([
+              { type: "equals", attribute: "status", value: "Future Prospect" },
+              { type: "currentMonth", attribute: "createdAt" },
+            ]),
+            fetchLeadsCount([
+              { type: "equals", attribute: "status", value: "In Process" },
+              { type: "currentMonth", attribute: "createdAt" },
+            ]),
+            fetchLeadsCount([
+              { type: "equals", attribute: "status", value: "Low Budget | Low Intent" },
+              { type: "currentMonth", attribute: "createdAt" },
+            ]),
+            fetchLeadsCount([
+              { type: "equals", attribute: "status", value: "Z Old Leads" },
+              { type: "currentMonth", attribute: "createdAt" },
+            ]),
+          ]);
 
-        setDeals(normalizedDeals);
-
-        console.log(data.list);
-      } catch (error) {
-        console.log("failed to fetch data", error);
+        setKpiStats({ active, future, inProcess, lowBudget, oldLeads });
+      } catch (err) {
+        console.error("KPI error", err);
       }
     };
-    loadLeads();
+
+    loadStats();
   }, []);
+
+  useEffect(() => {
+    const loadDeals = async () => {
+      try {
+        const filtersArr = [];
+
+        if (filters.status) {
+          filtersArr.push({
+            type: "equals",
+            attribute: "status",
+            value: filters.status,
+          });
+        }
+
+        if (filters.source) {
+          filtersArr.push({
+            type: "equals",
+            attribute: "source",
+            value: filters.source,
+          });
+        }
+
+        if (filters.assignedUser) {
+          filtersArr.push({
+            type: "equals",
+            attribute: "assignedUserId",
+            value: filters.assignedUser,
+          });
+        }
+
+        if (filters.dateType === "currentMonth") {
+          filtersArr.push({
+            type: "currentMonth",
+            attribute: "createdAt",
+          });
+        }
+
+        const data = await fetchNewLeads({
+          filters: filtersArr,
+          limit: 100,
+        });
+
+        setDeals(data?.list || []);
+      } catch (err) {
+        console.error("Deals fetch error", err);
+      }
+    };
+
+    loadDeals();
+  }, [filters]);
 
   // PipeLine Deals
   // return if deal is won or lose or inactive
@@ -76,13 +138,13 @@ const Pipeline = () => {
   }, [deals]);
   // Mock data for pipeline stages
   const pipelineSections = [
-    { id: "active_daily", name: "Active - Daily", color: "red" },
-    { id: "active_two_week", name: "Active - Two Week", color: "yellow" },
+    { id: "active_daily", name: "Active - This Week", color: "red" },
     { id: "active_monthly", name: "Active - Monthly", color: "green" },
     { id: "scheduled", name: "Scheduled", color: "blue" },
     { id: "budget_issue", name: "Budget Issue", color: "orange" },
     { id: "stale", name: "Stale (30+ Days)", color: "gray" },
   ];
+
 
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -179,14 +241,12 @@ const Pipeline = () => {
 
   const handleResetFilters = () => {
     setFilters({
-      search: "",
-      owner: "all",
-      priority: "all",
-      dateRange: "all",
-      minValue: 0,
-      maxValue: 0,
-      startDate: "",
-      endDate: "",
+      status: "",
+      assignedUser: "",
+      source: "",
+      dateType: "",
+      closeDateFrom: "",
+      closeDateTo: "",
     });
   };
   const handleOpenVersionHistory = (dealId) => {
@@ -197,38 +257,39 @@ const Pipeline = () => {
   // const filteredDeals = getFilteredDeals();
   const filteredDeals = useMemo(() => {
     return pipeLineDeals.filter((deal) => {
-      // Search filter
+
+      // 🔍 Search
       if (
         filters?.search &&
-        !deal?.title?.toLowerCase()?.includes(filters?.search?.toLowerCase()) &&
-        !deal?.accountName
-          ?.toLowerCase()
-          ?.includes(filters?.search?.toLowerCase())
-      ) {
-        return false;
-      }
+        !deal?.name?.toLowerCase().includes(filters.search.toLowerCase())
+      ) return false;
 
-      // Owner filter
+      // 👤 Assigned User
       if (
-        filters?.owner &&
-        filters?.owner !== "all" &&
-        deal?.owner?.id !== filters?.owner
-      ) {
-        return false;
-      }
+        filters?.assignedUser &&
+        filters?.assignedUser !== "all" &&
+        deal?.assignedUserId !== filters.assignedUser
+      ) return false;
 
-      // Priority filter
+      // 📊 Status
+      if (filters?.status && deal?.status !== filters.status) return false;
+
+      // 🌐 Source
       if (
-        filters?.priority &&
-        filters?.priority !== "all" &&
-        deal?.priority !== filters?.priority
-      ) {
-        return false;
-      }
+        filters?.source &&
+        filters?.source !== "all" &&
+        deal?.source !== filters.source
+      ) return false;
 
-      // Value range
-      if (filters?.minValue && deal?.value < filters?.minValue) return false;
-      if (filters?.maxValue && deal?.value > filters?.maxValue) return false;
+      if (filters?.dateType === "currentMonth") {
+        const now = new Date();
+        const createdAt = new Date(deal.createdAt.replace(" ", "T"));
+
+        if (
+          createdAt.getMonth() !== now.getMonth() ||
+          createdAt.getFullYear() !== now.getFullYear()
+        ) return false;
+      }
 
       return true;
     });
@@ -302,15 +363,16 @@ const Pipeline = () => {
                 Sales Pipeline
               </h1>
               <p className="text-muted-foreground">
-                Manage your deals through the sales process with drag-and-drop
-                functionality
+                Manage your leads through the sales process
               </p>
             </div>
           </div>
 
           {/* Pipeline Stats */}
-          <PipelineStats deals={filteredDeals} />
-          <PipelineFilters deals={filteredDeals}/>
+          <PipelineStats stats={kpiStats} />
+          <PipelineFilters filters={filters}   // ✅ ADD THIS
+            onFiltersChange={handleFiltersChange}
+            onResetFilters={handleResetFilters} />
 
           {/* Pipeline Board */}
           <div className="bg-card border border-border rounded-xl p-3">

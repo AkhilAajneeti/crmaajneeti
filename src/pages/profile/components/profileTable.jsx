@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { Checkbox } from "../../../components/ui/Checkbox";
-import { deleteLead } from "services/leads.service";
 
 const DealsTable = ({
   deals,
@@ -10,10 +9,10 @@ const DealsTable = ({
   onSelectDeal,
   onSelectAll,
   onDealClick,
-  sortConfig,
+  sortConfig, 
   onSort,
-  currentPage,
-  itemsPerPage,
+  page,
+  setPage,
   onDelete,
   isLoading,
 }) => {
@@ -34,9 +33,14 @@ const DealsTable = ({
 
   const getStageColor = (stage) => {
     const colors = {
-      Planned: "bg-blue-100 text-blue-800",
-      "Not Held": "bg-red-100 text-red-800",
-      Held: "bg-green-100 text-green-800",
+      New: "bg-blue-100 text-blue-800",
+      Interested: "bg-sky-100 text-sky-800",
+      "Follow up": "bg-indigo-100 text-indigo-800",
+      Converted: "bg-green-100 text-green-800",
+      "Not interested": "bg-orange-100 text-orange-800",
+      Broker: "bg-purple-100 text-purple-800",
+      "Call Not Picked": "bg-red-100 text-red-800",
+      Invalid: "bg-gray-100 text-gray-700",
     };
 
     return colors?.[stage] || "bg-gray-100 text-gray-800";
@@ -75,8 +79,12 @@ const DealsTable = ({
     await onDelete(deal.id); // 👈 parent ko bol rahe ho
   };
 
-  const paginatedDeals =deals;
-
+  // const paginatedDeals = useMemo(() => {
+  //   if (!deals?.length) return [];
+  //   const startIndex = (page - 1) * setPage;
+  //   return deals?.slice(startIndex, startIndex + setPage);
+  // }, [deals, page, setPage]);
+const paginatedDeals = deals;
   const isAllSelected =
     selectedDeals?.length === paginatedDeals?.length &&
     paginatedDeals?.length > 0;
@@ -118,6 +126,14 @@ const DealsTable = ({
       <td className="p-4">
         <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
       </td>
+      {/* Created At */}
+      <td className="p-4">
+        <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
+      </td>
+      {/* Assign User */}
+      <td className="p-4">
+        <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
+      </td>
 
       {/* Actions */}
       <td className="p-4">
@@ -153,11 +169,20 @@ const DealsTable = ({
               </th>
               <th className="text-left px-4 py-3">
                 <button
-                  onClick={() => onSort("account")}
+                  onClick={() => onSort("cProjectName")}
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
-                  <span>Parent</span>
+                  <span>Sector</span>
                   {getSortIcon("Project Name")}
+                </button>
+              </th>
+              <th className="text-left px-4 py-3">
+                <button
+                  onClick={() => onSort("Source")}
+                  className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                >
+                  <span>Source</span>
+                  {getSortIcon("value")}
                 </button>
               </th>
               <th className="text-left px-4 py-3">
@@ -171,10 +196,19 @@ const DealsTable = ({
               </th>
               <th className="text-left px-4 py-3">
                 <button
+                  onClick={() => onSort("email")}
+                  className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                >
+                  <span>Next Contact</span>
+                  {getSortIcon("stage")}
+                </button>
+              </th>
+              <th className="text-left px-4 py-3">
+                <button
                   onClick={() => onSort("createdAt")}
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
-                  <span>Start Date</span>
+                  <span>Create At</span>
                   {getSortIcon("closeDate")}
                 </button>
               </th>
@@ -195,7 +229,7 @@ const DealsTable = ({
               Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
             ) : !paginatedDeals?.length ? (
               <tr>
-                <td colSpan="8">
+                <td colSpan="9">
                   <div className="flex items-center justify-center h-[200px] text-gray-400 text-sm">
                     No leads available
                   </div>
@@ -219,18 +253,18 @@ const DealsTable = ({
                     />
                   </td>
                   <td className="px-4 py-4" onClick={() => onDealClick(deal)}>
-                    <div className="font-medium text-foreground truncate max-w-[400px]">
+                    <div className="font-medium text-foreground">
                       {deal?.name}
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-foreground">{deal?.parentName}</div>
+                    <div className="text-foreground">{deal?.cSector}</div>
                   </td>
-                  {/* <td className="px-4 py-4">
-                  <div className="font-medium text-foreground">
-                    {deal?.source}
-                  </div>
-                </td> */}
+                  <td className="px-4 py-4">
+                    <div className="font-medium text-foreground">
+                      {deal?.source}
+                    </div>
+                  </td>
                   <td className="px-4 py-4">
                     <div
                       className={`flex justify-center items-center space-x-2 px-2 py-1 font-medium rounded-full ${getStageColor(
@@ -242,16 +276,16 @@ const DealsTable = ({
                       </span>
                     </div>
                   </td>
-                  {/* <td className="px-4 py-4">
-                  <span
-                    className={`inline-flex px-1 py-1 text-xs font-medium rounded-full`}
-                  >
-                    {formatDate(deal?.cNextContact)}
-                  </span>
-                </td> */}
+                  <td className="px-4 py-4">
+                    <span
+                      className={`inline-flex px-1 py-1 text-xs font-medium rounded-full`}
+                    >
+                      {formatDate(deal?.cNextContactAt)}
+                    </span>
+                  </td>
                   <td className="px-4 py-4">
                     <div className="text-sm text-foreground">
-                      {formatDate(deal?.dateStart)}
+                      {formatDate(deal?.createdAt)}
                     </div>
                   </td>
                   <td className="px-4 py-4">
@@ -297,68 +331,80 @@ const DealsTable = ({
       {/* Mobile Cards */}
 
       <div className="md:hidden">
-        {paginatedDeals?.map((deal) => (
-          <div
-            key={deal?.id}
-            onClick={() => onDealClick(deal)}
-            className="p-4 border-b border-border bg-background hover:bg-muted/30 transition"
-          >
-            <div className="flex items-start gap-3">
-              {/* Checkbox */}
-              <Checkbox
-                checked={selectedDeals?.includes(deal?.id)}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  onSelectDeal(deal?.id, e.target.checked);
-                }}
-                className="mt-1"
-              />
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
+        ) : !paginatedDeals?.length ? (
+          <tr>
+            <td colSpan="6">
+              <div className="flex items-center justify-center h-[200px] text-gray-400 text-sm">
+                No leads available
+              </div>
+            </td>
+          </tr>
+        ) : (
+          paginatedDeals?.map((deal) => (
+            <div
+              key={deal?.id}
+              onClick={() => onDealClick(deal)}
+              className="p-4 border-b border-border bg-background hover:bg-muted/30 transition"
+            >
+              <div className="flex items-start gap-3">
+                {/* Checkbox */}
+                <Checkbox
+                  checked={selectedDeals?.includes(deal?.id)}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onSelectDeal(deal?.id, e.target.checked);
+                  }}
+                  className="mt-1"
+                />
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                {/* Top Row */}
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-foreground truncate">
-                    {deal?.name}
-                  </h3>
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  {/* Top Row */}
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-foreground truncate">
+                      {deal?.name}
+                    </h3>
 
-                  <span
-                    className={`px-2 py-0.5 text-xs rounded-full ${getStageColor(
-                      deal?.status,
-                    )}`}
-                  >
-                    {deal?.status}
-                  </span>
-                </div>
-
-                {/* Project Name */}
-                {deal?.cProjectName && (
-                  <div className="text-sm text-muted-foreground mt-1 truncate">
-                    {deal?.cProjectName}
+                    <span
+                      className={`px-2 py-0.5 text-xs rounded-full ${getStageColor(
+                        deal?.status,
+                      )}`}
+                    >
+                      {deal?.status}
+                    </span>
                   </div>
-                )}
 
-                {/* Assigned User */}
-                {deal?.assignedUserName && (
+                  {/* Project Name */}
+                  {deal?.cProjectName && (
+                    <div className="text-sm text-muted-foreground mt-1 truncate">
+                      {deal?.cProjectName}
+                    </div>
+                  )}
+
+                  {/* Assigned User */}
+                  {deal?.assignedUserName && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                      <Icon name="User" size={12} />
+                      Assigned to{" "}
+                      <span className="truncate">{deal?.assignedUserName}</span>
+                    </div>
+                  )}
+
+                  {/* Created At */}
                   <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                    <Icon name="User" size={12} />
-                    Assigned to{" "}
-                    <span className="truncate">{deal?.assignedUserName}</span>
+                    <Icon name="Calendar" size={12} />
+                    Created: {formatDate(deal?.createdAt)}
                   </div>
-                )}
-
-                {/* Created At */}
-                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                  <Icon name="Calendar" size={12} />
-                  Created: {formatDate(deal?.createdAt)}
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
 };
 
-export default DealsTable;
+export default React.memo(DealsTable);

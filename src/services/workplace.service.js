@@ -305,7 +305,58 @@ export const workPlaceUnsubscribe = async ({ id }) => {
 
     return await res.json();
 };
+// create workplace
+export const createWorkplace = async (payload) => {
+    const token = localStorage.getItem("auth_token");
+    try {
+        const res = await fetch("https://gateway.aajneetiadvertising.com/CWorkplaceNotes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", token: token },
 
+            body: JSON.stringify(payload),
+        });
+        const data = await res.json(); // ✅ MUST
+
+        if (!res.ok) {
+            throw new Error(data?.message || "Failed to create workplace note");
+        }
+
+        return data; // ✅ return response
+    } catch (err) {
+        console.error("Create Workplace API Error:", err);
+        throw err;
+    }
+};
+// update worplace
+export const updateWorkplace = async (id, payload) => {
+    const token = localStorage.getItem("auth_token");
+
+    try {
+        const res = await fetch(
+            `https://gateway.aajneetiadvertising.com/CWorkplaceNotes/${id}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    token: token,
+                },
+                body: JSON.stringify(payload),
+            }
+        );
+
+        const data = await res.json().catch(() => null); // ✅ safe
+
+        if (!res.ok) {
+            throw new Error(data?.message || "Update failed");
+        }
+
+        return data;
+    } catch (err) {
+        console.error("Update API Error:", err);
+        throw err;
+    }
+};
 // --------------Stream-----------
 export const workplaceStreamById = async (id) => {
     console.log(id);

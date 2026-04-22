@@ -338,7 +338,7 @@ const KnowledgeBase = () => {
                   Knowledge Base
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  Track and manage your sales opportunities
+                  Empower your team with structured knowledge management
                 </p>
               </div>
               <div className="flex items-center space-x-3">
@@ -374,30 +374,7 @@ const KnowledgeBase = () => {
               toggleAnalytics={() => setShowAnalytics((prev) => !prev)}
 
             />
-            {/* chartsAnanlysis */}
-            {showAnalytics && (
-              <div className="bg-card border border-border rounded-lg p-5 mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold">Lead Analytics</h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowAnalytics((prev) => !prev)}
-                  >
-                    <Icon name="X" size={20} />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  <IndustryChart leads={leads} />
 
-                  <MultiLineChart leads={leads} />
-
-                  <StatusChart leads={leads} />
-
-                  <AssignedUserChart leads={leads} />
-                </div>
-              </div>
-            )}
 
             {/* Deals Table */}
             <DealsTable

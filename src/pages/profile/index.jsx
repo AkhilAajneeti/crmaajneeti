@@ -2,13 +2,24 @@ import React, { useState } from "react";
 import Header from "../../components/ui/Header";
 import Sidebar from "../../components/ui/Sidebar";
 import Icon from "../../components/AppIcon";
-import ProfileTab from "./components/ProfileTab";
+import Button from "../../components/ui/Button";
 import ChangePassword from "./components/changePassword";
+import { useProfiles, useUserById, useUsers } from "hooks/useUsers";
+import DealDrawer from "./components/DealDrawer";
+import { updateprofile } from "services/user.service";
 
 const Profile = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+  const [hoveredRow, setHoveredRow] = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
-
+  const loginUserStr = localStorage.getItem("login_object");
+  const loginUser = loginUserStr ? JSON.parse(loginUserStr) : null;
+  const UserId = loginUser?.id;
+  const [drawerMode, setDrawerMode] = useState("view");
+  const { data: profiles, isLoading } = useProfiles();
+  const profilesData = profiles?.list || [];
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -16,33 +27,24 @@ const Profile = () => {
   const handleSidebarClose = () => {
     setIsSidebarOpen(false);
   };
+  const formatDate = (date) => {
+    if (!date) return "—"; // null / undefined / empty
 
-  const tabs = [
-    {
-      id: "profile",
-      label: "Profile",
-      icon: "User",
-      description: "Personal information and preferences",
-    },
-    // {
-    //   id: "password",
-    //   label: "Password",
-    //   icon: "Building2",
-    //   description: "Make your password you first priority",
-    // },
-  ];
+    const parsedDate = new Date(date);
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "profile":
-        return <ProfileTab />;
-      case "password":
-        return <ChangePassword />;
-      default:
-        return <ProfileTab />;
-    }
+    if (isNaN(parsedDate.getTime())) return "—"; // invalid date
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })?.format(new Date(date));
   };
 
+  const onDealClick = (deal) => {
+    setSelectedId(deal);   // ✅ pass full object
+    setDrawerMode("view");
+    setIsDrawerOpen(true);
+  };
   return (
     <div className="min-h-screen bg-background">
       <Header
@@ -50,114 +52,168 @@ const Profile = () => {
         isSidebarOpen={isSidebarOpen}
       />
       <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
-       <main className="lg:ml-64 pt-16">
+      <main className="lg:ml-64 pt-16">
         <div className="p-4 lg:p-8">
           {/* Page Header */}
           <div className="mb-8">
             <div className="flex items-center space-x-4 mb-2">
               <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Icon name="Settings" size={24} className="text-primary" />
+                <Icon name="User" size={24} className="text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Profile Settings</h1>
+                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Profile & Details</h1>
                 <p className="text-muted-foreground">Update personal preferences</p>
               </div>
             </div>
           </div>
 
           {/* Settings Content */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            {/* Desktop Tabs */}
-            <div className="hidden lg:block border-b border-border">
-              <nav className="flex space-x-8 px-6">
-                {tabs?.map((tab) => (
-                  <button
-                    key={tab?.id}
-                    onClick={() => setActiveTab(tab?.id)}
-                    className={`
-                      flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-smooth
-                      ${activeTab === tab?.id
-                        ? 'border-primary text-primary' :'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
-                      }
-                    `}
-                  >
-                    <Icon name={tab?.icon} size={18} />
-                    <span>{tab?.label}</span>
-                  </button>
-                ))}
-              </nav>
-            </div>
+          <div className="bg-card border border-border rounded-lg overflow-hidden">
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-muted/50 border-b border-border">
+                  <tr>
 
-            {/* Mobile Tab Selector */}
-            <div className="lg:hidden border-b border-border p-4">
-              <div className="relative">
-                <select
-                  value={activeTab}
-                  onChange={(e) => setActiveTab(e?.target?.value)}
-                  className="w-full appearance-none bg-background border border-border rounded-lg px-4 py-3 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
-                  {tabs?.map((tab) => (
-                    <option key={tab?.id} value={tab?.id}>
-                      {tab?.label} - {tab?.description}
-                    </option>
+                    <th className="text-left px-4 py-3">
+                      <button
+
+                        className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                      >
+                        <span>Name</span>
+
+                      </button>
+                    </th>
+                    <th className="text-left px-4 py-3">
+                      <button
+
+                        className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                      >
+                        <span>Department</span>
+
+                      </button>
+                    </th>
+                    <th className="text-left px-4 py-3">
+                      <button
+
+                        className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                      >
+                        <span>Email</span>
+
+                      </button>
+                    </th>
+                    <th className="text-left px-4 py-3">
+                      <button
+
+                        className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                      >
+                        <span>Emp code</span>
+                      </button>
+                    </th>
+
+                    <th className="text-left px-4 py-3">
+                      <button
+
+                        className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                      >
+                        <span>Modified At</span>
+
+                      </button>
+                    </th>
+
+                    <th className="w-24 px-4 py-3">
+                      <span className="text-sm font-medium text-foreground">
+                        Actions
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+
+                  {profilesData?.map((deal) => (
+                    <tr
+                      key={deal?.id}
+                      onMouseEnter={() => setHoveredRow(deal?.id)}
+                      onMouseLeave={() => setHoveredRow(null)}
+                      className="hover:bg-muted/30 cursor-pointer transition-smooth"
+                    >
+
+                      <td className="px-4 py-4" onClick={() => onDealClick(deal)}>
+                        <div className="font-medium text-foreground">
+                          {deal?.name}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="font-medium text-foreground">
+                          {deal?.department}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="font-medium text-foreground">
+                          {deal?.email}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div
+                          className={`flex justify-start items-center space-x-2 py-1 font-medium rounded-full`}
+                        >
+                          <span className={`text-sm text-foreg roundunded-full `}>
+                            {deal?.empCode}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span
+                          className={`inline-flex px-1 py-1 text-xs font-medium rounded-full`}
+                        >
+                          {formatDate(deal?.modifiedAt)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div
+                          className={`flex items-center space-x-1 transition-opacity ${hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
+                            }`}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();   // ✅ prevent row click
+                              setSelectedId(deal);
+                              setDrawerMode("edit"); // 👈 open in edit mode
+                              setIsDrawerOpen(true);
+                            }}
+                            className="h-8 w-8"
+                          >
+                            <Icon name="Edit" size={14} />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            // onClick={(e) => handleDelete(e, deal)}
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                          >
+                            <Icon name="Trash2" size={14} />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
                   ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <Icon name="ChevronDown" size={20} className="text-muted-foreground" />
-                </div>
-              </div>
+
+                </tbody>
+              </table>
             </div>
 
-            {/* Tab Content */}
-            <div className="p-6 lg:p-8">
-              {/* Tab Description - Desktop Only */}
-              <div className="hidden lg:block mb-6">
-                <div className="flex items-center space-x-3">
-                  <Icon 
-                    name={tabs?.find(tab => tab?.id === activeTab)?.icon || 'Settings'} 
-                    size={20} 
-                    className="text-primary" 
-                  />
-                  <div>
-                    <h2 className="text-lg font-semibold text-card-foreground">
-                      {tabs?.find(tab => tab?.id === activeTab)?.label}
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      {tabs?.find(tab => tab?.id === activeTab)?.description}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Render Active Tab Content */}
-              {renderTabContent()}
-            </div>
           </div>
 
-          {/* Help Section */}
-          <div className="mt-8 bg-muted rounded-xl p-6">
-            <div className="flex items-start space-x-4">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon name="HelpCircle" size={20} className="text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-card-foreground mb-2">Need Help?</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  If you need assistance with any settings, check out our documentation or contact support.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button className="inline-flex items-center px-4 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-smooth">
-                    <Icon name="Book" size={16} className="mr-2" />
-                    View Documentation
-                  </button>
-                  <button className="inline-flex items-center px-4 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-smooth">
-                    <Icon name="MessageCircle" size={16} className="mr-2" />
-                    Contact Support
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DealDrawer
+            deal={selectedId}
+            isOpen={isDrawerOpen}
+            onClose={() => setIsDrawerOpen(false)}
+            mode={drawerMode}
+            onUpdate={(id, data) => updateprofile(id, data)}
+          />
         </div>
       </main>
     </div>

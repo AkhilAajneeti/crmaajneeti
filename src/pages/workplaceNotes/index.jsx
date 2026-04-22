@@ -25,6 +25,7 @@ import MultiLineChart from "pages/dashboard/components/MultiLineChart";
 import { useMetaData } from "hooks/useMetaData";
 import { useLeadDetails } from "hooks/useLeadDetails";
 import { useWorkPlace } from "hooks/useWorkplace";
+import { createWorkplace, updateWorkplace } from "services/workplace.service";
 
 const WorkPlace = () => {
   const queryClient = useQueryClient();
@@ -56,7 +57,7 @@ const WorkPlace = () => {
   const { data: WorkPlace, isLoading } = useWorkPlace({ limit, page, filters });
   const { data: workDetails } = useLeadDetails(selectedDeal?.id, mode);
   const createLeadMutation = useMutation({
-    mutationFn: createLead,
+    mutationFn: createWorkplace,
     onSuccess: () => {
       toast.success("Lead created");
       queryClient.invalidateQueries(["work"]);
@@ -143,7 +144,7 @@ const WorkPlace = () => {
   };
 
   const handleUpdateLead = async (id, payload) => {
-    await updateLead(id, payload);
+    await updateWorkplace(id, payload);
   };
 
   const handleDeleteLead = async (id) => {
@@ -337,7 +338,7 @@ const WorkPlace = () => {
                   Work Place Notes
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  Track and manage your sales opportunities
+                  Smarter notes for smarter sales
                 </p>
               </div>
               <div className="flex items-center space-x-3">
@@ -357,7 +358,7 @@ const WorkPlace = () => {
                   className="linearbg-1 text-white hover:text-white"
                 >
                   <Icon name="Plus" size={16} className="mr-2" />
-                  New Deal
+                  New WorkPlace
                 </Button>
               </div>
             </div>

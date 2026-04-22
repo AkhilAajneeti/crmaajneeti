@@ -5,7 +5,8 @@ import Select from "../../../components/ui/Select";
 import Input from "components/ui/Input";
 import toast from "react-hot-toast";
 import Avatar from "react-avatar";
-
+import ReactSelect from "react-select";
+import makeAnimated from "react-select/animated";
 import { createLeadActivity, updateStream } from "services/leads.service";
 import { useTeams } from "hooks/useTeams";
 import { useUsers } from "hooks/useUsers";
@@ -38,21 +39,17 @@ const DealDrawer = ({
   const [expandedActivityId, setExpandedActivityId] = useState(null);
   const [editingActivityId, setEditingActivityId] = useState(null);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    phoneNumber: "+91",
-    emailAddress: "",
-    whatsapp: "",
-    addressCity: "",
-    cProjectName: "",
-    cNextContactAt: "",
-    cQuestion: "",
+    name: "",
+    category: "",
+    impactLevel: "",
+    noteType: "",
+    incidentDate: "",
     assignedUserId: "",
     teamId: "",
     status: "",
-    source: "",
     description: "",
-    industry: "",
+    fieldList: [],
+    supportingDocument: [""]
   });
   const queryClient = useQueryClient();
   const { data: usersData } = useUsers();
@@ -69,21 +66,17 @@ const DealDrawer = ({
   useEffect(() => {
     if (mode === "add") {
       setFormData({
-        firstName: "",
-        lastName: "",
-        phoneNumber: "+91",
-        emailAddress: "",
-        whatsapp: "",
-        addressCity: "",
-        cProjectName: "",
-        cNextContactAt: "",
-        cQuestion: "",
+        name: "",
+        category: "",
+        impactLevel: "",
+        noteType: "",
+        incidentDate: "",
         assignedUserId: "",
         teamId: "",
-        status: "New",
-        source: "",
+        status: "",
         description: "",
-        industry: "",
+        fieldList: [],
+        supportingDocument: [""]
       });
       setIsEditing(true); // form open
     } else if (deal && mode === "view") {
@@ -92,7 +85,7 @@ const DealDrawer = ({
     }
   }, [deal, mode]);
 
-
+  const animatedComponents = makeAnimated();
   const [massFields, setMassFields] = useState({
     assignedUserId: false,
     status: false,
@@ -239,30 +232,34 @@ const DealDrawer = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const fullName =
-      `${formData.firstName || ""} ${formData.lastName || ""}`.trim();
 
-    // 🚨 VALIDATION FIX
-    if (!fullName) {
-      toast.error("Name is required");
+    if (!formData.name) {
+      toast.error("Subject is required");
       return;
     }
-    const payload = {
-      ...formData,
-      name: fullName,
-      cNextContactAt: toEspoDateTime(formData.cNextContactAt),
-    };
-    try {
-      if (mode === "add") {
-        await onCreate(payload);
-      } else {
-        await onUpdate(deal.id, payload);
-      }
 
-      setIsEditing(false);
-      onClose(); // close drawer after success
-    } catch (error) {
-      console.error("Failed to save lead", error);
+    const payload = {
+      name: formData.name,
+      category: formData.category,
+      impactLevel: formData.impactLevel,
+      noteType: formData.noteType,
+      incidentDate: formData.incidentDate,
+      assignedUserId: formData.assignedUserId,
+      teamsIds: formData.teamId ? [formData.teamId] : [],
+      status: formData.status,
+      description: formData.description,
+      collaboratorsIds: formData.fieldList?.map((u) => u.value) || [],
+      supportingDocument: formData.supportingDocument.filter(
+        (url) => url.trim() !== ""
+      )
+    };
+
+    console.log("FINAL PAYLOAD 👉", payload);
+
+    if (mode === "add") {
+      await onCreate(payload);
+    } else {
+      await onUpdate(deal.id, payload);
     }
   };
   const handleBulkUpdate = (e) => {
@@ -317,11 +314,7 @@ const DealDrawer = ({
           post: activityText,
         });
         queryClient.invalidateQueries(["lead-stream", deal.id]);
-        // setmockStream((prev) =>
-        //   prev.map((a) =>
-        //     a.id === editingActivityId ? { ...a, post: activityText } : a,
-        //   ),
-        // );
+
 
         toast.success("Activity updated");
       } else {
@@ -369,18 +362,11 @@ const DealDrawer = ({
       value: item,
       label: item,
     }));
-  const statusOptions = status
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const industryOptions = industry
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+  const statusOptions = [
+    { value: "Approved", label: "Approved" },
+    { value: "UnderReview", label: "Under Review" }
+  ];
+
 
   const handleSelectChange = (name, value) => {
     setFormData((prev) => ({
@@ -416,6 +402,67 @@ const DealDrawer = ({
       isFollowed: workplaceById?.isFollowed,
     });
   };
+  const categoryOptions = [
+    { value: "Behaviour & Professional Conduct", label: "Behaviour & Professional Conduct" },
+    { value: "Client Handling", label: "Client Handling" },
+    { value: "Core Performance", label: "Core Performance" },
+    { value: "Discipline & Reliability", label: "Discipline & Reliability" },
+    { value: "Exceptional Cases", label: "Exceptional Cases" },
+    { value: "Leadership & Mentorship", label: "Leadership & Mentorship" },
+    { value: "Learning & Growth", label: "Learning & Growth" },
+    { value: "Ownership & Initiative", label: "Ownership & Initiative" },
+    { value: "Process & Compliance", label: "Process & Compliance" },
+    { value: "Team & Collaboration", label: "Team & Collaboration" }
+  ];
+  const impactLevelOptions = [
+    { value: "Low", label: "Low" },
+    { value: "Medium", label: "Medium" },
+    { value: "High", label: "High" },
+    { value: "Critical", label: "Critical" }
+  ];
+  const handleFieldListChange = (selectedOptions) => {
+    const selected = selectedOptions || [];
+
+    setFormData((prev) => ({
+      ...prev,
+      fieldList: selected,
+    }));
+  };
+
+  const addSupportingDoc = () => {
+    // 🚫 prevent adding new empty field if last is empty
+    const last = formData.supportingDocument.at(-1);
+
+    if (!last || last.trim() === "") return;
+
+    setFormData((prev) => ({
+      ...prev,
+      supportingDocument: [...prev.supportingDocument, ""]
+    }));
+  };
+
+  const removeSupportingDoc = (index) => {
+    if (formData.supportingDocument.length === 1) return; // keep at least one
+
+    setFormData((prev) => ({
+      ...prev,
+      supportingDocument: prev.supportingDocument.filter(
+        (_, i) => i !== index
+      )
+    }));
+  };
+
+  const handleSupportingDocChange = (index, value) => {
+    const updated = [...formData.supportingDocument];
+    updated[index] = value;
+
+    setFormData((prev) => ({
+      ...prev,
+      supportingDocument: updated
+    }));
+  };
+
+
   return (
     <>
       {/* Backdrop */}
@@ -436,11 +483,11 @@ const DealDrawer = ({
             <div className="flex items-center space-x-3">
               <h2 className="text-xl font-semibold text-foreground">
                 {mode === "mass-update"
-                  ? `Mass Update (${selectedIds.length}) Leads`
+                  ? `Mass Update (${selectedIds.length}) WorkPlace`
                   : mode === "add"
-                    ? "Add Lead"
+                    ? "Add WorkPlace"
                     : isEditing
-                      ? "Edit Lead"
+                      ? "Edit WorkPlace"
                       : deal?.name}
               </h2>
               <span
@@ -479,98 +526,64 @@ const DealDrawer = ({
                   {/* ================= Overview ================= */}
                   <div className="bg-card border border-border rounded-lg p-4 space-y-4">
                     {/* Name */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="First Name *"
-                        value={formData.firstName || ""}
+                    <div className="grid gap-2">
+                      <label htmlFor="">Subject</label>
+                      <textarea
+                        className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        label="Description"
+                        rows={4}
+                        value={formData.name || ""}
+                        placeholder="Subject..."
                         onChange={(e) =>
-                          handleChange("firstName", e.target.value)
-                        }
-                      />
-                      <Input
-                        label="Last Name"
-                        value={formData.lastName || ""}
-                        onChange={(e) =>
-                          handleChange("lastName", e.target.value)
-                        }
-                      />
-                    </div>
-
-                    {/* Phone & Email */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Phone"
-                        value={formData.phoneNumber || ""}
-                        onChange={(e) =>
-                          handleChange("phoneNumber", e.target.value)
-                        }
-                      />
-                      <Input
-                        label="Email"
-                        value={formData.emailAddress || ""}
-                        onChange={(e) =>
-                          handleChange("emailAddress", e.target.value)
-                        }
-                      />
-                    </div>
-
-                    {/* Whatsapp & City */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Whatsapp"
-                        value={formData.whatsapp || ""}
-                        onChange={(e) =>
-                          handleChange("whatsapp", e.target.value)
-                        }
-                      />
-                      <Input
-                        label="City"
-                        value={formData.addressCity || ""}
-                        onChange={(e) =>
-                          handleChange("addressCity", e.target.value)
+                          handleChange("name", e.target.value)
                         }
                       />
                     </div>
 
                     {/* Project & Next Contact */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Project Name"
-                        value={formData.cProjectName || ""}
-                        onChange={(e) =>
-                          handleChange("cProjectName", e.target.value)
+                      <Select
+                        label="Category"
+                        value={formData.category || ""}
+                        options={categoryOptions} // 👉 later API se teams
+                        onChange={(option) =>
+                          handleSelectChange("category", option?.value)
                         }
                       />
-                      <Input
-                        type="datetime-local"
-                        label="Next Contact"
-                        value={formData.cNextContactAt || ""}
-                        onChange={(e) =>
-                          handleChange("cNextContactAt", e.target.value)
+                      <Select
+                        label="Impact Level"
+                        value={formData.impactLevel || ""}
+                        options={impactLevelOptions} // 👉 later API se teams
+                        onChange={(option) =>
+                          handleSelectChange("impactLevel", option?.value)
                         }
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                      <Input
-                        label="Preference"
-                        value={formData.cQuestion || ""}
-                        onChange={(e) =>
-                          handleChange("cQuestion", e.target.value)
+                      <Select
+                        label="Note Type"
+                        value={formData.noteType || ""}
+                        options={[
+                          { value: "Positive", label: "Positive" },
+                          { value: "Negative", label: "Negative" },
+
+                        ]} // 👉 later API se teams
+                        onChange={(option) =>
+                          handleSelectChange("noteType", option?.value)
                         }
                       />
                     </div>
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                      <Select
-                        label="Industry"
-                        value={formData.industry || ""}
-                        options={industryOptions} // 👉 later API se teams
-                        onChange={(value) =>
-                          handleSelectChange("industry", value)
-                        }
+                      <Input
+                        type="date"
+                        label="Incident Date"
+                        value={formData.incidentDate}
+                        onChange={(e) => handleChange("incidentDate", e.target.value)}
                       />
                     </div>
+
                   </div>
 
                   {/* ================= Assigned User ================= */}
@@ -583,6 +596,7 @@ const DealDrawer = ({
                         onChange={(value) =>
                           handleSelectChange("assignedUserId", value)
                         }
+                        searchable
                       />
                     </div>
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
@@ -593,6 +607,47 @@ const DealDrawer = ({
                         onChange={(value) =>
                           handleSelectChange("teamId", value)
                         }
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        CC
+                      </label>
+                      <ReactSelect
+                        isMulti
+                        closeMenuOnSelect={false}
+                        components={animatedComponents}
+                        options={userOptions}
+                        value={formData.fieldList}
+                        onChange={handleFieldListChange}
+                        placeholder="Select Field List..."
+                        classNamePrefix="react-select"
+                        styles={{
+                          control: (base, state) => ({
+                            ...base,
+                            minHeight: "42px",
+                            borderColor: state.isFocused ? "#a3d9a5" : "#a3d9a5",
+                            boxShadow: "none",
+                            "&:hover": { borderColor: "#6366f1" },
+                          }),
+                          multiValue: (base) => ({
+                            ...base,
+                            backgroundColor: "#EEF2FF",
+                          }),
+                          multiValueLabel: (base) => ({
+                            ...base,
+                            color: "#000",
+                            fontWeight: 500,
+                          }),
+                          multiValueRemove: (base) => ({
+                            ...base,
+                            color: "#e8a8a0",
+                            ":hover": {
+                              backgroundColor: "#e8a8a0",
+                              color: "#fff",
+                            },
+                          }),
+                        }}
                       />
                     </div>
                   </div>
@@ -608,12 +663,47 @@ const DealDrawer = ({
                         options={statusOptions}
                         onChange={(value) => handleChange("status", value)}
                       />
-                      <Select
-                        label="Source"
-                        value={formData.source || ""}
-                        options={sourceOptions}
-                        onChange={(value) => handleChange("source", value)}
-                      />
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Supporting Documents (URLs)
+                        </label>
+
+                        <div className="space-y-2">
+                          {formData.supportingDocument.map((url, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              <Input
+                                type="text"
+                                placeholder="Enter URL"
+                                value={url}
+                                onChange={(e) =>
+                                  handleSupportingDocChange(index, e.target.value)
+                                }
+                              />
+
+                              {/* ❌ Show remove only if value exists */}
+                              {url && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeSupportingDoc(index)}
+                                  className="text-red-500 hover:text-red-700 text-lg"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                          ))}
+
+                          {/* ➕ Inline Add Button */}
+                          <button
+                            type="button"
+                            onClick={addSupportingDoc}
+                            className="text-sm text-primary hover:underline"
+                          >
+                            + Add URL
+                          </button>
+                        </div>
+                      </div>
+
                     </div>
                     <div className="col-span-2">
                       <textarea

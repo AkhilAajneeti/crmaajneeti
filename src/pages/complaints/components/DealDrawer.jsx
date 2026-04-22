@@ -443,9 +443,9 @@ const DealDrawer = ({
                 {mode === "mass-update"
                   ? `Mass Update (${selectedIds.length}) Leads`
                   : mode === "add"
-                    ? "Add Lead"
+                    ? "Add Complaints"
                     : isEditing
-                      ? "Edit Lead"
+                      ? "Edit Complaint"
                       : deal?.name}
               </h2>
               <span

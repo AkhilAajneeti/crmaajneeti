@@ -280,7 +280,7 @@ const paginatedDeals = deals;
                     <span
                       className={`inline-flex px-1 py-1 text-xs font-medium rounded-full`}
                     >
-                      {formatDate(deal?.cNextContactAt)}
+                      {formatDate(deal?.cNextContact)}
                     </span>
                   </td>
                   <td className="px-4 py-4">

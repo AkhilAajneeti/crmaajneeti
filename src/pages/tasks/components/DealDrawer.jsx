@@ -12,6 +12,10 @@ import { fetchAccounts } from "services/account.service";
 import { fetchContacts } from "services/contact.service";
 import { TaskActivitesById, taskStreamById } from "services/tasks.service";
 import { useTasksById } from "hooks/useTasks";
+import { useUsers } from "hooks/useUsers";
+import { useTeams } from "hooks/useTeams";
+import { useAccounts } from "hooks/useAccounts";
+import { useNewLeads } from "hooks/useLeads";
 
 const DealDrawer = ({
   deal,
@@ -26,7 +30,7 @@ const DealDrawer = ({
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
-  const [users, setUsers] = useState([]);
+
   const [team, setTeam] = useState([]);
   const [acc, setAcc] = useState([]);
   const [lead, setLead] = useState([]);
@@ -48,6 +52,8 @@ const DealDrawer = ({
     parentName: "",
     parentType: "",
   });
+  const { data: usersData, isLoading: usersLoading } = useUsers();
+  const { data: teamData } = useTeams();
   useEffect(() => {
     if (mode === "add") {
       setFormData({
@@ -83,7 +89,24 @@ const DealDrawer = ({
   console.log("deasl drwaer ", selectedIds);
   // mass update
   const isMassUpdate = mode === "mass-update";
-
+  const [parentPage, setParentPage] = useState(1);
+  const limit = 10;
+  const {
+    data: accountsData,
+    isLoading: accountsLoading,
+  } = useAccounts({
+    page: parentPage,
+    limit,
+    filters: {},
+  });
+  const {
+    data: leadsData,
+    isLoading: leadsLoading,
+  } = useNewLeads({
+    page: parentPage,
+    limit,
+    filters: {},
+  });
   const [massFields, setMassFields] = useState({
     status: false,
     priority: false,
@@ -125,7 +148,6 @@ const DealDrawer = ({
   const Parent_OPTIONS = [
     { value: "Account", label: "Account" },
     { value: "Lead", label: "Lead" },
-    { value: "Contact", label: "Contact" },
   ];
   const SOURCE_OPTIONS = [
     { value: "Low", label: "Low" },
@@ -375,19 +397,10 @@ const DealDrawer = ({
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [usersRes, teamRes, accRes, leadRes, contactRes] =
+        const [contactRes] =
           await Promise.all([
-            fetchUser(),
-            fetchTeam(),
-            fetchAccounts(),
-            fetchLeads(),
             fetchContacts(),
           ]);
-
-        setUsers(usersRes.list || []);
-        setTeam(teamRes.list || []);
-        setAcc(accRes.list || []);
-        setLead(leadRes.list || []);
         setContact(contactRes.list || []);
       } catch (err) {
         console.error("Failed to load data", err);
@@ -397,13 +410,16 @@ const DealDrawer = ({
     loadData();
   }, []);
 
-  const userOptions = users
-    ?.filter((u) => u?.isActive) // ✅ only active users
-    ?.map((u) => ({
-      value: u.id,
-      label: u.name || u.userName,
-    }));
-  const teamOptions = team?.map((t) => ({
+  const userOptions =
+    usersLoading
+      ? [{ value: "", label: "Loading users..." }]
+      : usersData?.list
+        ?.filter((u) => u?.isActive)
+        ?.map((u) => ({
+          value: u.id,
+          label: u.name || u.userName,
+        })) || [];
+  const teamOptions = teamData?.list?.map((t) => ({
     value: t.id,
     label: t.name,
   }));
@@ -424,31 +440,32 @@ const DealDrawer = ({
       setmockStream([]);
     }
   }, [isOpen]);
+  useEffect(() => {
+    setParentPage(1);
+  }, [formData.parentName]);
 
   const getParentTypeOptions = () => {
-    switch (formData.parentName) {
-      case "Account":
-        return acc.map((item) => ({
-          value: item.id,
-          label: item.name,
-        }));
-
-      case "Lead":
-        return lead.map((item) => ({
-          value: item.id,
-          label: item.name,
-        }));
-
-      case "Contact":
-        return contact.map((item) => ({
-          value: item.id,
-          label: item.accountName,
-        }));
-
-      default:
-        return [];
+    if (formData.parentName === "Account") {
+      return accountsData?.list?.map((item) => ({
+        value: item.id,
+        label: item.name,
+      })) || [];
     }
+
+    if (formData.parentName === "Lead") {
+      return leadsData?.list?.map((item) => ({
+        value: item.id,
+        label: item.name,
+      })) || [];
+    }
+
+    return [];
   };
+  const hasMoreAccounts =
+    accountsData?.total > parentPage * limit;
+
+  const hasMoreLeads =
+    leadsData?.total > parentPage * limit;
   return (
     <>
       {/* Backdrop */}
@@ -533,6 +550,7 @@ const DealDrawer = ({
                         onChange={(value) =>
                           handleSelectChange("assignedUserId", value)
                         }
+                        searchable
                       />
                     </div>
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
@@ -595,10 +613,11 @@ const DealDrawer = ({
                         options={Parent_OPTIONS}
                         onChange={(value) => {
                           handleChange("parentName", value);
-                          handleChange("parentType", ""); // reset child dropdown
+                          handleChange("parentType", "");
+                          setParentPage(1);
                         }}
-                      />
-
+                        />
+                       
                       <Select
                         label="Parent Type"
                         value={formData.parentType || ""}
@@ -606,6 +625,16 @@ const DealDrawer = ({
                         disabled={!formData.parentName}
                         onChange={(value) => handleChange("parentType", value)}
                       />
+                      
+                      {formData.parentName === "Lead" && hasMoreLeads && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setParentPage((prev) => prev + 1)}
+                        >
+                          Show More Leads
+                        </Button>
+                      )}
                     </div>
 
                     <div className="col-span-2">
