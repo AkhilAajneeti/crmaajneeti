@@ -60,36 +60,44 @@ const DealsFilters = ({
   ];
   const ACTIVITY_DATE_FILTERS = [
     { label: "Today", value: "today" },
-    { label: "Yesterday", value: "yesterday" },
-    { label: "Last 7 Days", value: "last7Days" },
+    { label: "Last 7 Days", value: "lastSevenDays" },
+    { label: "Current Month", value: "currentMonth" },
+    { label: "Last Month", value: "lastMonth" },
+    // { label: "Next Month", value: "nextMonth" },
+    { label: "Current Quarter", value: "currentQuarter" },
+    { label: "Last Quarter", value: "lastQuarter" },
+    { label: "Current Year", value: "currentYear" },
+    { label: "Last Year", value: "lastYear" },
+    { label: "Past", value: "past" },
+    { label: "Future", value: "future" },
+    { label: "Ever", value: "ever" },
+    { label: "Is Empty", value: "isEmpty" },
 
+    // special
+    { label: "On", value: "on" },
     { label: "Before", value: "before" },
     { label: "After", value: "after" },
-
     { label: "Between", value: "between" },
-    { label: "This Month", value: "currentMonth" },
-    { label: "Last Month", value: "lastMonth" },
+    { label: "Last X Days", value: "lastXDays" },
+    // { label: "After X Days", value: "afterXDays" },
   ];
 
-
-  const showDateInputs = [
-    "between",
-    "after",
-    "before",
-    "on"
-  ].includes(filters?.dateType);
-
-  const showXDaysInput = [
-    "lastXDays",
-    "nextXDays",
-    "olderThanXDays",
-    "afterXDays"
-  ].includes(filters?.dateType);
+  const showDateInputs = ["on", "before", "after", "between"].includes(filters?.dateType);
+  const showXDaysInput = ["lastXDays", "afterXDays"].includes(filters?.dateType);
   const handleFilterChange = (key, value) => {
-    onFiltersChange({
+    let updated = {
       ...filters,
       [key]: value,
-    });
+    };
+
+    // 🔥 reset dependent fields when dateType changes
+    if (key === "dateType") {
+      updated.closeDateFrom = "";
+      updated.closeDateTo = "";
+      updated.xDays = "";
+    }
+
+    onFiltersChange(updated);
   };
 
   useEffect(() => {
@@ -268,6 +276,7 @@ const DealsFilters = ({
                 handleFilterChange("closeDateFrom", e.target.value)
               }
             />
+
             {filters?.dateType === "between" && (
               <Input
                 type="date"

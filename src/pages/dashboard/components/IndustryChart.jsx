@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Pie,
   PieChart,
@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
 import Select from "../../../components/ui/Select";
 import Input from "../../../components/ui/Input";
-
+import { fetchLeadsCount } from "services/leads.service";
 const COLORS = [
   "#1877F2",
   "#22c55e",
@@ -21,52 +21,19 @@ const COLORS = [
   "#06b6d4",
 ];
 
-const SECTORS = [
-  "RealEstate",
-  "Contact form",
-  "B2B",
-  "AppDev",
-  "Automobiles",
-  "Banquet Hall",
-  "BridalMakeup",
-  "CaseStudy",
-  "ContentMarketing",
-  "CoWorking",
-  "DJMusic",
-  "DubaiRELG",
-  "FacebookAds",
-  "FoodCatering",
-  "GoogleAds",
-  "HigherEducation",
-  "Interior",
-  "Leasing",
-  "LinkedinAds",
-  "LuxuryEventPlanners",
-  "LuxuryTransportation",
-  "ORM",
-  "PhotographersVideographers",
-  "PlotsRELG",
-  "Political",
-  "PreWedding",
-  "RealEstateCityPages",
-  "SEO",
-  "Study abroad",
-  "Tour_Travel",
-  "WebDev",
-  "WeddingFloralDecor",
-  "WikipediaBrands",
-  "WikipediaPoliticians",
-];
 
-const IndustryChart = ({ leads = [] }) => {
 
+const IndustryChart = () => {
+  const [loading, setLoading] = useState(false);
+  const [chartData, setChartData] = useState([]);
   const ACTIVITY_DATE_FILTERS = [
     { label: "Today", value: "today" },
     { label: "Yesterday", value: "yesterday" },
-    { label: "Last 7 Days", value: "last7Days" },
+    { label: "Last 7 Days", value: "lastSevenDays" },
     { label: "This Month", value: "currentMonth" },
     // { label: "Last Month", value: "lastMonth" },
   ];
+
   const [filters, setFilters] = useState({
     dateType: "today",        // 👈 NEW (today, before, between, etc.)
     closeDateFrom: "",
@@ -79,97 +46,131 @@ const IndustryChart = ({ leads = [] }) => {
     "olderThanXDays",
     "afterXDays"
   ].includes(filters?.dateType);
+  const getSectorData = async (filtersState) => {
+    const dateFilter = buildDateFilter(filtersState);
+    const baseFilters = dateFilter ? [dateFilter] : [];
 
+    const IMPORTANT_SECTORS = [
+      "RealEstate",
+      "Contact form",
+      "B2B",
+      "AppDev",
+      "Automobiles",
+      "Banquet Hall",
+      "BridalMakeup",
+      "CaseStudy",
+      "ContentMarketing",
+      "CoWorking",
+      "DJMusic",
+      "DubaiRELG",
+      "FacebookAds",
+      "FoodCatering",
+      "GoogleAds",
+      "HigherEducation",
+      "Interior",
+      "Leasing",
+      "LinkedinAds",
+      "LuxuryEventPlanners",
+      "LuxuryTransportation",
+      "ORM",
+      "PhotographersVideographers",
+      "PlotsRELG",
+      "Political",
+      "PreWedding",
+      "RealEstateCityPages",
+      "SEO",
+      "Study abroad",
+      "LogoDesign",
+      "Tour_Travel",
+      "WebDev",
+      "WeddingFloralDecor",
+      "WikipediaBrands",
+      "WikipediaPoliticians",
+    ];
 
-  const buildDateRange = (filters) => {
-    const { dateType, closeDateFrom, closeDateTo, xDays } = filters;
+    const results = await Promise.all(
+      IMPORTANT_SECTORS.map((sector) =>
+        fetchLeadsCount([
+          ...baseFilters,
+          {
+            type: "equals",
+            attribute: "cSector",
+            value: sector,
+          },
+        ])
+      )
+    );
 
-    if (!dateType) return null;
+    const data = IMPORTANT_SECTORS.map((sector, i) => ({
+      name: sector,
+      value: results[i],
+    }));
 
-    // ✅ TODAY
-    if (dateType === "today") {
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      const end = new Date();
-      end.setHours(23, 59, 59, 999);
-      return { start, end };
+    const total = await fetchLeadsCount(baseFilters);
+
+    const knownTotal = results.reduce((sum, val) => sum + val, 0);
+
+    const others = Math.max(total - knownTotal, 0);
+
+    if (others > 0) {
+      data.push({ name: "Others", value: others });
     }
 
-    // ✅ YESTERDAY
-    if (dateType === "yesterday") {
-      const today = new Date();
-      const y = new Date(today);
-      y.setDate(today.getDate() - 1);
+    return data;
+  };
+  useEffect(() => {
+    if (!filters.dateType) return;
 
-      const start = new Date(y);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(y);
-      end.setHours(23, 59, 59, 999);
-      return { start, end };
+    setLoading(true);
+
+    getSectorData(filters)
+      .then(setChartData)
+      .finally(() => setLoading(false));
+  }, [filters]);
+  const buildDateFilter = (filters) => {
+    if (!filters.dateType) return null;
+
+    const today = new Date();
+
+    switch (filters.dateType) {
+      case "today":
+        return {
+          type: "today",
+          attribute: "createdAt",
+          dateTime: true,
+        };
+
+      case "lastSevenDays":
+        return {
+          type: "lastSevenDays",
+          attribute: "createdAt",
+          dateTime: true,
+        };
+
+      case "currentMonth":
+        return {
+          type: "currentMonth",
+          attribute: "createdAt",
+          dateTime: true,
+        };
+
+      case "yesterday": {
+        const y = new Date();
+        y.setDate(today.getDate() - 1);
+
+        const date = y.toISOString().split("T")[0];
+
+        return {
+          type: "on",
+          attribute: "createdAt",
+          value: date,
+          dateTime: true,
+        };
+      }
+
+      default:
+        return null;
     }
-    // ✅ LAST 7 DAYS
-    if (dateType === "last7Days") {
-      const today = new Date();
-      const past = new Date();
-      past.setDate(today.getDate() - 6);
-
-      const start = new Date(past);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(today);
-      end.setHours(23, 59, 59, 999);
-      return { start, end };
-    }
-
-    // ✅ CURRENT MONTH
-    if (dateType === "currentMonth") {
-      const today = new Date();
-
-      const start = new Date(today.getFullYear(), today.getMonth(), 1);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date();
-      end.setHours(23, 59, 59, 999);
-      return { start, end };
-    }
-
-    // ✅ LAST MONTH
-    if (dateType === "lastMonth") {
-      const today = new Date();
-
-      const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(today.getFullYear(), today.getMonth(), 0);
-      end.setHours(23, 59, 59, 999);
-      return { start, end };
-    }
-
-    // ✅ LAST X DAYS
-    if (dateType === "lastXDays" && xDays) {
-      const today = new Date();
-      const past = new Date();
-      past.setDate(today.getDate() - Number(xDays));
-
-      const start = new Date(past);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(today);
-      end.setHours(23, 59, 59, 999);
-      return { start, end };
-    }
-
-    // ✅ BEFORE
-    if (dateType === "before" && closeDateFrom) {
-      const end = new Date(closeDateFrom);
-      end.setHours(23, 59, 59, 999);
-      return { start: null, end };
-    }
-
-    // ✅ AFTER
-    if (dateType === "after" && closeDateFrom) {
-      const start = new Date(closeDateFrom);
-      start.setHours(0, 0, 0, 0);
-      return { start, end: null };
-    }
-
-    return null;
   };
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
@@ -178,36 +179,7 @@ const IndustryChart = ({ leads = [] }) => {
     }));
   };
 
-  const chartData = useMemo(() => {
-    const range = buildDateRange(filters);
-    const startMs = range?.start ? range.start.getTime() : null;
-    const endMs = range?.end ? range.end.getTime() : null;
 
-    const counts = new Map();
-    for (const sector of SECTORS) counts.set(sector, 0);
-
-    for (const lead of leads || []) {
-      const sector = lead?.cSector;
-      if (!sector || !counts.has(sector)) continue;
-
-      const createdAt = lead?.createdAt;
-      if (!createdAt) continue;
-      const ms = new Date(createdAt).getTime();
-      if (Number.isNaN(ms)) continue;
-      if (startMs !== null && ms < startMs) continue;
-      if (endMs !== null && ms > endMs) continue;
-
-      counts.set(sector, (counts.get(sector) || 0) + 1);
-    }
-
-    const result = [];
-    for (const [name, value] of counts.entries()) {
-      if (value > 0) result.push({ name, value });
-    }
-    // stable-ish ordering: highest first for readability
-    result.sort((a, b) => b.value - a.value);
-    return result;
-  }, [leads, filters]);
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
   const isEmpty = total === 0;
@@ -307,16 +279,6 @@ const IndustryChart = ({ leads = [] }) => {
 
       {/* Bottom Summary */}
       <div className="flex flex-wrap justify-start gap-6 mt-6 pt-4 border-t border-border text-sm">
-        {chartData.map((item, index) => (
-          <div key={item.name} className="flex items-center space-x-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: COLORS[index % COLORS.length] }}
-            />
-            <span>{item.name}</span>
-          </div>
-        ))}
-
         <div className="flex items-center space-x-2 font-semibold">
           <Icon name="Target" size={16} />
           <span>Total: {total}</span>

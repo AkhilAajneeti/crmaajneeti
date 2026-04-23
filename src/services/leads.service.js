@@ -139,145 +139,66 @@ export const fetchNewLeads = async ({ limit, page, filters = {} }) => {
 
   let where = [];
 
-  // 🔥 FIX: convert local date → correct ISO for backend
-  const toLocalISOString = (date) => {
-    const tzOffset = date.getTimezoneOffset() * 60000;
-    return new Date(date - tzOffset).toISOString().slice(0, -1);
-  };
-
-  const today = new Date();
 
   // ✅ DATE FILTER
   if (filters.dateType) {
-    switch (filters.dateType) {
+    const type = filters.dateType;
 
-      // 🔥 TODAY (FULL DAY)
-      case "today": {
-        const start = new Date();
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date();
-        end.setHours(23, 59, 59, 999);
-
+    switch (type) {
+      // ✅ simple types
+      case "today":
+      case "lastSevenDays":
+      case "currentMonth":
+      case "lastMonth":
+      case "nextMonth":
+      case "currentQuarter":
+      case "lastQuarter":
+      case "currentYear":
+      case "lastYear":
+      case "past":
+      case "future":
+      case "ever":
+      case "isEmpty":
         where.push({
-          type: "between",
+          type,
           attribute: "createdAt",
-          value: [toLocalISOString(start), toLocalISOString(end)],
+          dateTime: true,
         });
         break;
-      }
 
-      // 🔥 YESTERDAY (FULL DAY)
-      case "yesterday": {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        const start = new Date(yesterday);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(yesterday);
-        end.setHours(23, 59, 59, 999);
-
-        where.push({
-          type: "between",
-          attribute: "createdAt",
-          value: [toLocalISOString(start), toLocalISOString(end)],
-        });
+      case "on":
+      case "before":
+      case "after":
+        if (filters.closeDateFrom) {
+          where.push({
+            type,
+            attribute: "createdAt",
+            value: filters.closeDateFrom,
+            dateTime: true,
+          });
+        }
         break;
-      }
 
-      // 🔥 LAST 7 DAYS (FULL RANGE)
-      case "last7Days": {
-        const start = new Date();
-        start.setDate(start.getDate() - 7);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date();
-        end.setHours(23, 59, 59, 999);
-
-        where.push({
-          type: "between",
-          attribute: "createdAt",
-          value: [toLocalISOString(start), toLocalISOString(end)],
-        });
-        break;
-      }
-
-      // 🔥 BETWEEN (USER INPUT)
-      case "between": {
+      case "between":
         if (filters.closeDateFrom && filters.closeDateTo) {
-          const start = new Date(filters.closeDateFrom);
-          start.setHours(0, 0, 0, 0);
-
-          const end = new Date(filters.closeDateTo);
-          end.setHours(23, 59, 59, 999);
-
           where.push({
-            type: "between",
+            type,
             attribute: "createdAt",
-            value: [toLocalISOString(start), toLocalISOString(end)],
+            value: [filters.closeDateFrom, filters.closeDateTo],
+            dateTime: true,
           });
         }
         break;
-      }
 
-      // 🔥 BEFORE
-      case "before": {
-        if (filters.closeDateFrom) {
-          const date = new Date(filters.closeDateFrom);
-          date.setHours(0, 0, 0, 0);
-
+      case "lastXDays":
+      case "afterXDays":
+        if (filters.xDays) {
           where.push({
-            type: "lessThan",
-            attribute: "createdAt",
-            value: toLocalISOString(date),
+            type,
+            value: filters.xDays,
           });
         }
         break;
-      }
-
-      // 🔥 AFTER
-      case "after": {
-        if (filters.closeDateFrom) {
-          const date = new Date(filters.closeDateFrom);
-          date.setHours(23, 59, 59, 999);
-
-          where.push({
-            type: "greaterThan",
-            attribute: "createdAt",
-            value: toLocalISOString(date),
-          });
-        }
-        break;
-      }
-      case "currentMonth": {
-        const start = new Date(today.getFullYear(), today.getMonth(), 1);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date();
-        end.setHours(23, 59, 59, 999);
-
-        where.push({
-          type: "between",
-          attribute: "createdAt",
-          value: [toLocalISOString(start), toLocalISOString(end)],
-        });
-        break;
-      }
-      case "lastMonth": {
-        const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(today.getFullYear(), today.getMonth(), 0);
-        end.setHours(23, 59, 59, 999);
-
-        where.push({
-          type: "between",
-          attribute: "createdAt",
-          value: [toLocalISOString(start), toLocalISOString(end)],
-        });
-        break;
-      }
     }
   }
 
@@ -314,12 +235,16 @@ export const fetchNewLeads = async ({ limit, page, filters = {} }) => {
     });
   }
 
-
-  // ✅ QUERY BUILDER
+  // ✅ QUERY BUILDER (FIXED)
   const query = where
     .map((f, i) => {
-      let q = `whereGroup[${i}][type]=${f.type}&whereGroup[${i}][attribute]=${f.attribute}`;
+      let q = `whereGroup[${i}][type]=${f.type}`;
 
+      // 🔥 ALWAYS ensure attribute for safety (backend crash fix)
+      const attribute = f.attribute || "createdAt";
+      q += `&whereGroup[${i}][attribute]=${attribute}`;
+
+      // value
       if (Array.isArray(f.value)) {
         f.value.forEach((v) => {
           q += `&whereGroup[${i}][value][]=${encodeURIComponent(v)}`;
@@ -328,11 +253,18 @@ export const fetchNewLeads = async ({ limit, page, filters = {} }) => {
         q += `&whereGroup[${i}][value]=${encodeURIComponent(f.value)}`;
       }
 
-      // 🔥 date filters need this
+      // 🔥 ensure datetime for date filters
       if (
-        ["today", "yesterday", "currentMonth", "lastMonth", "last7Days"].includes(
-          f.type
-        )
+        f.dateTime ||
+        [
+          "today",
+          "lastSevenDays",
+          "currentMonth",
+          "lastMonth",
+          "between",
+          "before",
+          "after",
+        ].includes(f.type)
       ) {
         q += `&whereGroup[${i}][dateTime]=true`;
       }
@@ -354,10 +286,14 @@ export const fetchNewLeads = async ({ limit, page, filters = {} }) => {
     },
   });
 
-  if (!res.ok) throw new Error("Failed to fetch leads");
+  if (!res.ok) {
+    console.error("API FAILED:", res.status);
+    throw new Error("Failed to fetch leads");
+  }
 
   return await res.json();
 };
+
 export const fetchLeadsById = async (id) => {
   const token = localStorage.getItem("auth_token");
   console.log("AUTH TOKEN:", token); // 🔍 debug

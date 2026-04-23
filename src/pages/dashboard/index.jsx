@@ -394,7 +394,7 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
                     onClick={() => {
                       const filtered = leads.filter(
                         (l) =>
-                          l.status === "Deal Closed" && isToday(l.modifiedAt),
+                          l.status === "Lead Closed" && isToday(l.modifiedAt),
                       );
 
                       setInsightData(filtered);

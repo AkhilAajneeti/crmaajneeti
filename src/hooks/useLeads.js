@@ -21,7 +21,7 @@ export const useLeadsCount = (filters) => {
 };
 export const useNewLeads = ({ limit, page, filters }) => {
     return useQuery({
-        queryKey: ["leads", limit, page, filters],
+        queryKey: ["leads", limit, page, JSON.stringify(filters)],
         queryFn: () => fetchNewLeads({ limit, page, filters }),
         placeholderData: keepPreviousData,
     })

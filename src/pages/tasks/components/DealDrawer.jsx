@@ -16,6 +16,7 @@ import { useUsers } from "hooks/useUsers";
 import { useTeams } from "hooks/useTeams";
 import { useAccounts } from "hooks/useAccounts";
 import { useNewLeads } from "hooks/useLeads";
+import { ParentSelectorModal } from "../../../components/ParentSelectorModal";
 
 const DealDrawer = ({
   deal,
@@ -39,7 +40,7 @@ const DealDrawer = ({
   const [showActivityForm, setActivityForm] = useState(false);
   const [activityText, setActivityText] = useState("");
   const [postingActivity, setPostingActivity] = useState(false);
-
+  const [showParentModal, setShowParentModal] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     assignedUserId: "",
@@ -445,21 +446,41 @@ const DealDrawer = ({
   }, [formData.parentName]);
 
   const getParentTypeOptions = () => {
+    let options = [];
+
     if (formData.parentName === "Account") {
-      return accountsData?.list?.map((item) => ({
-        value: item.id,
-        label: item.name,
-      })) || [];
+      options =
+        accountsData?.list?.map((item) => ({
+          value: item.id,
+          label: item.name,
+        })) || [];
+
+      // 🔥 add load more
+      if (hasMoreAccounts) {
+        options.push({
+          value: "__load_more__",
+          label: "🔍 Load More Accounts...",
+        });
+      }
     }
 
     if (formData.parentName === "Lead") {
-      return leadsData?.list?.map((item) => ({
-        value: item.id,
-        label: item.name,
-      })) || [];
+      options =
+        leadsData?.list?.map((item) => ({
+          value: item.id,
+          label: item.name,
+        })) || [];
+
+      // 🔥 add load more
+      if (hasMoreLeads) {
+        options.push({
+          value: "__load_more__",
+          label: "🔍 Load More Leads...",
+        });
+      }
     }
 
-    return [];
+    return options;
   };
   const hasMoreAccounts =
     accountsData?.total > parentPage * limit;
@@ -616,25 +637,20 @@ const DealDrawer = ({
                           handleChange("parentType", "");
                           setParentPage(1);
                         }}
-                        />
-                       
+                      />
+
                       <Select
                         label="Parent Type"
                         value={formData.parentType || ""}
                         options={getParentTypeOptions()}
-                        disabled={!formData.parentName}
-                        onChange={(value) => handleChange("parentType", value)}
+                        onChange={(value) => {
+                          if (value === "__load_more__") {
+                            setShowParentModal(true); // 🔥 open modal
+                          } else {
+                            handleChange("parentType", value);
+                          }
+                        }}
                       />
-                      
-                      {formData.parentName === "Lead" && hasMoreLeads && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setParentPage((prev) => prev + 1)}
-                        >
-                          Show More Leads
-                        </Button>
-                      )}
                     </div>
 
                     <div className="col-span-2">
@@ -1151,6 +1167,14 @@ const DealDrawer = ({
             )}
           </div>
         </div>
+        <ParentSelectorModal
+          open={showParentModal}
+          type={formData.parentName}
+          onClose={() => setShowParentModal(false)}
+          onSelect={(item) => {
+            handleChange("parentType", item.id);
+          }}
+        />
       </div>
     </>
   );
