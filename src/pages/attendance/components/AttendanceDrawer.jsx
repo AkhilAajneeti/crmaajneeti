@@ -75,8 +75,8 @@ const AttendanceDrawer = ({
     status: "Pending",
     startDate: "",
     endDate: "",
-    leaveBalance: 0,
-    leaveConsumed: 0,
+    // leaveBalance: 0,
+    // leaveConsumed: 0,
     description: "",
     reportingManagerEmail: "",
     teamsIds: [],
@@ -92,8 +92,8 @@ const AttendanceDrawer = ({
         status: account?.status || "Pending",
         startDate: account?.startDate || "",
         endDate: account?.endDate || "",
-        leaveBalance: account?.leaveBalance || 0,
-        leaveConsumed: account?.leaveConsumed || 0,
+        // leaveBalance: account?.leaveBalance || 0,
+        // leaveConsumed: account?.leaveConsumed || 0,
         description: account?.description || "",
         reportingManagerEmail: account?.reportingManagerEmail || "",
         teamsIds: account?.teamsIds || [],
@@ -588,18 +588,18 @@ const AttendanceDrawer = ({
     }
   };
 
-  const requestTyp = [
+  const requestType = [
     { value: "Contribution Credit", label: "Contribution Credit" },
     { value: "Short Leave", label: "Short Leave" },
     { value: "Leave", label: "Leave" },
     { value: "Half Day", label: "Half Day" }
   ];
   const handleFieldListChange = (selectedOptions) => {
-    const selected = selectedOptions || [];
+    const ids = (selectedOptions || []).map(opt => opt.value);
 
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      fieldList: selected,
+      collaboratorsIds: ids
     }));
   };
   return (
@@ -717,8 +717,8 @@ const AttendanceDrawer = ({
                     </label>
                     <Select
                       value={formData.requestType}
-                      options={requestTyp}
-                      onChange={(v) => handleChange("requestType", v)}
+                      options={requestType}
+                      onChange={(v) => handleChange("requestType", v.value)}
                     />
                   </div>
                   <div>
@@ -732,7 +732,7 @@ const AttendanceDrawer = ({
                         { value: "Approved", label: "Approved" },
                         { value: "Rejected", label: "Rejected" }
                       ]}
-                      onChange={(v) => handleChange("status", v)}
+                      onChange={(v) => handleChange("status", v.value)}
                     />
                   </div>
                 </div>
@@ -799,13 +799,12 @@ const AttendanceDrawer = ({
                       Reporting Manager
                     </label>
                     <Select
-                      name="teamId"
-                      value={formData.teamId || ""}
-                      options={teamOptions}
-                      onChange={(value) =>
-                        handleSelectChange("teamId", value)
-                      }
-                      placeholder="Select Team"
+                      value={formData.reportingManagerEmail || ""}
+                      options={userOptions}
+                      onChange={(v) => {
+                        const user = users.find(u => u.id === v);
+                        handleChange("reportingManagerEmail", user?.email);
+                      }}
                     />
                   </div>
                   <div>
@@ -813,12 +812,9 @@ const AttendanceDrawer = ({
                       Teams
                     </label>
                     <Select
-                      name="teamId"
-                      value={formData.teamId || ""}
+                      value={formData.teamsIds[0] || ""}
                       options={teamOptions}
-                      onChange={(value) =>
-                        handleSelectChange("teamId", value)
-                      }
+                      onChange={(v) => handleChange("teamsIds", [v])}
                       placeholder="Select Team"
                     />
                   </div>
@@ -1007,11 +1003,9 @@ const AttendanceDrawer = ({
                             Department
                           </label>
                           <Input
-                            name="website"
-                            type="url"
-                            value={formData?.website}
+                            name="department"
+                            value={formData.department}
                             onChange={handleInputChange}
-                            placeholder="https://www.acme.com"
                           />
                         </div>
 
@@ -1021,11 +1015,9 @@ const AttendanceDrawer = ({
                               Employee Code
                             </label>
                             <Input
-                              name="phoneNumber"
-                              type="tel"
-                              value={formData?.phoneNumber}
+                              name="employeeCode"
+                              value={formData.employeeCode}
                               onChange={handleInputChange}
-                              placeholder="+911234567891"
                             />
                           </div>
                           <div>
@@ -1034,10 +1026,10 @@ const AttendanceDrawer = ({
                             </label>
                             <Select
                               name="requestType"
-                              value={formData.teamId || ""}
-                              options={requestOptions}
-                              onChange={(value) =>
-                                handleSelectChange("teamId", value)
+                              value={formData.requestType || ""}
+                              options={requestType}
+                              onChange={(v) =>
+                                handleSelectChange("requestType", v.value)
                               }
                               placeholder="Select Team"
                             />
@@ -1048,35 +1040,35 @@ const AttendanceDrawer = ({
                             Status
                           </label>
                           <Select
-                            name="teamId"
-                            value={formData.teamId || ""}
-                            options={teamOptions}
+                            name="status"
+                            value={formData.status || ""}
+                            options={[
+                              { value: "Pending", label: "Pending" },
+                              { value: "Approved", label: "Approved" },
+                              { value: "Rejected", label: "Rejected" }
+                            ]}
                             onChange={(value) =>
-                              handleSelectChange("teamId", value)
+                              handleSelectChange("status", value)
                             }
-                            placeholder="Select Team"
+                            placeholder="status"
                           />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <Input
-                              type="datetime-local"
+                              type="date"
                               label="Start Date"
-                              value={formData.startDate || ""}
-                              onChange={(e) =>
-                                handleChange("startDate", e.target.value)
-                              }
+                              value={formData.startDate}
+                              onChange={(e) => handleChange("startDate", e.target.value)}
                             />
                           </div>
                           <div>
                             <Input
-                              type="datetime-local"
-                              label="Due Date"
-                              value={formData.dueDate || ""}
-                              onChange={(e) =>
-                                handleChange("dueDate", e.target.value)
-                              }
+                              type="date"
+                              label="End Date"
+                              value={formData.endDate}
+                              onChange={(e) => handleChange("endDate", e.target.value)}
                             />
                           </div>
                         </div>
@@ -1086,11 +1078,10 @@ const AttendanceDrawer = ({
                             Leave Balance
                           </label>
                           <Input
-                            name="phoneNumber"
-                            type="tel"
-                            value={formData?.phoneNumber}
+                            name="leaveBalance"
+                            type="number"
+                            value={formData.leaveBalance}
                             onChange={handleInputChange}
-                            placeholder="+911234567891"
                           />
                         </div>
                         <div>
@@ -1098,21 +1089,18 @@ const AttendanceDrawer = ({
                             Leave Duration (Total Number of Days)
                           </label>
                           <Input
-                            name="phoneNumber"
-                            type="tel"
-                            value={formData?.phoneNumber}
+                            name="leaveConsumed"
+                            type="number"
+                            value={formData.leaveConsumed}
                             onChange={handleInputChange}
-                            placeholder="+911234567891"
                           />
                         </div>
 
                         <div className="col-span-2">
                           <textarea
                             name="description"
-                            value={formData?.description}
+                            value={formData.description}
                             onChange={handleInputChange}
-                            placeholder="Brief description of the company..."
-                            rows={3}
                             className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                           />
                         </div>
@@ -1122,26 +1110,23 @@ const AttendanceDrawer = ({
                             Reporting Manager
                           </label>
                           <Select
-                            name="teamId"
-                            value={formData.teamId || ""}
-                            options={teamOptions}
-                            onChange={(value) =>
-                              handleSelectChange("teamId", value)
-                            }
-                            placeholder="Select Team"
+                            value={formData.reportingManagerEmail || ""}
+                            options={userOptions}
+                            onChange={(v) => {
+                              const user = users.find(u => u.id === v);
+                              handleChange("reportingManagerEmail", user?.email);
+                            }}
                           />
+
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-foreground mb-2">
                             Teams
                           </label>
                           <Select
-                            name="teamId"
-                            value={formData.teamId || ""}
+                            value={formData.teamsIds[0] || ""}
                             options={teamOptions}
-                            onChange={(value) =>
-                              handleSelectChange("teamId", value)
-                            }
+                            onChange={(v) => handleChange("teamsIds", [v])}
                             placeholder="Select Team"
                           />
                         </div>

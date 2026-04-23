@@ -231,7 +231,7 @@ const paginatedDeals = deals;
               <tr>
                 <td colSpan="9">
                   <div className="flex items-center justify-center h-[200px] text-gray-400 text-sm">
-                    No leads available
+                    No Profile available
                   </div>
                 </td>
               </tr>

@@ -126,7 +126,7 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative"
+                className="relative bg-gray-200"
                 aria-label="Notifications"
                 onClick={handleClick}
               >

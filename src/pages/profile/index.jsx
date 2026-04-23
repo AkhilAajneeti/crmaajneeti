@@ -121,11 +121,11 @@ const Profile = () => {
                       </button>
                     </th>
 
-                    <th className="w-24 px-4 py-3">
+                    {/* <th className="w-24 px-4 py-3">
                       <span className="text-sm font-medium text-foreground">
                         Actions
                       </span>
-                    </th>
+                    </th> */}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -169,7 +169,7 @@ const Profile = () => {
                           {formatDate(deal?.modifiedAt)}
                         </span>
                       </td>
-                      <td className="px-4 py-4">
+                      {/* <td className="px-4 py-4">
                         <div
                           className={`flex items-center space-x-1 transition-opacity ${hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
                             }`}
@@ -197,7 +197,7 @@ const Profile = () => {
                             <Icon name="Trash2" size={14} />
                           </Button>
                         </div>
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
 

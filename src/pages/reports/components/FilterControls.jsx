@@ -255,9 +255,9 @@ const FilterControls = ({
             </div>
           )}
         </div>
-        <RoleGuard allowedRoles={["admin", "manager"]}>
+        {/* <RoleGuard allowedRoles={["admin", "manager"]}>
           <Button onClick={toggleAnalytics} className="linearbg-1 text-white hover:text-white">Anaylze By Chart</Button>
-        </RoleGuard>
+        </RoleGuard> */}
       </div>
     </div>
   );

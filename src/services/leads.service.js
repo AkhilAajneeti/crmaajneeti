@@ -1,3 +1,113 @@
+// cache services?
+const CACHE_KEY = "leads_count_cache";
+const CACHE_TTL = 1000 * 60 * 10; // 10 min
+const leadsCountCache = new Map();
+// 🔥 helpers
+const getLocalCache = () => {
+  try {
+    return JSON.parse(localStorage.getItem(CACHE_KEY)) || {};
+  } catch {
+    return {};
+  }
+};
+
+const setLocalCache = (key, value) => {
+  const cache = getLocalCache();
+  cache[key] = {
+    value,
+    timestamp: Date.now(),
+  };
+  localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+};
+
+export const fetchLeadsCount = async (filters = []) => {
+  const cacheKey = JSON.stringify(filters);
+
+  // ✅ 1. MEMORY CACHE (fastest)
+  const cached = leadsCountCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.value;
+  }
+
+  // ✅ 2. LOCAL STORAGE CACHE (after refresh)
+  const localCache = getLocalCache();
+  const localItem = localCache[cacheKey];
+
+  if (localItem && Date.now() - localItem.timestamp < CACHE_TTL) {
+    // sync memory cache also
+    leadsCountCache.set(cacheKey, localItem);
+    return localItem.value;
+  }
+
+  // 🔥 3. API CALL (only if no cache)
+  const token = localStorage.getItem("auth_token");
+
+  const query = filters
+    .map((f, i) => {
+      let q = `whereGroup[${i}][type]=${f.type}&whereGroup[${i}][attribute]=${f.attribute}`;
+
+      if (Array.isArray(f.value)) {
+        f.value.forEach((v) => {
+          q += `&whereGroup[${i}][value][]=${encodeURIComponent(v)}`;
+        });
+      } else if (f.value !== undefined && f.value !== "") {
+        q += `&whereGroup[${i}][value]=${encodeURIComponent(f.value)}`;
+      }
+
+      if (
+        [
+          "today",
+          "yesterday",
+          "currentMonth",
+          "lastMonth",
+          "last7Days",
+          "between",
+          "before",
+          "after",
+          "lessThan",
+          "greaterThan",
+        ].includes(f.type)
+      ) {
+        q += `&whereGroup[${i}][dateTime]=true`;
+      }
+
+      return q;
+    })
+    .join("&");
+
+  const url = `https://gateway.aajneetiadvertising.com/Lead?${query}&maxSize=1`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      token,
+    },
+  });
+
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      localStorage.clear();
+      window.location.href = "/login";
+    }
+    throw new Error("Failed to fetch leads count");
+  }
+
+  const data = await res.json();
+  const total = data.total || 0;
+
+  // ✅ SAVE BOTH CACHES
+  const cacheEntry = {
+    value: total,
+    timestamp: Date.now(),
+  };
+
+  leadsCountCache.set(cacheKey, cacheEntry);
+  setLocalCache(cacheKey, total);
+
+  return total;
+};
+
 //fech only monthly leads
 export const fetchLeads = async () => {
   const token = localStorage.getItem("auth_token");
@@ -455,82 +565,82 @@ export const leadActivitesById = async (id) => {
 
 // for dashboard
 // 🔥 GLOBAL CACHE (top of file)
-const leadsCountCache = new Map();
-const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 
-export const fetchLeadsCount = async (filters = []) => {
-  const cacheKey = JSON.stringify(filters);
-  const cached = leadsCountCache.get(cacheKey);
+// const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 
-  // ✅ Return cached if valid
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.value;
-  }
+// export const fetchLeadsCount = async (filters = []) => {
+//   const cacheKey = JSON.stringify(filters);
+//   const cached = leadsCountCache.get(cacheKey);
 
-  const token = localStorage.getItem("auth_token");
+//   // ✅ Return cached if valid
+//   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+//     return cached.value;
+//   }
 
-  const query = filters
-    .map((f, i) => {
-      let q = `whereGroup[${i}][type]=${f.type}&whereGroup[${i}][attribute]=${f.attribute}`;
+//   const token = localStorage.getItem("auth_token");
 
-      if (Array.isArray(f.value)) {
-        f.value.forEach((v) => {
-          q += `&whereGroup[${i}][value][]=${encodeURIComponent(v)}`;
-        });
-      } else if (f.value !== undefined && f.value !== "") {
-        q += `&whereGroup[${i}][value]=${encodeURIComponent(f.value)}`;
-      }
+//   const query = filters
+//     .map((f, i) => {
+//       let q = `whereGroup[${i}][type]=${f.type}&whereGroup[${i}][attribute]=${f.attribute}`;
 
-      if (
-        [
-          "today",
-          "yesterday",
-          "currentMonth",
-          "lastMonth",
-          "last7Days",
-          "between",
-          "before",
-          "after",
-          "lessThan",
-          "greaterThan"
-        ].includes(f.type)
-      ) {
-        q += `&whereGroup[${i}][dateTime]=true`;
-      }
+//       if (Array.isArray(f.value)) {
+//         f.value.forEach((v) => {
+//           q += `&whereGroup[${i}][value][]=${encodeURIComponent(v)}`;
+//         });
+//       } else if (f.value !== undefined && f.value !== "") {
+//         q += `&whereGroup[${i}][value]=${encodeURIComponent(f.value)}`;
+//       }
 
-      return q;
-    })
-    .join("&");
+//       if (
+//         [
+//           "today",
+//           "yesterday",
+//           "currentMonth",
+//           "lastMonth",
+//           "last7Days",
+//           "between",
+//           "before",
+//           "after",
+//           "lessThan",
+//           "greaterThan"
+//         ].includes(f.type)
+//       ) {
+//         q += `&whereGroup[${i}][dateTime]=true`;
+//       }
 
-  const url = `https://gateway.aajneetiadvertising.com/Lead?${query}&maxSize=1`;
+//       return q;
+//     })
+//     .join("&");
 
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      token,
-    },
-  });
+//   const url = `https://gateway.aajneetiadvertising.com/Lead?${query}&maxSize=1`;
 
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      localStorage.clear();
-      window.location.href = "/login";
-    }
-    throw new Error("Failed to fetch leads count");
-  }
+//   const res = await fetch(url, {
+//     method: "GET",
+//     headers: {
+//       "Content-Type": "application/json",
+//       token,
+//     },
+//   });
 
-  const data = await res.json();
-  const total = data.total || 0;
+//   if (!res.ok) {
+//     if (res.status === 401 || res.status === 403) {
+//       localStorage.clear();
+//       window.location.href = "/login";
+//     }
+//     throw new Error("Failed to fetch leads count");
+//   }
 
-  // ✅ Save to cache
-  leadsCountCache.set(cacheKey, {
-    value: total,
-    timestamp: Date.now(),
-  });
+//   const data = await res.json();
+//   const total = data.total || 0;
 
-  return total;
-};
+//   // ✅ Save to cache
+//   leadsCountCache.set(cacheKey, {
+//     value: total,
+//     timestamp: Date.now(),
+//   });
+
+//   return total;
+// };
 
 export const fetchThisMonthLeadsCount = async () => {
   const token = localStorage.getItem("auth_token");

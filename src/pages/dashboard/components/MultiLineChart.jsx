@@ -65,44 +65,58 @@ const MultiLineChart = ({ leads = [] }) => {
     const year = new Date().getFullYear();
     const currentMonth = new Date().getMonth();
 
-    return Promise.all(
-      Array.from({ length: 12 }, async (_, i) => {
-        const start = new Date(year, i, 1);
-        const end = new Date(year, i + 1, 0);
-        end.setHours(23, 59, 59, 999);
+    const months = Array.from({ length: 12 }, (_, i) => {
+      const start = new Date(year, i, 1);
+      const end = new Date(year, i + 1, 0);
+      end.setHours(23, 59, 59, 999);
+      return { i, start, end };
+    });
 
-        if (i > currentMonth) {
+    const results = [];
+    const BATCH_SIZE = 2;
+
+    for (let i = 0; i < months.length; i += BATCH_SIZE) {
+      const batch = months.slice(i, i + BATCH_SIZE);
+
+      const batchResults = await Promise.all(
+        batch.map(async ({ i, start, end }) => {
+          if (i > currentMonth) {
+            return {
+              label: start.toLocaleString("default", { month: "short" }),
+              facebook: 0,
+              ivr: 0,
+              website: 0,
+            };
+          }
+
+          const [facebook, ivr, website] = await Promise.all([
+            fetchLeadsCount([
+              { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
+              { type: "in", attribute: "source", value: ["Facebook"] },
+            ]),
+            fetchLeadsCount([
+              { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
+              { type: "in", attribute: "source", value: ["IVR"] },
+            ]),
+            fetchLeadsCount([
+              { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
+              { type: "in", attribute: "source", value: ["Web Site"] },
+            ]),
+          ]);
+
           return {
             label: start.toLocaleString("default", { month: "short" }),
-            facebook: 0,
-            ivr: 0,
-            website: 0,
+            facebook,
+            ivr,
+            website,
           };
-        }
+        })
+      );
 
-        const [facebook, ivr, website] = await Promise.all([
-          fetchLeadsCount([
-            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
-            { type: "in", attribute: "source", value: ["Facebook"] },
-          ]),
-          fetchLeadsCount([
-            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
-            { type: "in", attribute: "source", value: ["IVR"] },
-          ]),
-          fetchLeadsCount([
-            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
-            { type: "in", attribute: "source", value: ["Web Site"] },
-          ]),
-        ]);
+      results.push(...batchResults);
+    }
 
-        return {
-          label: start.toLocaleString("default", { month: "short" }),
-          facebook,
-          ivr,
-          website,
-        };
-      })
-    );
+    return results;
   };
   const getWeeklyDataFromAPI = async () => {
     const now = new Date();
@@ -117,35 +131,63 @@ const MultiLineChart = ({ leads = [] }) => {
       { label: "W5", start: 29, end: 31 },
     ];
 
-    return Promise.all(
-      weeks.map(async (w) => {
-        const start = new Date(year, month, w.start);
-        start.setHours(0, 0, 0, 0);
+    const results = [];
+    const BATCH_SIZE = 2; // 🔥 same as others
 
-        const lastDate = new Date(year, month + 1, 0).getDate();
-        const endDay = Math.min(w.end, lastDate);
+    for (let i = 0; i < weeks.length; i += BATCH_SIZE) {
+      const batch = weeks.slice(i, i + BATCH_SIZE);
 
-        const end = new Date(year, month, endDay);
-        end.setHours(23, 59, 59, 999);
+      const batchResults = await Promise.all(
+        batch.map(async (w) => {
+          const start = new Date(year, month, w.start);
+          start.setHours(0, 0, 0, 0);
 
-        const [facebook, ivr, website] = await Promise.all([
-          fetchLeadsCount([
-            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
-            { type: "in", attribute: "source", value: ["Facebook"] },
-          ]),
-          fetchLeadsCount([
-            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
-            { type: "in", attribute: "source", value: ["IVR"] },
-          ]),
-          fetchLeadsCount([
-            { type: "between", attribute: "createdAt", value: [start.toISOString(), end.toISOString()] },
-            { type: "in", attribute: "source", value: ["Web Site"] },
-          ]),
-        ]);
+          const lastDate = new Date(year, month + 1, 0).getDate();
+          const endDay = Math.min(w.end, lastDate);
 
-        return { label: w.label, facebook, ivr, website };
-      })
-    );
+          const end = new Date(year, month, endDay);
+          end.setHours(23, 59, 59, 999);
+
+          const [facebook, ivr, website] = await Promise.all([
+            fetchLeadsCount([
+              {
+                type: "between",
+                attribute: "createdAt",
+                value: [start.toISOString(), end.toISOString()],
+              },
+              { type: "in", attribute: "source", value: ["Facebook"] },
+            ]),
+            fetchLeadsCount([
+              {
+                type: "between",
+                attribute: "createdAt",
+                value: [start.toISOString(), end.toISOString()],
+              },
+              { type: "in", attribute: "source", value: ["IVR"] },
+            ]),
+            fetchLeadsCount([
+              {
+                type: "between",
+                attribute: "createdAt",
+                value: [start.toISOString(), end.toISOString()],
+              },
+              { type: "in", attribute: "source", value: ["Web Site"] },
+            ]),
+          ]);
+
+          return {
+            label: w.label,
+            facebook,
+            ivr,
+            website,
+          };
+        })
+      );
+
+      results.push(...batchResults);
+    }
+
+    return results;
   };
   const getDailyDataFromAPI = async () => {
     const days = Array.from({ length: 7 }, (_, i) => {
@@ -161,31 +203,54 @@ const MultiLineChart = ({ leads = [] }) => {
       return { date, start, end };
     });
 
-    return Promise.all(
-      days.map(async (d) => {
-        const [facebook, ivr, website] = await Promise.all([
-          fetchLeadsCount([
-            { type: "between", attribute: "createdAt", value: [d.start.toISOString(), d.end.toISOString()] },
-            { type: "in", attribute: "source", value: ["Facebook"] },
-          ]),
-          fetchLeadsCount([
-            { type: "between", attribute: "createdAt", value: [d.start.toISOString(), d.end.toISOString()] },
-            { type: "in", attribute: "source", value: ["IVR"] },
-          ]),
-          fetchLeadsCount([
-            { type: "between", attribute: "createdAt", value: [d.start.toISOString(), d.end.toISOString()] },
-            { type: "in", attribute: "source", value: ["Web Site"] },
-          ]),
-        ]);
+    const results = [];
+    const BATCH_SIZE = 2; // 🔥 tune this (2 or 3 best)
 
-        return {
-          label: d.date.toLocaleDateString("en-IN", { weekday: "short" }),
-          facebook,
-          ivr,
-          website,
-        };
-      })
-    );
+    for (let i = 0; i < days.length; i += BATCH_SIZE) {
+      const batch = days.slice(i, i + BATCH_SIZE);
+
+      const batchResults = await Promise.all(
+        batch.map(async (d) => {
+          const [facebook, ivr, website] = await Promise.all([
+            fetchLeadsCount([
+              {
+                type: "between",
+                attribute: "createdAt",
+                value: [d.start.toISOString(), d.end.toISOString()],
+              },
+              { type: "in", attribute: "source", value: ["Facebook"] },
+            ]),
+            fetchLeadsCount([
+              {
+                type: "between",
+                attribute: "createdAt",
+                value: [d.start.toISOString(), d.end.toISOString()],
+              },
+              { type: "in", attribute: "source", value: ["IVR"] },
+            ]),
+            fetchLeadsCount([
+              {
+                type: "between",
+                attribute: "createdAt",
+                value: [d.start.toISOString(), d.end.toISOString()],
+              },
+              { type: "in", attribute: "source", value: ["Web Site"] },
+            ]),
+          ]);
+
+          return {
+            label: d.date.toLocaleDateString("en-IN", { weekday: "short" }),
+            facebook,
+            ivr,
+            website,
+          };
+        })
+      );
+
+      results.push(...batchResults);
+    }
+
+    return results;
   };
   useEffect(() => {
     if (viewType !== "monthly") return;

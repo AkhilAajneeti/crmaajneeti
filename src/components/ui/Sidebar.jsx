@@ -9,6 +9,9 @@ import { useProjects } from "hooks/useProjects";
 import { useTraining } from "hooks/useTraining";
 
 const Sidebar = ({ isOpen = false, onClose }) => {
+  const user = JSON.parse(localStorage.getItem("login_object") || "{}");
+  const isAdmin = String(user?.type).toLowerCase() === "admin";
+  
   const location = useLocation();
   const navigate = useNavigate();
   const [isUpgradeCardVisible, setIsUpgradeCardVisible] = useState(true);
@@ -47,37 +50,135 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   const activeProjectsCount = projects.filter(
     (p) => p.status === "Active",
   ).length;
-  const navigationItems = [
+  // const navigationItems = [
+  //   {
+  //     label: "Dashboard",
+  //     path: "/dashboard",
+  //     icon: "LayoutDashboard",
+  //     badge: null,
+  //   },
+  //   {
+  //     label: "Accounts",
+  //     path: "/accounts",
+  //     icon: "Building2",
+  //     badge: null,
+  //   },
+  //   // {
+  //   //   label: "Sales Team",
+  //   //   path: "/sales-team",
+  //   //   icon: "Users",
+  //   //   badge: null,
+  //   // },
+  //   {
+  //     label: "Leads",
+  //     path: "/leads",
+  //     icon: "Target",
+  //     badge: todayLeadsCount == 0 ? " " : todayLeadsCount,
+  //   },
+  //   // {
+  //   //   label: "Projects",
+  //   //   path: "/projects",
+  //   //   icon: "Layers",
+  //   //   badge: activeProjectsCount==0?" ":activeProjectsCount,
+  //   // },
+  //   {
+  //     label: "Task",
+  //     path: "/tasks",
+  //     icon: "ListChecks",
+  //     badge: pendingTasksCount == 0 ? " " : pendingTasksCount,
+  //   },
+  //   {
+  //     label: "Meeting",
+  //     path: "/meeting",
+  //     icon: "Projector",
+  //     badge: todayMeetingsCount == 0 ? " " : todayMeetingsCount,
+  //   },
+  //   // {
+  //   //   label: "Training",
+  //   //   path: "/call",
+  //   //   icon: "Phone",
+  //   //   badge: trainingCountll == 0 ? " " : trainingCountll,
+  //   // },
+  //   // {
+  //   //   label: "Activities",
+  //   //   path: "/activities",
+  //   //   icon: "Calendar",
+  //   //   badge: null,
+  //   // },
+  //   {
+  //     label: "Reports",
+  //     path: "/reports",
+  //     icon: "BarChart3",
+  //     badge: null,
+  //   },
+
+  //   {
+  //     label: "Integrations",
+  //     path: "/integrations",
+  //     icon: "Puzzle",
+  //     badge: null,
+  //   },
+  //   {
+  //     label: "Attendance Requests",
+  //     path: "/attendance",
+  //     icon: "ClipboardList",
+  //     badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
+  //   },
+  //   {
+  //     label: "Profile & Details",
+  //     path: "/profile",
+  //     icon: "User",
+  //     badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
+  //   },
+  //   {
+  //     label: "Workplace Notes",
+  //     path: "/workplace",
+  //     icon: "NotebookText",
+  //     badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
+  //   },
+  //   {
+  //     label: "Complaints",
+  //     path: "/complaints",
+  //     icon: "AlertTriangle",
+  //     badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
+  //   },
+  //   {
+  //     label: "Knowledge Base",
+  //     path: "/knowledge-base",
+  //     icon: "LibraryBig",
+  //     badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
+  //   },
+  //   {
+  //     label: "Pipeline",
+  //     path: "/pipeline",
+  //     icon: "Filter",
+  //     badge: null,
+  //   },
+  //   {
+  //     label: "Settings",
+  //     path: "/settings",
+  //     icon: "Settings",
+  //     badge: null,
+  //   },
+  // ];
+
+  const allNavigationItems = [
     {
       label: "Dashboard",
       path: "/dashboard",
       icon: "LayoutDashboard",
-      badge: null,
     },
     {
       label: "Accounts",
       path: "/accounts",
       icon: "Building2",
-      badge: null,
     },
-    // {
-    //   label: "Sales Team",
-    //   path: "/sales-team",
-    //   icon: "Users",
-    //   badge: null,
-    // },
     {
       label: "Leads",
       path: "/leads",
       icon: "Target",
       badge: todayLeadsCount == 0 ? " " : todayLeadsCount,
     },
-    // {
-    //   label: "Projects",
-    //   path: "/projects",
-    //   icon: "Layers",
-    //   badge: activeProjectsCount==0?" ":activeProjectsCount,
-    // },
     {
       label: "Task",
       path: "/tasks",
@@ -90,74 +191,60 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       icon: "Projector",
       badge: todayMeetingsCount == 0 ? " " : todayMeetingsCount,
     },
-    // {
-    //   label: "Training",
-    //   path: "/call",
-    //   icon: "Phone",
-    //   badge: trainingCountll == 0 ? " " : trainingCountll,
-    // },
-    // {
-    //   label: "Activities",
-    //   path: "/activities",
-    //   icon: "Calendar",
-    //   badge: null,
-    // },
     {
       label: "Reports",
       path: "/reports",
       icon: "BarChart3",
-      badge: null,
     },
-
     {
       label: "Integrations",
       path: "/integrations",
       icon: "Puzzle",
-      badge: null,
     },
     {
       label: "Attendance Requests",
       path: "/attendance",
       icon: "ClipboardList",
-      badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
     },
     {
       label: "Profile & Details",
       path: "/profile",
       icon: "User",
-      badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
     },
     {
       label: "Workplace Notes",
       path: "/workplace",
       icon: "NotebookText",
-      badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
     },
     {
       label: "Complaints",
       path: "/complaints",
       icon: "AlertTriangle",
-      badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
     },
     {
       label: "Knowledge Base",
       path: "/knowledge-base",
       icon: "LibraryBig",
-      badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
     },
-    {
-      label: "Pipeline",
-      path: "/pipeline",
-      icon: "Filter",
-      badge: null,
-    },
-    {
-      label: "Settings",
-      path: "/settings",
-      icon: "Settings",
-      badge: null,
-    },
+    // {
+    //   label: "Pipeline",
+    //   path: "/pipeline",
+    //   icon: "Filter",
+    // },
+
+    // 🔥 ADMIN ONLY
+    ...(isAdmin
+      ? [
+        {
+          label: "Settings",
+          path: "/settings",
+          icon: "Settings",
+        },
+      ]
+      : []),
   ];
+
+  const navigationItems = allNavigationItems;
 
   const handleNavigation = (path) => {
     navigate(path);

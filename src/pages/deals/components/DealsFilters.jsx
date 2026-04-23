@@ -5,7 +5,6 @@ import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import { fetchUser } from "services/user.service";
 import RoleGuard from "components/RoleGuard";
-import { fetchSources, fetchStatus } from "services/others.service";
 
 const DealsFilters = ({
   filters,
@@ -19,9 +18,6 @@ const DealsFilters = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [assignUser, setAssignUser] = useState([]);
-  const [status, setStatus] = useState([]);
-  const [source, setSource] = useState([]);
-
   const bulkActions = [
     { value: "mass-update", label: "Mass Update", icon: "GitBranch" },
     { value: "export", label: "Export Selected", icon: "Download" },
@@ -304,12 +300,12 @@ const DealsFilters = ({
             }
           />
         </div> */}
-        <RoleGuard allowedRoles={["admin", "manager"]}>
+        {/* <RoleGuard allowedRoles={["admin", "manager"]}>
           <Button onClick={toggleAnalytics} className="linearbg-1 text-white hover:text-white">
             <Icon name="Plus" size={16} className="mr-2" />
             Anaylze By Chart
           </Button>
-        </RoleGuard>
+        </RoleGuard> */}
       </div>
     </div>
   );
