@@ -36,7 +36,8 @@ const Reports = () => {
     source: "",
     assignUser: "",
     dateType: "today",        // 👈 NEW (today, before, between, etc.)
-
+    closeDateFrom: "",
+    closeDateTo: "",
   });
 
 
@@ -69,6 +70,8 @@ const Reports = () => {
       source: "",
       assignUser: "",
       dateType: "today",
+      closeDateFrom: "",
+    closeDateTo: "",
     });
     setCurrentPage(1);
   };
@@ -578,7 +581,7 @@ const Reports = () => {
               source={source}
               onFiltersChange={handleFiltersChange}
               onClearFilters={handleClearFilters}
-              dealCount={leads?.length}
+              dealCount={total}
               selectedCount={selectedDeals?.length}
               toggleAnalytics={() => setShowAnalytics((prev) => !prev)}
             />

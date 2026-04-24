@@ -75,7 +75,7 @@ const DealDrawer = ({
     const getValue = (label) => {
       const regex = new RegExp(`${label}:\\s*([^\\n]*)`);
       const match = summary.match(regex);
-      return match ? match[1].replace(".", "").trim() : "—";
+      return match ? match[1].trim() : "—";
     };
 
     return {

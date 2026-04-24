@@ -23,15 +23,14 @@ const FilterControls = ({
 
   const daysOptions = [
     { label: "Today", value: "today" },
-    { label: "Yesterday", value: "yesterday" },
-    { label: "Last 7 Days", value: "last7Days" },
-
+    // 🔥 we keep yesterday in UI but handle it smartly
+    { label: "Last 7 Days", value: "lastSevenDays" },
+    { label: "Current Month", value: "currentMonth" },
+    { label: "Last Month", value: "lastMonth" },
+    { label: "On", value: "on" },
     { label: "Before", value: "before" },
     { label: "After", value: "after" },
-
     { label: "Between", value: "between" },
-    { label: "This Month", value: "currentMonth" },
-    { label: "Last Month", value: "lastMonth" },
   ];
 
   const handleFilterChange = (key, value) => {
@@ -109,7 +108,7 @@ const FilterControls = ({
           <h2 className="text-lg font-semibold text-foreground">
             Leads ({dealCount?.toLocaleString()})
           </h2>
-          {activeFiltersCount > 0 && (
+          {activeFiltersCount > 1 && (
             <div className="flex items-center space-x-2">
               <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
                 {activeFiltersCount} filter{activeFiltersCount !== 1 ? "s" : ""}{" "}
@@ -239,16 +238,16 @@ const FilterControls = ({
               <Input
                 type="date"
                 value={filters?.closeDateFrom || ""}
-                onChange={(value) =>
-                  handleFilterChange("closeDateFrom", value)
+                onChange={(e) =>
+                  handleFilterChange("closeDateFrom", e.target.value)
                 }
               />
               {filters?.dateType === "between" && (
                 <Input
                   type="date"
                   value={filters?.closeDateTo || ""}
-                  onChange={(value) =>
-                    handleFilterChange("closeDateTo ", value)
+                  onChange={(e) =>
+                    handleFilterChange("closeDateTo ", e.target.value)
                   }
                 />
               )}

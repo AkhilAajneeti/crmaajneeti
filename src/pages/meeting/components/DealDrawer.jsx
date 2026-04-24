@@ -17,6 +17,7 @@ import { useMetaData } from "hooks/useMetaData";
 import { useTeams } from "hooks/useTeams";
 import { useLeads } from "hooks/useLeads";
 import { useAccounts } from "hooks/useAccounts";
+import { ParentSelectorModal } from "components/ParentSelectorModal";
 
 const DealDrawer = ({
   deal,
@@ -36,6 +37,7 @@ const DealDrawer = ({
   const [postingActivity, setPostingActivity] = useState(false);
   const [limit, setLimit] = useState(20);
   const [page, setPage] = useState(1);
+  const [showParentModal, setShowParentModal] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     assignedUserId: "",
@@ -412,22 +414,47 @@ const DealDrawer = ({
   };
 
   const getParentTypeOptions = () => {
-    switch (formData.parentName) {
-      case "Account":
-        return acc.map((item) => ({
-          value: item.id,
-          label: item.name,
-        }));
+    let options = [];
 
-      case "Lead":
-        return lead.map((item) => ({
+    if (formData.parentName === "Account") {
+      options =
+        accountData?.list?.map((item) => ({
           value: item.id,
           label: item.name,
-        }));
-      default:
-        return [];
+        })) || [];
+
+      // 🔥 add load more
+      if (hasMoreAccounts) {
+        options.push({
+          value: "__load_more__",
+          label: "🔍 Load More Accounts...",
+        });
+      }
     }
+
+    if (formData.parentName === "Lead") {
+      options =
+        leadsData?.list?.map((item) => ({
+          value: item.id,
+          label: item.name,
+        })) || [];
+
+      // 🔥 add load more
+      if (hasMoreLeads) {
+        options.push({
+          value: "__load_more__",
+          label: "🔍 Load More Leads...",
+        });
+      }
+    }
+
+    return options;
   };
+  const hasMoreAccounts =
+    accountData?.total > page * limit;
+
+  const hasMoreLeads =
+    leadsData?.total > page * limit;
   useEffect(() => {
     if (!isOpen) {
       setIsEditing(false);
@@ -583,13 +610,17 @@ const DealDrawer = ({
                           handleChange("parentType", ""); // reset child dropdown
                         }}
                       />
-
                       <Select
                         label="Parent Type"
                         value={formData.parentType || ""}
                         options={getParentTypeOptions()}
-                        disabled={!formData.parentName}
-                        onChange={(value) => handleChange("parentType", value)}
+                        onChange={(value) => {
+                          if (value === "__load_more__") {
+                            setShowParentModal(true); // 🔥 open modal
+                          } else {
+                            handleChange("parentType", value);
+                          }
+                        }}
                       />
                     </div>
 
@@ -1279,6 +1310,15 @@ const DealDrawer = ({
             )}
           </div>
         </div>
+        <ParentSelectorModal
+          open={showParentModal}
+          type={formData.parentName} // Account / Lead
+          onClose={() => setShowParentModal(false)}
+          onSelect={(item) => {
+            handleChange("parentType", item.id);
+            handleChange("parentLabel", item.name); // 👈 UI ke liye important
+          }}
+        />
       </div>
     </>
   );

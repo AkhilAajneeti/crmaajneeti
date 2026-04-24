@@ -169,35 +169,7 @@ const Profile = () => {
                           {formatDate(deal?.modifiedAt)}
                         </span>
                       </td>
-                      {/* <td className="px-4 py-4">
-                        <div
-                          className={`flex items-center space-x-1 transition-opacity ${hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
-                            }`}
-                        >
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();   // ✅ prevent row click
-                              setSelectedId(deal);
-                              setDrawerMode("edit"); // 👈 open in edit mode
-                              setIsDrawerOpen(true);
-                            }}
-                            className="h-8 w-8"
-                          >
-                            <Icon name="Edit" size={14} />
-                          </Button>
-
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            // onClick={(e) => handleDelete(e, deal)}
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                          >
-                            <Icon name="Trash2" size={14} />
-                          </Button>
-                        </div>
-                      </td> */}
+                     
                     </tr>
                   ))}
 
