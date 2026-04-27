@@ -20,7 +20,7 @@ const DealsFilters = ({
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [assignUser, setAssignUser] = useState([]);
   const [status, setStatus] = useState([]);
-  const [source, setSource] = useState([]);
+  const [priority, setSource] = useState([]);
 
   const bulkActions = [
     { value: "mass-update", label: "Mass Update", icon: "GitBranch" },
@@ -28,28 +28,12 @@ const DealsFilters = ({
     { value: "delete", label: "Delete Selected", icon: "Trash2" },
   ];
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [statusRes, sourceRes] = await Promise.all([
-          fetchStatus(),
-          fetchSources(),
-        ]);
 
-        setStatus(statusRes.options || []);
-        setSource(sourceRes.options || []);
-      } catch (err) {
-        console.error("Failed to load data", err);
-      }
-    };
-
-    loadData();
-  }, []);
   const ACTIVITY_DATE_FILTERS = [
     { label: "Today", value: "today" },
-    { label: "Yesterday", value: "yesterday" },
-    { label: "Last 7 Days", value: "last7Days" },
 
+    { label: "Last 7 Days", value: "lastSevenDays" },
+    { label: "On", value: "on" },
     { label: "Before", value: "before" },
     { label: "After", value: "after" },
 
@@ -58,18 +42,20 @@ const DealsFilters = ({
     { label: "Last Month", value: "lastMonth" },
   ];
 
-  const sourceOptions = source
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const statusOptions = status
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+  const priorityOptions = [
+    { value: "Low", label: "Low", color: "#64748b" },      // gray
+    { value: "Normal", label: "Normal", color: "#000000" }, // black
+    { value: "High", label: "High", color: "#f59e0b" },     // orange
+    { value: "Urgent", label: "Urgent", color: "#ef4444" }, // red
+  ];
+  const statusOptions = [
+    { value: "New", label: "New", color: "#000000" },
+    { value: "Assigned", label: "Assigned", color: "#3b82f6" },
+    { value: "Pending", label: "Pending", color: "#f59e0b" },
+    { value: "Closed", label: "Closed", color: "#22c55e" },
+    { value: "Rejected", label: "Rejected", color: "#6366f1" },
+    { value: "Duplicate", label: "Duplicate", color: "#64748b" },
+  ];
   const showDateInputs = [
     "between",
     "after",
@@ -217,24 +203,18 @@ const DealsFilters = ({
           value={filters?.status || ""}
           onChange={(value) => handleFilterChange("status", value)}
         />
-
-        <Input
-          placeholder="Project Name"
-          value={filters?.projectName || ""}
-          onChange={(e) => handleFilterChange("projectName", e.target.value)}
-        />
-
         <Select
-          placeholder="Source"
-          options={sourceOptions}
-          value={filters?.source || ""}
-          onChange={(value) => handleFilterChange("source", value)}
+          placeholder="Priority"
+          options={priorityOptions}
+          value={filters?.priority || ""}
+          onChange={(value) => handleFilterChange("priority", value)}
         />
         <Select
           placeholder="Assign User"
           options={assignUserOptions}
           value={filters?.assignUser || ""}
           onChange={(value) => handleFilterChange("assignUser", value)}
+          searchable
         />
         {/* Date Type Select */}
         <Select

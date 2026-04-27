@@ -22,10 +22,11 @@ import StatusChart from "./components/charts/StatusChart";
 import IndustryChart from "./components/charts/IndustryChart";
 import AssignedUserChart from "./components/charts/AssignedUserChart";
 import MultiLineChart from "pages/dashboard/components/MultiLineChart";
-import { useLeads, useNewLeads } from "hooks/useLeads";
+
 import { useMetaData } from "hooks/useMetaData";
-import { useLeadDetails } from "hooks/useLeadDetails";
+
 import { useComplaint, useComplaintById } from "hooks/useComplaint";
+import { createComplaint, deleteComplaint, updateComplaint } from "services/complaint.service";
 
 const Complaints = () => {
   const queryClient = useQueryClient();
@@ -50,7 +51,7 @@ const Complaints = () => {
     search: "",
     status: "",
     projectName: "",
-    source: "",
+    priority: "",
     assignUser: "",
     dateType: "",        // 👈 NEW (today, before, between, etc.)
     closeDateFrom: "",
@@ -59,26 +60,18 @@ const Complaints = () => {
   });
   const { data: leadsData, isLoading } = useComplaint({ limit, page, filters });
   const createLeadMutation = useMutation({
-    mutationFn: createLead,
+    mutationFn: createComplaint,
     onSuccess: () => {
-      toast.success("Lead created");
-      queryClient.invalidateQueries({ queryKey: ["leads"], exact: false });
+      toast.success("Complaint created");
+      queryClient.invalidateQueries({ queryKey: ["complaint"], exact: false });
     },
   });
-  const deleteLeadMutation = useMutation({
-    mutationFn: deleteLead,
-    onSuccess: () => {
-      toast.success("Deleted");
-      queryClient.invalidateQueries(["leads"]);
-    },
-  });
-  // fetch leads
+
+  // fetch complaint
   const leads = leadsData?.list || [];
-  const source = metaData?.sources || [];
-  const status = metaData?.status || [];
-  const industry = metaData?.industries || [];
+
   const total = leadsData?.total || 0;
-  const exportLeadsToCSV = (rows, fileName = "leads_export") => {
+  const exportLeadsToCSV = (rows, fileName = "complaint_export") => {
     if (!rows || rows.length === 0) {
       toast.error("No data to export");
       return;
@@ -89,7 +82,7 @@ const Complaints = () => {
       Email: lead?.emailAddress || "",
       Phone: lead?.phoneNumber || "",
       Status: lead?.status || "",
-      Source: lead?.source || "",
+      Priority: lead?.priority || "",
       "Project Name": lead?.cProjectName || "",
       "Assigned User": lead?.assignedUserName || "",
       "Next Contact": lead?.cNextContact || "",
@@ -109,8 +102,6 @@ const Complaints = () => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
-
-
 
   const totalPages = Math.ceil(total / limit);
 
@@ -138,7 +129,7 @@ const Complaints = () => {
     setIsDrawerOpen(false);
     setSelectedDeal(null);
   };
-  const handleCreateLead = async (payload) => {
+  const handleCreateComplaint = async (payload) => {
     try {
       createLeadMutation.mutate(payload);
     } catch (err) {
@@ -146,16 +137,31 @@ const Complaints = () => {
     }
   };
 
-  const handleUpdateLead = async (id, payload) => {
-    await updateLead(id, payload);
+  const handleUpdateComplaint = async (id, payload) => {
+    try {
+      await updateComplaint(id, payload);
+
+      toast.success("Complaint updated ✅");
+
+      queryClient.invalidateQueries(["complaint"]); // 🔥 refresh list
+    } catch (error) {
+      console.error(error);
+      toast.error("Update failed ❌");
+    }
   };
 
-  const handleDeleteLead = async (id) => {
+  const handleDeleteComplaint = async (id) => {
     try {
-      toast.loading("Deleting lead...", { id: "delete-lead" });
-      deleteLeadMutation.mutate(id);
+      toast.loading("Deleting complaint...", { id: "delete" });
+
+      await deleteComplaint(id);
+
+      toast.success("Complaint deleted ✅", { id: "delete" });
+
+      queryClient.invalidateQueries(["complaint"]);
     } catch (err) {
-      console.error("Delete failed", err);
+      console.error(err);
+      toast.error("Delete failed ❌", { id: "delete" });
     }
   };
   const handleDeleteActivity = async (id) => {
@@ -207,7 +213,7 @@ const Complaints = () => {
       search: "",
       status: "",
       projectName: "",
-      source: "",
+      priority: "",
       assignUser: "",
       dateType: "",        // 👈 NEW (today, before, between, etc.)
       closeDateFrom: "",
@@ -408,7 +414,7 @@ const Complaints = () => {
               onDealClick={handleDealClick}
               sortConfig={sortConfig}
               onSort={handleSort}
-              onDelete={handleDeleteLead}
+              onDelete={handleDeleteComplaint}
               isLoading={isLoading}
               page={page}
               setPage={setPage}
@@ -429,15 +435,12 @@ const Complaints = () => {
 
             {/* Deal Drawer */}
             <DealDrawer
-              status={status}
-              industry={industry}
-              source={source}
               leadsDetails={leadsDetails}
               deal={selectedDeal}
               mode={mode}
               isOpen={isDrawerOpen}
-              onCreate={handleCreateLead}
-              onUpdate={handleUpdateLead}
+              onCreate={handleCreateComplaint}
+              onUpdate={handleUpdateComplaint}
               onClose={handleDrawerClose}
               onDelete={handleDeleteActivity}
               onBulkUpdate={handleBulkUpdateLeads}

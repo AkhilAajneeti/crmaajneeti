@@ -80,3 +80,23 @@ select:focus {
 .kpi-glow {
   animation: glowPulse 2s infinite ease-in-out;
 }
+
+.custom-quill .ql-toolbar {
+  border-radius: 12px 12px 0 0;
+  border: 1px dashed #d1d5db;
+}
+
+.custom-quill .ql-container {
+  border-radius: 0 0 12px 12px;
+  border: 1px dashed #d1d5db;
+  border-top: none;
+}
+
+/* Optional: match your futuristic look */
+.custom-quill .ql-container {
+  background: #fafafa;
+}
+
+.custom-quill .ql-toolbar {
+  background: #f9fafb;
+}

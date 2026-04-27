@@ -20,7 +20,7 @@ import TaskPage from "pages/tasks";
 import MeetingPage from "pages/meeting";
 import CallPage from "./pages/call";
 import Pipeline from "pages/pipeline";
-import ProjectsPage from "pages/projects";
+
 import SalesTeam from "pages/sales-team";
 import Attendance from "pages/attendance";
 import WorkPlace from "pages/workplaceNotes";
@@ -85,14 +85,7 @@ const Routes = () => {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/projects"
-            element={
-              <ProtectedRoute>
-                <ProjectsPage />
-              </ProtectedRoute>
-            }
-          />
+
           <Route
             path="/accounts"
             element={

@@ -4,7 +4,8 @@ import Button from "../../../components/ui/Button";
 import Select from "../../../components/ui/Select";
 import Input from "components/ui/Input";
 import toast from "react-hot-toast";
-import Avatar from "react-avatar";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 import { createLeadActivity, updateStream } from "services/leads.service";
 import { useTeams } from "hooks/useTeams";
@@ -14,9 +15,6 @@ import { useLeadActivity } from "hooks/useLeadActivity";
 import { useQueryClient } from "@tanstack/react-query";
 
 const DealDrawer = ({
-  status,
-  source,
-  industry,
   deal,
   isOpen,
   onClose,
@@ -35,56 +33,46 @@ const DealDrawer = ({
   const [postingActivity, setPostingActivity] = useState(false);
   const [expandedActivityId, setExpandedActivityId] = useState(null);
   const [editingActivityId, setEditingActivityId] = useState(null);
+  const [attachments, setAttachments] = useState([]);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    phoneNumber: "+91",
-    emailAddress: "",
-    whatsapp: "",
-    addressCity: "",
-    cProjectName: "",
-    cNextContactAt: "",
-    cQuestion: "",
-    assignedUserId: "",
-    teamId: "",
-    status: "",
-    source: "",
+    name: "",
+    status: "Draft",
+    language: "en_US",
     description: "",
-    industry: "",
+    teamId: "",
+    publishDate: "",
+    expirationDate: "",
   });
   const queryClient = useQueryClient();
   const { data: usersData } = useUsers();
   const { data: teamData } = useTeams();
-  const { data: streamData } = useLeadStream(deal?.id, isOpen);
-  const { data: activityData } = useLeadActivity(deal?.id, isOpen);
 
   const users = usersData?.list || [];
   const team = teamData?.list || [];
-  const streams = streamData?.list || [];
-  const activities = activityData?.list || [];
   console.log("leadDetails", leadsDetails);
+
   useEffect(() => {
     if (mode === "add") {
       setFormData({
-        firstName: "",
-        lastName: "",
-        phoneNumber: "+91",
-        emailAddress: "",
-        whatsapp: "",
-        addressCity: "",
-        cProjectName: "",
-        cNextContactAt: "",
-        cQuestion: "",
-        assignedUserId: "",
-        teamId: "",
-        status: "New",
-        source: "",
+        name: "",
+        status: "Draft",
+        language: "en_US",
         description: "",
-        industry: "",
+        teamId: "",
+        publishDate: "",
+        expirationDate: "",
       });
-      setIsEditing(true); // form open
+      setIsEditing(true);
     } else if (deal && mode === "view") {
-      setFormData(deal);
+      setFormData({
+        name: deal.name || "",
+        status: deal.status || "Draft",
+        language: deal.language || "en_US",
+        description: deal.body || "",
+        teamId: deal.teamsIds?.[0] || "",
+        publishDate: deal.publishDate || "",
+        expirationDate: deal.expirationDate || "",
+      });
       setIsEditing(false);
     }
   }, [deal, mode]);
@@ -242,30 +230,48 @@ const DealDrawer = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const fullName =
-      `${formData.firstName || ""} ${formData.lastName || ""}`.trim();
 
-    // 🚨 VALIDATION FIX
-    if (!fullName) {
+    if (!formData.name?.trim()) {
       toast.error("Name is required");
       return;
     }
+
     const payload = {
-      ...formData,
-      name: fullName,
-      cNextContactAt: toEspoDateTime(formData.cNextContactAt),
+      name: formData.name.trim(),
+
+      // ✅ required
+      status: formData.status,
+      language: formData.language,
+      type: "Article",
+
+      // ✅ content
+      body: formData.description || "",
+
+      // ✅ optional
+      publishDate: formData.publishDate || null,
+      expirationDate: formData.expirationDate || null,
+
+      // ✅ teams
+      teamsIds: formData.teamId ? [formData.teamId] : [],
+
+      // ✅ attachments (future)
+      attachmentsIds: [],
     };
+
     try {
       if (mode === "add") {
         await onCreate(payload);
+        toast.success("Article created ✅");
       } else {
         await onUpdate(deal.id, payload);
+        toast.success("Article updated ✏️");
       }
 
       setIsEditing(false);
-      onClose(); // close drawer after success
+      onClose();
     } catch (error) {
-      console.error("Failed to save lead", error);
+      console.error(error);
+      toast.error("Failed to save article ❌");
     }
   };
   const handleBulkUpdate = (e) => {
@@ -320,11 +326,7 @@ const DealDrawer = ({
           post: activityText,
         });
         queryClient.invalidateQueries(["lead-stream", deal.id]);
-        // setmockStream((prev) =>
-        //   prev.map((a) =>
-        //     a.id === editingActivityId ? { ...a, post: activityText } : a,
-        //   ),
-        // );
+
 
         toast.success("Activity updated");
       } else {
@@ -366,24 +368,24 @@ const DealDrawer = ({
     value: t.id,
     label: t.name,
   }));
-  const sourceOptions = source
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const statusOptions = status
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const industryOptions = industry
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+  const langOptions = [
+    { value: "en_US", label: "English (US)" },
+    { value: "en_GB", label: "English (UK)" },
+    { value: "ar", label: "Arabic" },
+    { value: "de", label: "German" },
+    { value: "es_ES", label: "Spanish (Spain)" },
+    { value: "es_MX", label: "Spanish (Mexico)" },
+    { value: "fr_FR", label: "French (France)" },
+    { value: "ja", label: "Japanese" },
+    { value: "id", label: "Indonesian" },
+    { value: "it", label: "Italian" },
+  ];
+  const statusOptions = [
+    { value: "Draft", label: "Draft" },
+    { value: "In Review", label: "In Review" },
+    { value: "Published", label: "Published" },
+    { value: "Archived", label: "Archived" },
+  ];
 
   const handleSelectChange = (name, value) => {
     setFormData((prev) => ({
@@ -403,8 +405,16 @@ const DealDrawer = ({
     return value.replace("T", " ") + ":00";
   };
 
-  
+
   const leadData = leadsDetails || deal;
+  const handleFileChange = (files) => {
+    const newFiles = Array.from(files);
+    setAttachments((prev) => [...prev, ...newFiles]);
+  };
+
+  const removeFile = (index) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
   return (
     <>
       {/* Backdrop */}
@@ -470,96 +480,15 @@ const DealDrawer = ({
                     {/* Name */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input
-                        label="First Name *"
-                        value={formData.firstName || ""}
+                        label="Name *"
+                        value={formData.name || ""}
                         onChange={(e) =>
-                          handleChange("firstName", e.target.value)
+                          handleChange("name", e.target.value)
                         }
                       />
-                      <Input
-                        label="Last Name"
-                        value={formData.lastName || ""}
-                        onChange={(e) =>
-                          handleChange("lastName", e.target.value)
-                        }
-                      />
+
                     </div>
 
-                    {/* Phone & Email */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Phone"
-                        value={formData.phoneNumber || ""}
-                        onChange={(e) =>
-                          handleChange("phoneNumber", e.target.value)
-                        }
-                      />
-                      <Input
-                        label="Email"
-                        value={formData.emailAddress || ""}
-                        onChange={(e) =>
-                          handleChange("emailAddress", e.target.value)
-                        }
-                      />
-                    </div>
-
-                    {/* Whatsapp & City */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Whatsapp"
-                        value={formData.whatsapp || ""}
-                        onChange={(e) =>
-                          handleChange("whatsapp", e.target.value)
-                        }
-                      />
-                      <Input
-                        label="City"
-                        value={formData.addressCity || ""}
-                        onChange={(e) =>
-                          handleChange("addressCity", e.target.value)
-                        }
-                      />
-                    </div>
-
-                    {/* Project & Next Contact */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Project Name"
-                        value={formData.cProjectName || ""}
-                        onChange={(e) =>
-                          handleChange("cProjectName", e.target.value)
-                        }
-                      />
-                      <Input
-                        type="datetime-local"
-                        label="Next Contact"
-                        value={formData.cNextContactAt || ""}
-                        onChange={(e) =>
-                          handleChange("cNextContactAt", e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                      <Input
-                        label="Preference"
-                        value={formData.cQuestion || ""}
-                        onChange={(e) =>
-                          handleChange("cQuestion", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                      <Select
-                        label="Industry"
-                        value={formData.industry || ""}
-                        options={industryOptions} // 👉 later API se teams
-                        onChange={(value) =>
-                          handleSelectChange("industry", value)
-                        }
-                      />
-                    </div>
                   </div>
 
                   {/* ================= Assigned User ================= */}
@@ -572,6 +501,7 @@ const DealDrawer = ({
                         onChange={(value) =>
                           handleSelectChange("assignedUserId", value)
                         }
+                        searchable
                       />
                     </div>
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
@@ -598,29 +528,106 @@ const DealDrawer = ({
                         onChange={(value) => handleChange("status", value)}
                       />
                       <Select
-                        label="Source"
-                        value={formData.source || ""}
-                        options={sourceOptions}
-                        onChange={(value) => handleChange("source", value)}
+                        label="Language"
+                        value={formData.language || ""}
+                        options={langOptions}
+                        onChange={(value) => handleChange("language", value)}
                       />
                     </div>
+
                     <div className="col-span-2">
-                      <textarea
-                        className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                        label="Description"
-                        rows={4}
-                        value={formData.description || ""}
-                        placeholder="Description"
-                        onChange={(e) =>
-                          handleChange("description", e.target.value)
-                        }
-                      />
+                      <label className="text-sm font-medium text-foreground mb-2 block">
+                        Description
+                      </label>
+
+                      <div className="custom-quill">
+                        <ReactQuill
+                          theme="snow"
+                          value={formData.description || ""}
+                          onChange={(value) => handleChange("description", value)}
+                          style={{ height: "150px", marginBottom: "40px" }}
+                          modules={{
+                            toolbar: [
+                              ["bold", "italic", "underline", "strike"],
+                              [{ header: [1, 2, 3, false] }],
+                              [{ list: "ordered" }, { list: "bullet" }],
+                              ["link", "image"],
+                              ["clean"],
+                            ],
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="col-span-2 pt-3">
+                      <label className="text-sm font-medium text-foreground mb-2 block">
+                        Attachments
+                      </label>
+
+                      <div
+                        className="relative border-2 border-dashed border-primary/40 rounded-xl p-6 text-center cursor-pointer hover:border-primary transition-all bg-gradient-to-br from-background to-primary/5"
+                        onClick={() => document.getElementById("fileInput").click()}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          handleFileChange(e.dataTransfer.files);
+                        }}
+                      >
+                        <input
+                          id="fileInput"
+                          type="file"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => handleFileChange(e.target.files)}
+                        />
+
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-12 h-12 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <Icon name="UploadCloud" size={22} />
+                          </div>
+
+                          <p className="text-sm font-medium">
+                            Drag & drop files here or <span className="text-primary">browse</span>
+                          </p>
+
+                          <p className="text-xs text-muted-foreground">
+                            Supports images, PDFs, docs
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Selected Files */}
+                      {attachments.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          {attachments.map((file, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-2 rounded-lg bg-muted/50 border border-border"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Icon name="FileText" size={16} />
+                                <span className="text-sm truncate max-w-[200px]">
+                                  {file.name}
+                                </span>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => removeFile(index)}
+                                className="text-red-500 hover:text-red-600"
+                              >
+                                <Icon name="X" size={16} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* ================= Actions ================= */}
                   <div className="flex justify-end gap-3">
-                    <Button type="submit">Save Lead</Button>
+                    <Button type="submit">Save Article</Button>
                   </div>
                 </form>
               </div>
@@ -629,7 +636,7 @@ const DealDrawer = ({
             {isMassUpdate && (
               <form className="space-y-6 p-5" onSubmit={handleBulkUpdate}>
                 <h3 className="text-lg font-semibold text-foreground">
-                  Mass Update Leads
+                  Mass Update Article
                 </h3>
 
                 <p className="text-sm text-muted-foreground">
@@ -794,7 +801,10 @@ const DealDrawer = ({
                               Body
                             </p>
                             <p className="inline-flex px-3 py-1 rounded-full text-sm font-medium bg-success/10 text-success" >
-                              {parseBody(deal?.body)}
+                              <div
+                                className="prose max-w-none"
+                                dangerouslySetInnerHTML={{ __html: deal?.body || "" }}
+                              />
                             </p>
                           </div>
 
@@ -812,393 +822,6 @@ const DealDrawer = ({
                     </div>
                   )}
 
-                  {activeTab === "Stream" && (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-foreground">
-                          Recent Stream
-                        </h3>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={createActivity}
-                        >
-                          <Icon name="Plus" size={16} className="mr-1" />
-                          Add Stream
-                        </Button>
-                      </div>
-                      <div className="space-y-4">
-                        {/* add activity form */}
-                        {showActivityForm && (
-                          <form onSubmit={handlePostActivity}>
-                            <textarea
-                              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                              label="Activity"
-                              rows={4}
-                              placeholder="Write Your Comment Here..."
-                              value={activityText}
-                              onChange={(e) => setActivityText(e.target.value)}
-                            />
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setActivityForm(false);
-                                  setActivityText("");
-                                }}
-                              >
-                                Cancel
-                                <Icon
-                                  name="XCircle"
-                                  size={16}
-                                  className="mr-1"
-                                />
-                              </Button>
-
-                              <Button
-                                type="submit"
-                                size="sm"
-                                disabled={postingActivity}
-                              >
-                                {editingActivityId ? "Update" : "Post"}
-                                <Icon
-                                  name={editingActivityId ? "Save" : "Send"}
-                                  size={16}
-                                  className="mr-1"
-                                />
-                              </Button>
-                            </div>
-                          </form>
-                        )}
-                        {streams.length > 0 ? (streams?.map((activity) => (
-                          <div
-                            key={activity.id}
-                            className="flex space-x-3 p-4 bg-muted/30 rounded-lg"
-                          >
-                            {/* AVATAR */}
-                            <Avatar
-                              name={activity.createdByName || "System"}
-                              size="36"
-                              round
-                              textSizeRatio={2}
-                              color={
-                                activity.createdById === "system"
-                                  ? "#9CA3AF"
-                                  : undefined
-                              }
-                            />
-
-                            {/* CONTENT */}
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                  <h4 className="font-medium text-foreground">
-                                    {activity.createdByName || "System"}
-                                  </h4>
-
-                                  <Icon
-                                    name={getActivityIcon(activity.type)}
-                                    size={14}
-                                    className={getActivityIconColor(
-                                      activity.type,
-                                    )}
-                                  />
-
-                                  <span className="text-xs text-muted-foreground">
-                                    {activity.type}
-                                  </span>
-                                </div>
-
-                                <span className="text-xs text-muted-foreground">
-                                  {formatDate(activity.createdAt)}
-                                </span>
-                                <div
-                                  className={`flex items-center space-x-1 transition-opacity`}
-                                >
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleEditActivity(activity)}
-                                    className="h-8 w-8 hidden"
-                                  >
-                                    <Icon name="Edit" size={14} />
-                                  </Button>
-
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => handleDelete(e, activity)}
-                                    className="h-8 w-8 text-destructive hover:text-destructive"
-                                  >
-                                    <Icon name="Trash2" size={14} />
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {/* MESSAGE */}
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {getActivityMessage(activity)}
-                              </p>
-
-                              {/* STATUS BADGE */}
-                              {activity?.data?.value && (
-                                <span
-                                  className={`inline-block mt-2 px-2 py-0.5 text-xs rounded-full ${getStageColor(
-                                    activity.data.value,
-                                  )}`}
-                                >
-                                  {activity.data.value}
-                                </span>
-                              )}
-
-                              {activity?.data?.statusValue && (
-                                <span
-                                  className={`inline-block mt-2 px-2 py-0.5 text-xs rounded-full ${getStageColor(
-                                    activity.data.statusValue,
-                                  )}`}
-                                >
-                                  {activity.data.statusValue}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))) : (
-                          <div className="flex flex-col items-center justify-center py-10 text-center">
-                            <img
-                              src="/public/assets/images/comment.png"
-                              alt="No Activities"
-                              className="w-40 opacity-80"
-                            />
-                            <p className="mt-3 text-sm text-muted-foreground">
-                              Currently you don't have any comments
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === "AssignedUsers" && (
-                    <div className="space-y-6">
-                      {/* ================= Assigned User ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {/* Assigned User */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Assigned User
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {leadData?.assignedUserName || "None"}
-                            </p>
-                          </div>
-
-
-                          {/* Followers */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Teams
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {leadsDetails?.teamsNames ? (
-                                <div className="flex flex-wrap gap-2">
-                                  {Object.entries(
-                                    leadsDetails.teamsNames,
-                                  ).map(([id, name]) => (
-                                    <span
-                                      key={id}
-                                      className="text-sm text-primary font-medium"
-                                    >
-                                      {name}
-                                    </span>
-                                  ))}
-                                </div>
-                              ) : (
-                                <span>None</span>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* ================= Audit Information ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <h3 className="text-base font-semibold text-foreground mb-6">
-                          Audit Information
-                        </h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {/* Created */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Created
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.createdAt
-                                ? `${formatDateTime(deal.createdAt)} by ${deal?.createdByName ? `by ${deal?.createdByName}` : ""}`
-                                : "None"}
-                            </p>
-                          </div>
-
-                          {/* Modified */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Last Modified
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.modifiedAt
-                                ? `${formatDateTime(deal.modifiedAt)} by ${deal?.modifiedByName ? `by ${deal?.modifiedByName}` : ""}`
-                                : "None"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === "Activity" && (
-                    <div className="space-y-4">
-                      {activities?.length > 0 ? (
-                        activities.map((activity) => (
-                          <div
-                            key={activity.id}
-                            onClick={() => toggleActivity(activity.id)}
-                            className={`cursor-pointer rounded-lg p-4 transition-all duration-300${expandedActivityId === activity.id
-                              ? "bg-muted shadow-sm"
-                              : "bg-muted/30 hover:bg-muted"
-                              }`}
-                          >
-                            {/*  */}
-                            <div className="flex space-x-3">
-                              <Avatar
-                                name={activity.name || "System"}
-                                size="36"
-                                round
-                                textSizeRatio={2}
-                              />
-
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <h4 className="font-medium text-foreground">
-                                    {activity.name || "Activity"}
-                                  </h4>
-
-                                  <span className="text-xs text-muted-foreground">
-                                    {activity._scope}
-                                  </span>
-
-                                  {activity.status && (
-                                    <span
-                                      className={`px-2 py-0.5 text-xs rounded-full ${getStageColor(
-                                        activity.status,
-                                      )}`}
-                                    >
-                                      {activity.status}
-                                    </span>
-                                  )}
-                                </div>
-
-                                <div className="mt-1 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                                  <span className="flex items-center gap-1">
-                                    <Icon name="Clock" size={12} />
-                                    {formatDate(activity.dateStart)}
-                                  </span>
-
-                                  {activity.duration && (
-                                    <span className="flex items-center gap-1">
-                                      <Icon name="Timer" size={12} />
-                                      {Math.round(activity.duration / 60)} min
-                                    </span>
-                                  )}
-
-                                  {activity.parentType && (
-                                    <span className="flex items-center gap-1">
-                                      <Icon name="Link" size={12} />
-                                      {activity.parentType}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/*  */}
-                            <div
-                              className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedActivityId === activity.id
-                                ? "max-h-[600px] opacity-100 mt-4"
-                                : "max-h-0 opacity-0"
-                                }`}
-                            >
-                              <div className="border-t pt-4 text-sm text-muted-foreground">
-                                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                                  <div>
-                                    <p className="text-xs">Direction</p>
-                                    <p className="font-medium text-foreground">
-                                      {activity.direction}
-                                    </p>
-                                  </div>
-
-                                  <div>
-                                    <p className="text-xs">Assigned User</p>
-                                    <p className="font-medium text-foreground">
-                                      {activity.assignedUserName}
-                                    </p>
-                                  </div>
-
-                                  <div>
-                                    <p className="text-xs">Date Start</p>
-                                    <p className="font-medium text-foreground">
-                                      {formatDateTime(activity.dateStart)}
-                                    </p>
-                                  </div>
-
-                                  <div>
-                                    <p className="text-xs">Date End</p>
-                                    <p className="font-medium text-foreground">
-                                      {formatDateTime(activity.dateEnd)}
-                                    </p>
-                                  </div>
-
-                                  <div>
-                                    <p className="text-xs">Duration</p>
-                                    <p className="font-medium text-foreground">
-                                      {Math.round(activity.duration / 60)} min
-                                    </p>
-                                  </div>
-
-                                  <div>
-                                    <p className="text-xs">Parent</p>
-                                    <p className="font-medium text-primary">
-                                      {activity.parentType}
-                                    </p>
-                                  </div>
-
-                                  <div>
-                                    <p className="text-xs">Created</p>
-                                    <p className="font-medium text-foreground">
-                                      {formatDate(activity.createdAt)}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-10 text-center">
-                          <img
-                            src="/assets/images/no-content.png"
-                            alt="No Activities"
-                            className="w-40 opacity-80"
-                          />
-                          <p className="mt-3 text-sm text-muted-foreground">
-                            Currently you don't have any activities
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               </>
             )}

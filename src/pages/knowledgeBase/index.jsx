@@ -18,14 +18,9 @@ import {
   updateLead,
 } from "services/leads.service";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
-import StatusChart from "./components/charts/StatusChart";
-import IndustryChart from "./components/charts/IndustryChart";
-import AssignedUserChart from "./components/charts/AssignedUserChart";
-import MultiLineChart from "pages/dashboard/components/MultiLineChart";
-import { useLeads, useNewLeads } from "hooks/useLeads";
 import { useMetaData } from "hooks/useMetaData";
-import { useLeadDetails } from "hooks/useLeadDetails";
 import { useKnowledge, useKnowledgeById } from "hooks/useKnowledge";
+import { createArticle, deleteArticle, updateArticle } from "services/knowledge.service";
 
 const KnowledgeBase = () => {
   const queryClient = useQueryClient();
@@ -59,17 +54,17 @@ const KnowledgeBase = () => {
   });
   const { data: leadsData, isLoading } = useKnowledge({ limit, page, filters });
   const createLeadMutation = useMutation({
-    mutationFn: createLead,
+    mutationFn: createArticle,
     onSuccess: () => {
-      toast.success("Lead created");
-      queryClient.invalidateQueries({ queryKey: ["leads"], exact: false });
+      toast.success("article created");
+      queryClient.invalidateQueries({ queryKey: ["article"], exact: false });
     },
   });
   const deleteLeadMutation = useMutation({
-    mutationFn: deleteLead,
+    mutationFn: deleteArticle,
     onSuccess: () => {
       toast.success("Deleted");
-      queryClient.invalidateQueries(["leads"]);
+      queryClient.invalidateQueries(["article"]);
     },
   });
   // fetch leads
@@ -138,19 +133,19 @@ const KnowledgeBase = () => {
     setIsDrawerOpen(false);
     setSelectedDeal(null);
   };
-  const handleCreateLead = async (payload) => {
+  const handleCreateArticle = async (payload) => {
     try {
       createLeadMutation.mutate(payload);
     } catch (err) {
-      console.error("Lead creationd failed", err);
+      console.error("Article creationd failed", err);
     }
   };
 
-  const handleUpdateLead = async (id, payload) => {
-    await updateLead(id, payload);
+  const handleUpdateArticle = async (id, payload) => {
+    await updateArticle(id, payload);
   };
 
-  const handleDeleteLead = async (id) => {
+  const handleDeleteArticle = async (id) => {
     try {
       toast.loading("Deleting lead...", { id: "delete-lead" });
       deleteLeadMutation.mutate(id);
@@ -346,7 +341,7 @@ const KnowledgeBase = () => {
                   className="linearbg-1 text-white hover:text-white"
                   variant="outline"
                   onClick={() =>
-                    exportLeadsToCSV(leads, "all_leads")
+                    exportLeadsToCSV(article, "all_Article")
                   }
                 >
                   <Icon name="Download" size={16} className="mr-2" />
@@ -385,7 +380,7 @@ const KnowledgeBase = () => {
               onDealClick={handleDealClick}
               sortConfig={sortConfig}
               onSort={handleSort}
-              onDelete={handleDeleteLead}
+              onDelete={handleDeleteArticle}
               isLoading={isLoading}
               page={page}
               setPage={setPage}
@@ -413,8 +408,8 @@ const KnowledgeBase = () => {
               deal={selectedDeal}
               mode={mode}
               isOpen={isDrawerOpen}
-              onCreate={handleCreateLead}
-              onUpdate={handleUpdateLead}
+              onCreate={handleCreateArticle}
+              onUpdate={handleUpdateArticle}
               onClose={handleDrawerClose}
               onDelete={handleDeleteActivity}
               onBulkUpdate={handleBulkUpdateLeads}

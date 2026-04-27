@@ -4,7 +4,6 @@ import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import { fetchUser } from "services/user.service";
-import RoleGuard from "components/RoleGuard";
 import { fetchSources, fetchStatus } from "services/others.service";
 
 const DealsFilters = ({
@@ -47,9 +46,8 @@ const DealsFilters = ({
   }, []);
   const ACTIVITY_DATE_FILTERS = [
     { label: "Today", value: "today" },
-    { label: "Yesterday", value: "yesterday" },
-    { label: "Last 7 Days", value: "last7Days" },
-
+    { label: "Last 7 Days", value: "lastSevenDays" },
+    { label: "On", value: "on" },
     { label: "Before", value: "before" },
     { label: "After", value: "after" },
 
@@ -58,18 +56,26 @@ const DealsFilters = ({
     { label: "Last Month", value: "lastMonth" },
   ];
 
-  const sourceOptions = source
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const statusOptions = status
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+  const langOptions = [
+    { value: "Any", label: "Any" },
+
+    { value: "English (US)", label: "English (US)" },
+    { value: "Arabic", label: "Arabic" },
+    { value: "English (UK)", label: "English (UK)" },
+    { value: "Spanish (Mexico)", label: "Spanish (Mexico)" },
+    { value: "German", label: "German" },
+    { value: "Spanish (Spain)", label: "Spanish (Spain)" },
+    { value: "French (France)", label: "French (France)" },
+    { value: "Japanese", label: "Japanese" },
+    { value: "Indonesian", label: "Indonesian" },
+    { value: "Italian", label: "Italian" },
+  ];
+  const statusOptions = [
+    { value: "Draft", label: "New", color: "#000000" },
+    { value: "In Review", label: "Assigned", color: "#3b82f6" },
+    { value: "Published", label: "Pending", color: "#f59e0b" },
+    { value: "Archived", label: "Closed", color: "#22c55e" }
+  ];
   const showDateInputs = [
     "between",
     "after",
@@ -217,15 +223,9 @@ const DealsFilters = ({
           onChange={(value) => handleFilterChange("status", value)}
         />
 
-        <Input
-          placeholder="Project Name"
-          value={filters?.projectName || ""}
-          onChange={(e) => handleFilterChange("projectName", e.target.value)}
-        />
-
         <Select
-          placeholder="Source"
-          options={sourceOptions}
+          placeholder="Language"
+          options={langOptions}
           value={filters?.source || ""}
           onChange={(value) => handleFilterChange("source", value)}
         />
@@ -234,6 +234,7 @@ const DealsFilters = ({
           options={assignUserOptions}
           value={filters?.assignUser || ""}
           onChange={(value) => handleFilterChange("assignUser", value)}
+          searchable
         />
         {/* Date Type Select */}
         <Select
@@ -278,33 +279,7 @@ const DealsFilters = ({
           </div>
         )}
       </div>
-      {/* Advanced Filters Toggle */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 pt-4 border-t border-border gap-3">
-        {/* <div className="flex flex-col sm:flex-row gap-3 w-full">
-          <Input
-            type="date"
-            placeholder="Close date from"
-            value={filters?.closeDateFrom || ""}
-            onChange={(e) =>
-              handleFilterChange("closeDateFrom", e?.target?.value)
-            }
-          />
-          <Input
-            type="date"
-            placeholder="Close date to"
-            value={filters?.closeDateTo || ""}
-            onChange={(e) =>
-              handleFilterChange("closeDateTo", e?.target?.value)
-            }
-          />
-        </div> */}
-        <RoleGuard allowedRoles={["admin", "manager"]}>
-          <Button onClick={toggleAnalytics} className="linearbg-1 text-white hover:text-white">
-            <Icon name="Plus" size={16} className="mr-2" />
-            Anaylze By Chart
-          </Button>
-        </RoleGuard>
-      </div>
+
     </div>
   );
 };

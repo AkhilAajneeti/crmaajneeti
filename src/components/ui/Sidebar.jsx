@@ -5,13 +5,12 @@ import Button from "./Button";
 import { useLeads, } from "hooks/useLeads";
 import { useTasks } from "hooks/useTasks";
 import { useMeetings } from "hooks/useMeetings";
-import { useProjects } from "hooks/useProjects";
 import { useTraining } from "hooks/useTraining";
 
 const Sidebar = ({ isOpen = false, onClose }) => {
   const user = JSON.parse(localStorage.getItem("login_object") || "{}");
   const isAdmin = String(user?.type).toLowerCase() === "admin";
-  
+
   const location = useLocation();
   const navigate = useNavigate();
   const [isUpgradeCardVisible, setIsUpgradeCardVisible] = useState(true);
@@ -19,11 +18,11 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   const { data: leadsData, isLoading } = useLeads();
   const { data: taskData } = useTasks();
   const { data: meetingData } = useMeetings();
-  const { data: projectData } = useProjects();
+
   const { data: trainingData } = useTraining();
   const leads = leadsData?.list || [];
   const tasks = taskData?.list || [];
-  const meetings = projectData?.list || [];
+  const meetings = meetingData?.list || [];
   const calls = trainingData?.list || [];
   const projects = leadsData?.list || [];
   const isToday = (date) => {

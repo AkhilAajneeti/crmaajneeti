@@ -12,11 +12,11 @@ import { useUsers } from "hooks/useUsers";
 import { useLeadStream } from "hooks/useLeadStream";
 import { useLeadActivity } from "hooks/useLeadActivity";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAccounts } from "hooks/useAccounts";
+import { ParentSelectorModal } from "components/ParentSelectorModal";
 
 const DealDrawer = ({
-  status,
-  source,
-  industry,
+
   deal,
   isOpen,
   onClose,
@@ -36,51 +36,41 @@ const DealDrawer = ({
   const [expandedActivityId, setExpandedActivityId] = useState(null);
   const [editingActivityId, setEditingActivityId] = useState(null);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    phoneNumber: "+91",
-    emailAddress: "",
-    whatsapp: "",
-    addressCity: "",
-    cProjectName: "",
-    cNextContactAt: "",
+    name: "",
+    type: "",
     cQuestion: "",
     assignedUserId: "",
     teamId: "",
     status: "",
-    source: "",
+    priority: "",
     description: "",
-    industry: "",
+    accountId: "",
+    accountName: "",
   });
   const queryClient = useQueryClient();
   const { data: usersData } = useUsers();
   const { data: teamData } = useTeams();
   const { data: streamData } = useLeadStream(deal?.id, isOpen);
   const { data: activityData } = useLeadActivity(deal?.id, isOpen);
-
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const { data: accountData } = useAccounts({ limit: 20, page: 1 });
+  const accounts = accountData?.list || [];
   const users = usersData?.list || [];
   const team = teamData?.list || [];
   const streams = streamData?.list || [];
   const activities = activityData?.list || [];
-  console.log("leadDetails", leadsDetails);
   useEffect(() => {
     if (mode === "add") {
       setFormData({
-        firstName: "",
-        lastName: "",
-        phoneNumber: "+91",
-        emailAddress: "",
-        whatsapp: "",
-        addressCity: "",
-        cProjectName: "",
-        cNextContactAt: "",
-        cQuestion: "",
-        assignedUserId: "",
-        teamId: "",
-        status: "New",
-        source: "",
-        description: "",
-        industry: "",
+        name: formData.name?.trim(),
+        type: formData.type || "",
+        assignedUserId: formData.assignedUserId || null,
+        teamId: formData.teamId ? [formData.teamId] : [],
+        status: formData.status || "New",
+        priority: formData.priority || "Normal",
+        description: formData.description || "",
+        accountId: formData.accountId || null,
+        accountName: formData.accountName || null,
       });
       setIsEditing(true); // form open
     } else if (deal && mode === "view") {
@@ -92,7 +82,7 @@ const DealDrawer = ({
   const [massFields, setMassFields] = useState({
     assignedUserId: false,
     status: false,
-    source: false,
+    priority: false,
     teamId: false,
     cNextContactAt: false,
   });
@@ -235,18 +225,28 @@ const DealDrawer = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const fullName =
-      `${formData.firstName || ""} ${formData.lastName || ""}`.trim();
+    const name =
+      `${formData.name || ""}`.trim();
 
     // 🚨 VALIDATION FIX
-    if (!fullName) {
+    if (!name) {
       toast.error("Name is required");
       return;
     }
     const payload = {
-      ...formData,
-      name: fullName,
-      cNextContactAt: toEspoDateTime(formData.cNextContactAt),
+      name: formData.name?.trim(),
+
+      accountId: formData.accountId || null,
+      accountName: formData.accountName || null,
+
+      assignedUserId: formData.assignedUserId || null,
+      teamsIds: formData.teamId ? [formData.teamId] : [],
+
+      status: formData.status || "New",
+      priority: formData.priority || "Normal",
+
+      type: formData.type || null,
+      description: formData.description || "",
     };
     try {
       if (mode === "add") {
@@ -268,13 +268,9 @@ const DealDrawer = ({
 
     if (massFields.assignedUserId)
       payload.assignedUserId = formData.assignedUserId;
-
-    if (massFields.cNextContactAt)
-      payload.cNextContactAt = toEspoDateTime(formData.cNextContactAt);
-
     if (massFields.status) payload.status = formData.status;
 
-    if (massFields.source) payload.source = formData.source;
+    if (massFields.priority) payload.priority = formData.priority;
 
     if (!Object.keys(payload).length) {
       toast.error("Select at least one field");
@@ -359,24 +355,37 @@ const DealDrawer = ({
     value: t.id,
     label: t.name,
   }));
-  const sourceOptions = source
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const statusOptions = status
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const industryOptions = industry
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+
+  const priorityOptions = [
+    { value: "Low", label: "Low", color: "#64748b" },      // gray
+    { value: "Normal", label: "Normal", color: "#000000" }, // black
+    { value: "High", label: "High", color: "#f59e0b" },     // orange
+    { value: "Urgent", label: "Urgent", color: "#ef4444" }, // red
+  ];
+  const statusOptions = [
+    { value: "New", label: "New", color: "#000000" },
+    { value: "Assigned", label: "Assigned", color: "#3b82f6" },
+    { value: "Pending", label: "Pending", color: "#f59e0b" },
+    { value: "Closed", label: "Closed", color: "#22c55e" },
+    { value: "Rejected", label: "Rejected", color: "#6366f1" },
+    { value: "Duplicate", label: "Duplicate", color: "#64748b" },
+  ];
+  const typeOptions = [
+    { value: "Question", label: "Question", color: "#000000" },
+    { value: "Incident", label: "Incident", color: "#3b82f6" },
+    { value: "Problem", label: "Problem", color: "#f59e0b" }
+  ];
+
+  const accountOptions = [
+    ...accounts.map((acc) => ({
+      value: acc.id,
+      label: acc.name,
+    })),
+    {
+      value: "__load_more__",
+      label: "🔍 Load More Accounts...",
+    },
+  ];
 
   const handleSelectChange = (name, value) => {
     setFormData((prev) => ({
@@ -396,30 +405,7 @@ const DealDrawer = ({
     return value.replace("T", " ") + ":00";
   };
 
-  // fetching lead stream from id
-  // useEffect(() => {
-  //   if (!isOpen || !deal?.id) return;
 
-  //   const loadActivity = async () => {
-  //     try {
-  //       const id = deal?.id;
-  //       const res = await leadActivitesById(id);
-  //       console.log("LEAD DETAIL RESPONSE:", res);
-  //       setActivities(res.list || []);
-  //     } catch (err) {
-  //       console.error("Failed to fetch streams", err);
-  //       toast.error("Failed to load activity");
-  //     }
-  //   };
-
-  //   loadActivity();
-  // }, [isOpen, deal?.id]);
-
-  // useEffect(() => {
-  //   if (!isOpen) {
-  //     setmockStream([]);
-  //   }
-  // }, [isOpen]);
   const leadData = leadsDetails || deal;
   return (
     <>
@@ -486,94 +472,47 @@ const DealDrawer = ({
                     {/* Name */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input
-                        label="First Name *"
-                        value={formData.firstName || ""}
+                        label="Name *"
+                        value={formData.name || ""}
                         onChange={(e) =>
-                          handleChange("firstName", e.target.value)
+                          handleChange("name", e.target.value)
                         }
                       />
-                      <Input
-                        label="Last Name"
-                        value={formData.lastName || ""}
-                        onChange={(e) =>
-                          handleChange("lastName", e.target.value)
-                        }
-                      />
+
+
                     </div>
 
-                    {/* Phone & Email */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Phone"
-                        value={formData.phoneNumber || ""}
-                        onChange={(e) =>
-                          handleChange("phoneNumber", e.target.value)
-                        }
-                      />
-                      <Input
-                        label="Email"
-                        value={formData.emailAddress || ""}
-                        onChange={(e) =>
-                          handleChange("emailAddress", e.target.value)
-                        }
-                      />
-                    </div>
 
-                    {/* Whatsapp & City */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Whatsapp"
-                        value={formData.whatsapp || ""}
-                        onChange={(e) =>
-                          handleChange("whatsapp", e.target.value)
-                        }
-                      />
-                      <Input
-                        label="City"
-                        value={formData.addressCity || ""}
-                        onChange={(e) =>
-                          handleChange("addressCity", e.target.value)
-                        }
-                      />
-                    </div>
 
-                    {/* Project & Next Contact */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Project Name"
-                        value={formData.cProjectName || ""}
-                        onChange={(e) =>
-                          handleChange("cProjectName", e.target.value)
-                        }
-                      />
-                      <Input
-                        type="datetime-local"
-                        label="Next Contact"
-                        value={formData.cNextContactAt || ""}
-                        onChange={(e) =>
-                          handleChange("cNextContactAt", e.target.value)
-                        }
-                      />
-                    </div>
+
                   </div>
                   <div className="grid grid-cols-2 gap-4">
+
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                      <Input
-                        label="Preference"
-                        value={formData.cQuestion || ""}
-                        onChange={(e) =>
-                          handleChange("cQuestion", e.target.value)
-                        }
+                      <Select
+                        label="Account"
+                        value={formData.accountId || ""}
+                        options={accountOptions}
+                        onChange={(value) => {
+                          if (value === "__load_more__") {
+                            setShowAccountModal(true); // 🔥 open modal
+                          } else {
+                            const selected = accounts.find((a) => a.id === value);
+                            handleChange("accountId", value);
+                            handleChange("accountName", selected?.name || "");
+                          }
+                        }}
                       />
                     </div>
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
                       <Select
-                        label="Industry"
-                        value={formData.industry || ""}
-                        options={industryOptions} // 👉 later API se teams
+                        label="Type"
+                        value={formData.type || ""}
+                        options={typeOptions} // 👉 later API se teams
                         onChange={(value) =>
-                          handleSelectChange("industry", value)
+                          handleSelectChange("type", value)
                         }
+                        searchable
                       />
                     </div>
                   </div>
@@ -588,6 +527,7 @@ const DealDrawer = ({
                         onChange={(value) =>
                           handleSelectChange("assignedUserId", value)
                         }
+                        searchable
                       />
                     </div>
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
@@ -614,10 +554,10 @@ const DealDrawer = ({
                         onChange={(value) => handleChange("status", value)}
                       />
                       <Select
-                        label="Source"
-                        value={formData.source || ""}
-                        options={sourceOptions}
-                        onChange={(value) => handleChange("source", value)}
+                        label="Priority"
+                        value={formData.priority || ""}
+                        options={priorityOptions}
+                        onChange={(value) => handleChange("priority", value)}
                       />
                     </div>
                     <div className="col-span-2">
@@ -636,7 +576,7 @@ const DealDrawer = ({
 
                   {/* ================= Actions ================= */}
                   <div className="flex justify-end gap-3">
-                    <Button type="submit">Save Lead</Button>
+                    <Button type="submit">Save Complaint</Button>
                   </div>
                 </form>
               </div>
@@ -767,7 +707,7 @@ const DealDrawer = ({
                               Priority
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.addressCity || "None"}
+                              {deal?.priority || "None"}
                             </p>
                           </div>
 
@@ -1069,7 +1009,7 @@ const DealDrawer = ({
                             </p>
                             <p className="text-foreground font-medium">
                               {deal?.modifiedAt
-                                ? `${formatDateTime(deal.modifiedAt)} ${deal?.modifiedByName? `by ${deal?.modifiedByName}`: ""}`
+                                ? `${formatDateTime(deal.modifiedAt)} ${deal?.modifiedByName ? `by ${deal?.modifiedByName}` : ""}`
                                 : "—"}
                             </p>
                           </div>
@@ -1225,6 +1165,15 @@ const DealDrawer = ({
           </div>
         </div>
       </div>
+      <ParentSelectorModal
+        open={showAccountModal}
+        type="Account"
+        onClose={() => setShowAccountModal(false)}
+        onSelect={(item) => {
+          handleChange("accountId", item.id);
+          handleChange("accountName", item.name);
+        }}
+      />
     </>
   );
 };
