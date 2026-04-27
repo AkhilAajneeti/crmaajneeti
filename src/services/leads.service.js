@@ -20,54 +20,60 @@ const setLocalCache = (key, value) => {
   localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
 };
 
+//industry chart
 export const fetchLeadsCount = async (filters = []) => {
-  const cacheKey = JSON.stringify(filters);
+  // 🔥 Stable cache key (prevents order issues)
+  const cacheKey = JSON.stringify(
+    filters.map((f) => ({
+      ...f,
+      value: Array.isArray(f.value) ? [...f.value].sort() : f.value,
+    }))
+  );
 
-  // ✅ 1. MEMORY CACHE (fastest)
+  // ✅ 1. MEMORY CACHE
   const cached = leadsCountCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.value;
   }
 
-  // ✅ 2. LOCAL STORAGE CACHE (after refresh)
+  // ✅ 2. LOCAL STORAGE CACHE
   const localCache = getLocalCache();
   const localItem = localCache[cacheKey];
 
   if (localItem && Date.now() - localItem.timestamp < CACHE_TTL) {
-    // sync memory cache also
     leadsCountCache.set(cacheKey, localItem);
     return localItem.value;
   }
 
-  // 🔥 3. API CALL (only if no cache)
+  // 🔥 3. API CALL
   const token = localStorage.getItem("auth_token");
+
+  const DATE_TYPES = [
+    "today",
+    "yesterday",
+    "currentMonth",
+    "lastMonth",
+    "lastSevenDays", // ✅ FIXED
+    "between",
+    "before",
+    "after",
+  ];
 
   const query = filters
     .map((f, i) => {
       let q = `whereGroup[${i}][type]=${f.type}&whereGroup[${i}][attribute]=${f.attribute}`;
 
+      // ✅ value handling
       if (Array.isArray(f.value)) {
         f.value.forEach((v) => {
           q += `&whereGroup[${i}][value][]=${encodeURIComponent(v)}`;
         });
-      } else if (f.value !== undefined && f.value !== "") {
+      } else if (f.value != null && f.value !== "") {
         q += `&whereGroup[${i}][value]=${encodeURIComponent(f.value)}`;
       }
 
-      if (
-        [
-          "today",
-          "yesterday",
-          "currentMonth",
-          "lastMonth",
-          "last7Days",
-          "between",
-          "before",
-          "after",
-          "lessThan",
-          "greaterThan",
-        ].includes(f.type)
-      ) {
+      // ✅ dateTime flag (based on backend support)
+      if (DATE_TYPES.includes(f.type)) {
         q += `&whereGroup[${i}][dateTime]=true`;
       }
 
@@ -80,23 +86,27 @@ export const fetchLeadsCount = async (filters = []) => {
   const res = await fetch(url, {
     method: "GET",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "text/plain",
       token,
     },
   });
 
   if (!res.ok) {
+    const errorText = await res.text();
+    console.error("❌ API Error:", res.status, errorText);
+
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
     }
+
     throw new Error("Failed to fetch leads count");
   }
 
   const data = await res.json();
   const total = data.total || 0;
 
-  // ✅ SAVE BOTH CACHES
+  // ✅ SAVE CACHE
   const cacheEntry = {
     value: total,
     timestamp: Date.now(),
@@ -117,7 +127,7 @@ export const fetchLeads = async () => {
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Lead`, {
     method: "GET",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "text/plain",
       token: token, // ✅ backend expects this
     },
   });
@@ -281,7 +291,7 @@ export const fetchNewLeads = async ({ limit, page, filters = {} }) => {
 
   const res = await fetch(url, {
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "text/plain",
       token,
     },
   });
@@ -300,7 +310,7 @@ export const fetchLeadsById = async (id) => {
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Lead/${id}`, {
     method: "GET",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "text/plain",
       token: token, // ✅ backend expects this
     },
   });
@@ -320,7 +330,7 @@ export const createLead = async (payload) => {
   const token = localStorage.getItem("auth_token");
   const res = await fetch("https://gateway.aajneetiadvertising.com/Lead", {
     method: "POST",
-    headers: { "Content-Type": "application/json", token: token },
+    headers: { "Content-Type": "text/plain", token: token },
 
     body: JSON.stringify(payload),
   });
@@ -341,8 +351,8 @@ export const updateLead = async (id, payload) => {
     {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
+        "Content-Type": "text/plain",
+        Accept: "text/plain",
         token: token,
       },
       body: JSON.stringify(payload),
@@ -364,7 +374,7 @@ export const deleteLead = async (id) => {
     `https://gateway.aajneetiadvertising.com/Lead/${id}`,
     {
       method: "DELETE",
-      headers: { "Content-Type": "application/json", token: token },
+      headers: { "Content-Type": "text/plain", token: token },
     }
   );
   if (!res.ok) {
@@ -593,7 +603,7 @@ export const fetchThisMonthLeadsCount = async () => {
     `https://gateway.aajneetiadvertising.com/Lead?where[0][type]=between&where[0][attribute]=createdAt&where[0][value][]=${startOfMonth}&where[0][value][]=${endOfMonth}&maxSize=1`,
     {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "text/plain",
         token,
       },
     }

@@ -405,7 +405,7 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
                   >
                     <div className="space-y-1">
                       <p className="text-xs font-medium tracking-wide text-green-700 uppercase">
-                        Deals Closed
+                        Leads Closed
                       </p>
                       <p className="text-3xl font-bold text-green-600">
                         {closedDeals}
@@ -573,3 +573,4 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
 };
 
 export default Dashboard;
+

@@ -5,7 +5,7 @@ export const fetchMeeting = async () => {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      token: token, // ✅ backend expects this
+      token: token, 
     },
   });
   if (!res.ok) {
@@ -219,7 +219,7 @@ export const fetchAllMeeting = async ({ limit, page, filters }) => {
 
   const url = query ? `${baseUrl}&${query}` : baseUrl;
 
-  console.log("FINAL API:", url);
+  // console.log("FINAL API:", url);
   const res = await fetch(url, {
     method: "GET",
     headers: {
@@ -235,7 +235,9 @@ export const fetchAllMeeting = async ({ limit, page, filters }) => {
     }
     throw new Error("Failed to fetch accounts");
   }
-  return await res.json();
+  
+  
+  return  res.json();
 };
 export const fetchMeetingById = async (id) => {
   const token = localStorage.getItem("auth_token");
@@ -273,19 +275,18 @@ export const createMeeting = async (payload) => {
     throw new Error("Lead is not created", text);
   }
   // EspoCRM returns array
-  return text ? JSON.parse(text) : null;
+  return await res.json();
 };
 
 export const updateMeeting = async (id, payload) => {
   const token = localStorage.getItem("auth_token");
-  console.log(id, payload);
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Meeting/${id}`,
     {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json",
+     
         token: token,
       },
       body: JSON.stringify(payload),
@@ -298,7 +299,7 @@ export const updateMeeting = async (id, payload) => {
     throw new Error(text || "Meeting update failed");
   }
 
-  return text ? JSON.parse(text) : null;
+  return await res.json();
 };
 
 export const deleteMeeting = async (id) => {
@@ -381,7 +382,7 @@ export const createMeetingStream = async (payload) => {
     throw new Error("Activity is not created", text);
   }
   // EspoCRM returns array
-  return text ? JSON.parse(text) : null;
+  return await res.json();
 };
 
 // Meet call related Activities
@@ -396,7 +397,7 @@ export const leadActivitesById = async (id) => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json",
+   
         token: token,
       },
     },

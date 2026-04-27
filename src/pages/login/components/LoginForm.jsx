@@ -63,7 +63,7 @@ const LoginForm = () => {
       const res = await fetch("https://gateway.aajneetiadvertising.com/auth", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "text/plain",
           "create-token": loginToken,
         },
         body: JSON.stringify({

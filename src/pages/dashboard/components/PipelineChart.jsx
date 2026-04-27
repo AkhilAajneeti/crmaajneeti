@@ -251,6 +251,13 @@ const PipelineChart = ({ leads = [] }) => {
   const skeletonCount =
     viewType === "monthly" ? 12 :
       viewType === "weekly" ? 5 : 7;
+
+  // 
+  const getCurrentMonthName = () => {
+    return new Date().toLocaleString("default", { month: "long" });
+  };
+  const dynamicTitle = `${getCurrentMonthName()} leads closed and leads generated`;
+
   return (
     <motion.div
       className=" bg-card border border-border rounded-xl p-6  shadow-elevation-1"
@@ -264,7 +271,9 @@ const PipelineChart = ({ leads = [] }) => {
             Leads Performance
           </h3>
           <p className="text-sm text-muted-foreground">
-            Monthly leads closed and leads generated
+            {viewType === "monthly"
+              ? "Monthly leads closed and leads generated"
+              : dynamicTitle}
           </p>
         </div>
 

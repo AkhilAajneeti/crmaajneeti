@@ -28,10 +28,9 @@ const IndustryChart = () => {
   const [chartData, setChartData] = useState([]);
   const ACTIVITY_DATE_FILTERS = [
     { label: "Today", value: "today" },
-    { label: "Yesterday", value: "yesterday" },
     { label: "Last 7 Days", value: "lastSevenDays" },
     { label: "This Month", value: "currentMonth" },
-    // { label: "Last Month", value: "lastMonth" },
+    { label: "On", value: "on" }
   ];
 
   const [filters, setFilters] = useState({
@@ -40,15 +39,9 @@ const IndustryChart = () => {
     closeDateTo: "",
     xDays: ""            // 👈 for "Last X Days", "After X Days"
   });
-  const showXDaysInput = [
-    "lastXDays",
-    "nextXDays",
-    "olderThanXDays",
-    "afterXDays"
-  ].includes(filters?.dateType);
+  const showDateInputs = filters?.dateType === "on";
   const getSectorData = async (filtersState) => {
-    const dateFilter = buildDateFilter(filtersState);
-    const baseFilters = dateFilter ? [dateFilter] : [];
+    const baseFilters = buildDateFilter(filtersState);
 
     const IMPORTANT_SECTORS = [
       "RealEstate",
@@ -119,7 +112,7 @@ const IndustryChart = () => {
     return data;
   };
   useEffect(() => {
-    if (!filters.dateType) return;
+    if (filters.dateType === "on" && !filters.closeDateFrom) return;
 
     setLoading(true);
 
@@ -127,49 +120,43 @@ const IndustryChart = () => {
       .then(setChartData)
       .finally(() => setLoading(false));
   }, [filters]);
+
   const buildDateFilter = (filters) => {
-    if (!filters.dateType) return null;
+    if (!filters?.dateType) return [];
 
-    const today = new Date();
+    const { dateType, closeDateFrom } = filters;
 
-    switch (filters.dateType) {
+    const base = {
+      attribute: "createdAt",
+      dateTime: true,
+    };
+
+    switch (dateType) {
       case "today":
-        return {
-          type: "today",
-          attribute: "createdAt",
-          dateTime: true,
-        };
-
       case "lastSevenDays":
-        return {
-          type: "lastSevenDays",
-          attribute: "createdAt",
-          dateTime: true,
-        };
-
       case "currentMonth":
-        return {
-          type: "currentMonth",
-          attribute: "createdAt",
-          dateTime: true,
-        };
+        return [
+          {
+            type: dateType,
+            ...base,
+          },
+        ];
 
-      case "yesterday": {
-        const y = new Date();
-        y.setDate(today.getDate() - 1);
+      case "on":
+        if (!closeDateFrom) return [];
 
-        const date = y.toISOString().split("T")[0];
-
-        return {
-          type: "on",
-          attribute: "createdAt",
-          value: date,
-          dateTime: true,
-        };
-      }
+        // 🔥 convert ON → BETWEEN (same date)
+        return [
+          {
+            type: "between",
+            attribute: "createdAt",
+            value: [closeDateFrom, closeDateFrom],
+            dateTime: true,
+          },
+        ];
 
       default:
-        return null;
+        return [];
     }
   };
   const handleFilterChange = (key, value) => {
@@ -226,16 +213,26 @@ const IndustryChart = () => {
               onChange={(value) => handleFilterChange("dateType", value)}
             />
 
-            {/* X Days Input */}
-            {showXDaysInput && (
-              <Input
-                type="number"
-                placeholder="Enter days"
-                value={filters?.xDays || ""}
-                onChange={(e) =>
-                  handleFilterChange("xDays", e.target.value)
-                }
-              />
+            {showDateInputs && (
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={filters?.closeDateFrom || ""}
+                  onChange={(e) =>
+                    handleFilterChange("closeDateFrom", e.target.value)
+                  }
+                />
+
+                {filters?.dateType === "between" && (
+                  <Input
+                    type="date"
+                    value={filters?.closeDateTo || ""}
+                    onChange={(e) =>
+                      handleFilterChange("closeDateTo", e.target.value)
+                    }
+                  />
+                )}
+              </div>
             )}
 
 
@@ -246,7 +243,7 @@ const IndustryChart = () => {
       {/* Chart */}
       <div className="h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+          <PieChart key={JSON.stringify(chartData)}>
             <Pie
               data={isEmpty ? [{ name: "No Data", value: 1 }] : chartData}
               cx="50%"
@@ -254,7 +251,7 @@ const IndustryChart = () => {
               innerRadius={60}
               outerRadius={100}
               dataKey="value"
-              paddingAngle={3}
+              paddingAngle={1}
             >
               {(isEmpty ? [{ name: "No Data" }] : chartData).map(
                 (entry, index) => (

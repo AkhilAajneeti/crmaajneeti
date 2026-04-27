@@ -279,7 +279,7 @@ export const updateAttendance = async (id, payload) => {
     const token = localStorage.getItem("auth_token");
     console.log(id, payload, versionNumber);
     const res = await fetch(
-        `https://gateway.aajneetiadvertising.com/Account/${id}`,
+        `https://gateway.aajneetiadvertising.com/CAttendanceRequest/${id}`,
         {
             method: "PUT",
             headers: {
@@ -297,5 +297,34 @@ export const updateAttendance = async (id, payload) => {
         throw new Error(text || "Attendance update failed");
     }
 
-    return text ? JSON.parse(text) : null;
+    return await res.json();
+};
+
+
+
+// --------------Stream-----------
+//fetch by Streams
+export const fetchAttendStreamById = async (id) => {
+    const token = localStorage.getItem("auth_token");
+    console.log("AUTH TOKEN:", token); // 🔍 debug
+    const res = await fetch(
+        `https://gateway.aajneetiadvertising.com/CAttendanceRequest/${id}/stream`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                token: token,
+            },
+        },
+    );
+    if (!res.ok) {
+        console.log("STATUS:", res.status);
+        if (res.status === 401 || res.status === 403) {
+            localStorage.clear();
+            window.location.href = "/login";
+        }
+        throw new Error("Failed to fetch User's stream");
+    }
+    
+    return await res.json();
 };

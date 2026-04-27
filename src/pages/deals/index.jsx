@@ -51,10 +51,10 @@ const DealsPage = () => {
     projectName: "",
     source: "",
     assignUser: "",
-    dateType: "",        // 👈 NEW (today, before, between, etc.)
+    dateType: "",
     closeDateFrom: "",
     closeDateTo: "",
-    xDays: ""            // 👈 for "Last X Days", "After X Days"
+    xDays: ""
   });
   const { data: leadsData, isLoading } = useNewLeads({ limit, page, filters });
   const createLeadMutation = useMutation({
@@ -371,7 +371,7 @@ const DealsPage = () => {
               onBulkAction={handleBulkAction}
               selectedCount={selectedDeals?.length}
               toggleAnalytics={() => setShowAnalytics((prev) => !prev)}
-           
+
             />
             {/* chartsAnanlysis */}
             {showAnalytics && (

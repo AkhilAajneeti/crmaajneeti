@@ -22,7 +22,7 @@ import { fetchTeam } from "services/team.service";
 import { fetchAccStreamById } from "services/account.service";
 import { deleteTasks } from "services/tasks.service";
 import { useAccountById } from "hooks/useAccounts";
-import { useCalenderById } from "hooks/useCalender";
+import { useCalenderById, useCalenderStream } from "hooks/useCalender";
 import { createNewAttendance, updateAttendance } from "services/calender.service";
 const AttendanceDrawer = ({
   data,
@@ -40,8 +40,6 @@ const AttendanceDrawer = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(accounts || {});
   const [drawerMode, setDrawerMode] = useState(mode);
-  const [streams, setStreams] = useState([]);
-  const [streamLoading, setStreamLoading] = useState(false);
   const [showStreamForm, setShowStreamForm] = useState(false);
   const [streamText, setStreamText] = useState("");
   const [postingStream, setPostingStream] = useState(false);
@@ -65,7 +63,13 @@ const AttendanceDrawer = ({
   const isMassUpdate = drawerMode === "mass-update";
   const animatedComponents = makeAnimated();
   const { data: account, isLoading } = useCalenderById(data?.id);
-  console.log("entering inside fetc", account);
+  const {
+    data: streams,
+    isLoading: streamLoading,
+  } = useCalenderStream(data?.id, isOpen, activeTab);
+ console.log('stream',streams);
+ 
+  
   // Form state for create/edit mode
   const [formData, setFormData] = useState({
     name: "", // reason
@@ -101,24 +105,7 @@ const AttendanceDrawer = ({
       });
     }
   }, [account, drawerMode]);
-  useEffect(() => {
-    if (!isOpen || !account?.id || activeTab !== "stream") return;
-
-    const loadStream = async () => {
-      try {
-        setStreamLoading(true);
-        const res = await fetchAccStreamById(account.id);
-        console.log("ACCOUNT STREAM:", res);
-        setStreams(res.list || []);
-      } catch (err) {
-        console.error("Failed to load account stream", err);
-      } finally {
-        setStreamLoading(false);
-      }
-    };
-
-    loadStream();
-  }, [isOpen, account?.id, activeTab]);
+  
 
   const formatDateTime = (value) => {
     if (!value) return "—";
@@ -1487,8 +1474,8 @@ const AttendanceDrawer = ({
                 )}
 
                 {/* Stream List */}
-                {streams.lenght > 0 ? (
-                  streams?.map((item) => (
+                {streams?.list?.length > 0 ? (
+                  streams.list.map((item) => (
                     <div
                       key={item.id}
                       className="flex space-x-3 p-4 bg-muted/30 rounded-lg group"

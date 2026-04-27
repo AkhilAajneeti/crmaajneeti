@@ -8,7 +8,7 @@ const RightRail = ({ leads = [] }) => {
     <div className="space-y-6">
       {/* Industry Chart */}
       {/* <ProgressChart leads={leads} /> */}
-      <IndustryChart leads={leads} />
+      <IndustryChart />
       <StatusChart leads={leads} />
     </div>
   );
