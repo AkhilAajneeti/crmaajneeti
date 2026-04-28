@@ -6,7 +6,8 @@ import { useLeads, } from "hooks/useLeads";
 import { useTasks } from "hooks/useTasks";
 import { useMeetings } from "hooks/useMeetings";
 import { useTraining } from "hooks/useTraining";
-
+import { useQuery } from "@tanstack/react-query";
+import { fetchLeadsCount } from "services/leads.service";
 const Sidebar = ({ isOpen = false, onClose }) => {
   const user = JSON.parse(localStorage.getItem("login_object") || "{}");
   const isAdmin = String(user?.type).toLowerCase() === "admin";
@@ -14,17 +15,26 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isUpgradeCardVisible, setIsUpgradeCardVisible] = useState(true);
-  // const { data: leadsData, isLoading } = useLeads();
-  const { data: leadsData, isLoading } = useLeads();
+
   const { data: taskData } = useTasks();
   const { data: meetingData } = useMeetings();
 
   const { data: trainingData } = useTraining();
-  const leads = leadsData?.list || [];
+
   const tasks = taskData?.list || [];
   const meetings = meetingData?.list || [];
   const calls = trainingData?.list || [];
-  const projects = leadsData?.list || [];
+  const { data: todayLeadsCount = 0 } = useQuery({
+    queryKey: ["leads-count", "today"],
+    queryFn: () =>
+      fetchLeadsCount([
+        {
+          type: "today",
+          attribute: "createdAt",
+        },
+      ]),
+    staleTime: 60 * 1000, // cache for 1 min
+  });
   const isToday = (date) => {
     const d = new Date(date);
     const now = new Date();
@@ -34,9 +44,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       d.getFullYear() === now.getFullYear()
     );
   };
-  const todayLeadsCount = leads.filter(
-    (l) => l.createdAt && isToday(l.createdAt),
-  ).length;
+
   const pendingTasksCount = tasks.filter(
     (t) => t.status !== "Completed",
   ).length;
@@ -46,120 +54,6 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   const trainingCountll = calls.filter(
     (c) => c.dateStart && isToday(c.dateStart),
   ).length;
-  const activeProjectsCount = projects.filter(
-    (p) => p.status === "Active",
-  ).length;
-  // const navigationItems = [
-  //   {
-  //     label: "Dashboard",
-  //     path: "/dashboard",
-  //     icon: "LayoutDashboard",
-  //     badge: null,
-  //   },
-  //   {
-  //     label: "Accounts",
-  //     path: "/accounts",
-  //     icon: "Building2",
-  //     badge: null,
-  //   },
-  //   // {
-  //   //   label: "Sales Team",
-  //   //   path: "/sales-team",
-  //   //   icon: "Users",
-  //   //   badge: null,
-  //   // },
-  //   {
-  //     label: "Leads",
-  //     path: "/leads",
-  //     icon: "Target",
-  //     badge: todayLeadsCount == 0 ? " " : todayLeadsCount,
-  //   },
-  //   // {
-  //   //   label: "Projects",
-  //   //   path: "/projects",
-  //   //   icon: "Layers",
-  //   //   badge: activeProjectsCount==0?" ":activeProjectsCount,
-  //   // },
-  //   {
-  //     label: "Task",
-  //     path: "/tasks",
-  //     icon: "ListChecks",
-  //     badge: pendingTasksCount == 0 ? " " : pendingTasksCount,
-  //   },
-  //   {
-  //     label: "Meeting",
-  //     path: "/meeting",
-  //     icon: "Projector",
-  //     badge: todayMeetingsCount == 0 ? " " : todayMeetingsCount,
-  //   },
-  //   // {
-  //   //   label: "Training",
-  //   //   path: "/call",
-  //   //   icon: "Phone",
-  //   //   badge: trainingCountll == 0 ? " " : trainingCountll,
-  //   // },
-  //   // {
-  //   //   label: "Activities",
-  //   //   path: "/activities",
-  //   //   icon: "Calendar",
-  //   //   badge: null,
-  //   // },
-  //   {
-  //     label: "Reports",
-  //     path: "/reports",
-  //     icon: "BarChart3",
-  //     badge: null,
-  //   },
-
-  //   {
-  //     label: "Integrations",
-  //     path: "/integrations",
-  //     icon: "Puzzle",
-  //     badge: null,
-  //   },
-  //   {
-  //     label: "Attendance Requests",
-  //     path: "/attendance",
-  //     icon: "ClipboardList",
-  //     badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
-  //   },
-  //   {
-  //     label: "Profile & Details",
-  //     path: "/profile",
-  //     icon: "User",
-  //     badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
-  //   },
-  //   {
-  //     label: "Workplace Notes",
-  //     path: "/workplace",
-  //     icon: "NotebookText",
-  //     badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
-  //   },
-  //   {
-  //     label: "Complaints",
-  //     path: "/complaints",
-  //     icon: "AlertTriangle",
-  //     badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
-  //   },
-  //   {
-  //     label: "Knowledge Base",
-  //     path: "/knowledge-base",
-  //     icon: "LibraryBig",
-  //     badge: activeProjectsCount == 0 ? " " : activeProjectsCount,
-  //   },
-  //   {
-  //     label: "Pipeline",
-  //     path: "/pipeline",
-  //     icon: "Filter",
-  //     badge: null,
-  //   },
-  //   {
-  //     label: "Settings",
-  //     path: "/settings",
-  //     icon: "Settings",
-  //     badge: null,
-  //   },
-  // ];
 
   const allNavigationItems = [
     {
@@ -184,6 +78,12 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       icon: "ListChecks",
       badge: pendingTasksCount == 0 ? " " : pendingTasksCount,
     },
+    // {
+    //   label: "Contacts",
+    //   path: "/contacts",
+    //   icon: "Phone",
+    //   badge: todayMeetingsCount == 0 ? " " : todayMeetingsCount,
+    // },
     {
       label: "Meeting",
       path: "/meeting",

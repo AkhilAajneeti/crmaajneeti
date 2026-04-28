@@ -305,8 +305,8 @@ const DealDrawer = ({
 
       onClose();
     } catch (err) {
-      console.error("Task creation failed", err);
-      toast.error("Task is not created");
+      console.error("Meeting creation failed", err);
+      toast.error("Meeting is not created");
     }
   };
   const handleBulkUpdate = async (e) => {
@@ -481,7 +481,7 @@ const DealDrawer = ({
             <div className="flex items-center space-x-3">
               <h2 className="text-xl font-semibold text-foreground">
                 {isMassUpdate
-                  ? "Mass Update Tasks"
+                  ? "Mass Update Meeting"
                   : mode === "add"
                     ? "New Meeting"
                     : isEditing

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Helmet } from "react-helmet";
 import Header from "../../components/ui/Header";
 import Sidebar from "../../components/ui/Sidebar";
@@ -49,7 +49,7 @@ const Attendance = () => {
     page,
     filters
   });
-  
+
   const mockcalender = data?.list || [];
   const total = data?.total || 0;
 
@@ -289,27 +289,29 @@ const Attendance = () => {
             />
 
             {/* Charts Grid */}
-            {showAnalytics && (
-              <>
-                <div className="flex justify-end items-end mb-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowAnalytics((prev) => !prev)}
-                  >
-                    <Icon name="X" size={20} />
-                  </Button>
-                </div>
+            <AnimatePresence mode="wait">
+              {showAnalytics && (
+                <motion.div
+                  key="calendar"
+                  initial={{ opacity: 0, y: 20, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 30, scale: 0.95 }}
+                  transition={{
+                    duration: 0.4,
+                    ease: [0.22, 1, 0.36, 1], // smooth cubic
+                  }}
+                  className="mb-8"
+                >
 
-                <div className="grid grid-cols-1 xl:grid-cols-1 gap-8 mb-8">
-                  {/* Conversion Funnel */}
+                  {/* Calendar */}
                   <AttendanceCalendar
                     attendanceData={mockcalender}
                     onDateChange={setDateRange}
+                    onCloseCalendar={() => setShowAnalytics(false)} 
                   />
-                </div>
-              </>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
             {/* table */}
             <DealsTable
               deals={mockcalender}

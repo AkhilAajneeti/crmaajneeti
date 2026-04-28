@@ -8,7 +8,6 @@ import IntegrationsPage from "./pages/integrations";
 import DealsPage from "./pages/deals";
 // import ContactsPage from "./pages/contacts";
 import LoginPage from "./pages/login";
-import EmailsPage from "./pages/emails";
 import AccountsPage from "./pages/accounts";
 import Dashboard from "./pages/dashboard";
 import Reports from "./pages/reports";
@@ -75,17 +74,8 @@ const Routes = () => {
               </ProtectedRoute>
             }
           />
-          {/* <Route path="/contacts" element={<ContactsPage />} /> */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/emails"
-            element={
-              <ProtectedRoute>
-                <EmailsPage />
-              </ProtectedRoute>
-            }
-          />
 
+          <Route path="/login" element={<LoginPage />} />
           <Route
             path="/accounts"
             element={
@@ -143,7 +133,7 @@ const Routes = () => {
             }
           />
           <Route
-            path="/call"
+            path="/contacts"
             element={
               <ProtectedRoute>
                 <CallPage />

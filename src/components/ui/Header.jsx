@@ -8,6 +8,8 @@ import NotificationDropdown from "components/NotificationDropdown";
 import { useNotification } from "NotificationContext";
 import { useNotificationCount } from "hooks/useNotificationCount";
 import Avatar from "react-avatar";
+import { Link } from "react-router-dom";
+import { clearLeadsCache } from "services/leads.service";
 const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
   const LogInuserstr = localStorage.getItem("login_object");
   const LogInuser = LogInuserstr ? JSON.parse(LogInuserstr) : null;
@@ -41,6 +43,9 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
     localStorage.removeItem("rememberMe");
     localStorage.removeItem("auth_token");
 
+    // clear cache
+    clearLeadsCache();
+
     // 2️⃣ Close dropdown
     handleDropdownClose();
 
@@ -56,8 +61,6 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
   };
 
   const handleSettingsClick = () => {
-    // Navigate to settings
-    console.log("Settings clicked");
     handleDropdownClose();
   };
   const { open, setOpen, setNotifications } = useNotification();
@@ -91,20 +94,24 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
             </Button>
 
             {/* Desktop Logo - Always visible on desktop */}
-            <div className="hidden lg:flex items-center space-x-3 ml-64">
-              <div className="w-8 h-8 bg-mahroon-200 rounded-lg flex items-center justify-center">
-                {/* <Icon name="Zap" size={20} color="white" /> */}
-                <img src="/assets/images/aajneeti-favicon.png" alt="" />
+            <Link to='/dashboard'>
+              <div className="hidden lg:flex items-center space-x-3">
+
+                <div className="w-8 h-8 bg-mahroon-200 rounded-lg flex items-center justify-center">
+                  {/* <Icon name="Zap" size={20} color="white" /> */}
+                  <img src="/assets/images/aajneeti-favicon.png" alt="" />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg font-semibold text-foreground">
+                    CRM
+                  </span>
+                  <span className="px-2 py-0.5 text-xs font-medium bg-mahroon text-white rounded-full">
+                    By Aajneeti Connect ltd.
+                  </span>
+                </div>
+
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-lg font-semibold text-foreground">
-                  CRM
-                </span>
-                <span className="px-2 py-0.5 text-xs font-medium bg-mahroon text-white rounded-full">
-                  By Aajneeti Connect ltd.
-                </span>
-              </div>
-            </div>
+            </Link>
 
             {/* Mobile Logo - Only visible on mobile */}
             <div className="flex items-center space-x-3 lg:hidden">
@@ -197,13 +204,7 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
                         <Icon name="User" size={16} className="mr-3" />
                         Profile Settings
                       </button>
-                      {/* <button
-                        onClick={handleSettingsClick}
-                        className="flex items-center w-full px-4 py-2 text-sm text-popover-foreground hover:bg-muted transition-smooth"
-                      >
-                        <Icon name="Settings" size={16} className="mr-3" />
-                        Account Settings
-                      </button> */}
+
 
                       <div className="border-t border-border my-1" />
                       <button

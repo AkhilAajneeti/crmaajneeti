@@ -81,7 +81,43 @@ const DealsFilters = ({
     { label: "Last X Days", value: "lastXDays" },
     // { label: "After X Days", value: "afterXDays" },
   ];
-
+  const IndustryOptions = [
+    { value: "AppDev", label: "App Development" },
+    { value: "Automobiles", label: "Automobiles" },
+    { value: "B2B", label: "B2B" },
+    { value: "BanquetHall", label: "Banquet Hall" },
+    { value: "BridalMakeup", label: "Bridal Makeup" },
+    { value: "CaseStudy", label: "Case Study" },
+    { value: "ContactForm", label: "Contact Form" },
+    { value: "ContentMarketing", label: "Content Marketing" },
+    { value: "CoWorking", label: "Co-Working" },
+    { value: "DJMusic", label: "DJ / Music" },
+    { value: "DubaiRELG", label: "Dubai Real Estate" },
+    { value: "FacebookAds", label: "Facebook Ads" },
+    { value: "FoodCatering", label: "Food Catering" },
+    { value: "GoogleAds", label: "Google Ads" },
+    { value: "HigherEducation", label: "Higher Education" },
+    { value: "Interior", label: "Interior Design" },
+    { value: "Leasing", label: "Leasing" },
+    { value: "LinkedinAds", label: "LinkedIn Ads" },
+    { value: "LogoDesign", label: "Logo Design" },
+    { value: "LuxuryEventPlanners", label: "Luxury Event Planners" },
+    { value: "LuxuryTransportation", label: "Luxury Transportation" },
+    { value: "ORM", label: "Online Reputation Management" },
+    { value: "PhotographersVideographers", label: "Photographers & Videographers" },
+    { value: "PlotsRELG", label: "Plots Real Estate" },
+    { value: "Political", label: "Political" },
+    { value: "PreWedding", label: "Pre-Wedding" },
+    { value: "RealEstate", label: "Real Estate" },
+    { value: "RealEstateCityPages", label: "Real Estate City Pages" },
+    { value: "SEO", label: "SEO" },
+    { value: "StudyAbroad", label: "Study Abroad" },
+    { value: "TourTravel", label: "Tour & Travel" },
+    { value: "WebDev", label: "Web Development" },
+    { value: "WeddingFloralDecor", label: "Wedding Floral Decor" },
+    { value: "WikipediaBrands", label: "Wikipedia Brands" },
+    { value: "WikipediaPoloticians", label: "Wikipedia Poloticians" }
+  ];
   const showDateInputs = ["on", "before", "after", "between"].includes(filters?.dateType);
   const showXDaysInput = ["lastXDays", "afterXDays"].includes(filters?.dateType);
   const handleFilterChange = (key, value) => {
@@ -227,17 +263,20 @@ const DealsFilters = ({
           onChange={(value) => handleFilterChange("status", value)}
         />
 
-        {/* <Input
-          placeholder="Project Name"
-          value={filters?.projectName || ""}
-          onChange={(e) => handleFilterChange("projectName", e.target.value)}
-        /> */}
+
 
         <Select
           placeholder="Source"
           options={sourceOptions}
           value={filters?.source || ""}
           onChange={(value) => handleFilterChange("source", value)}
+        />
+        <Select
+          placeholder="Sectors"
+          options={IndustryOptions}
+          value={filters?.sector || ""}
+          onChange={(value) => handleFilterChange("sector", value)}
+          searchable
         />
         <Select
           placeholder="Assign User"

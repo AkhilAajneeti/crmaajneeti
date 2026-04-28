@@ -54,6 +54,7 @@ const Profile = () => {
       <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
       <main className="lg:ml-64 pt-16">
         <div className="p-4 lg:p-8">
+
           {/* Page Header */}
           <div className="mb-8">
             <div className="flex items-center space-x-4 mb-2">
@@ -169,7 +170,7 @@ const Profile = () => {
                           {formatDate(deal?.modifiedAt)}
                         </span>
                       </td>
-                     
+
                     </tr>
                   ))}
 

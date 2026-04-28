@@ -5,7 +5,7 @@ export const fetchMeeting = async () => {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      token: token, 
+      token: token,
     },
   });
   if (!res.ok) {
@@ -235,9 +235,9 @@ export const fetchAllMeeting = async ({ limit, page, filters }) => {
     }
     throw new Error("Failed to fetch accounts");
   }
-  
-  
-  return  res.json();
+
+
+  return res.json();
 };
 export const fetchMeetingById = async (id) => {
   const token = localStorage.getItem("auth_token");
@@ -286,14 +286,14 @@ export const updateMeeting = async (id, payload) => {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-     
+
         token: token,
       },
       body: JSON.stringify(payload),
     },
   );
 
-  const text = await res.text();
+
   console.log("response from meeting.service.js", res);
   if (!res.ok) {
     throw new Error(text || "Meeting update failed");
@@ -376,7 +376,7 @@ export const createMeetingStream = async (payload) => {
 
     body: JSON.stringify(payload),
   });
-  const text = await res.text();
+
   if (!res.ok) {
     console.error("API ERROR:", text);
     throw new Error("Activity is not created", text);
@@ -397,7 +397,7 @@ export const leadActivitesById = async (id) => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-   
+
         token: token,
       },
     },

@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
 import Icon from "../../../components/AppIcon";
-import Button from "../../../components/ui/Button";
+
 import { Checkbox } from "../../../components/ui/Checkbox";
-import { deleteLead } from "services/leads.service";
+
 
 const DealsTable = ({
   deals,
@@ -177,7 +177,7 @@ const DealsTable = ({
                   className="hover:bg-muted/30 cursor-pointer transition-smooth"
                 >
                   <td className="px-4 py-4" onClick={() => onDealClick(deal)}>
-                    <div className="font-medium text-foreground">
+                    <div className="font-medium text-foreground capitalize">
                       {deal?.name}
                     </div>
                   </td>

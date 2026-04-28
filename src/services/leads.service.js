@@ -86,7 +86,7 @@ export const fetchLeadsCount = async (filters = []) => {
   const res = await fetch(url, {
     method: "GET",
     headers: {
-      "Content-Type": "text/plain",
+      "Content-Type": "application/json",
       token,
     },
   });
@@ -123,12 +123,12 @@ export const fetchLeads = async () => {
   const token = localStorage.getItem("auth_token");
   const user = JSON.parse(localStorage.getItem("login_object"));
 
-  console.log("AUTH TOKEN:", token); // 🔍 debug
+  console.log("AUTH TOKEN:", token);
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Lead`, {
     method: "GET",
     headers: {
-      "Content-Type": "text/plain",
-      token: token, // ✅ backend expects this
+      "Content-Type": "application/json",
+      token: token,
     },
   });
   if (!res.ok) {
@@ -236,6 +236,13 @@ export const fetchNewLeads = async ({ limit, page, filters = {} }) => {
       value: filters.source,
     });
   }
+  if (filters.sector) {
+    where.push({
+      type: "equals",
+      attribute: "cSector",
+      value: filters.sector,
+    });
+  }
 
   if (filters.assignUser) {
     where.push({
@@ -291,7 +298,7 @@ export const fetchNewLeads = async ({ limit, page, filters = {} }) => {
 
   const res = await fetch(url, {
     headers: {
-      "Content-Type": "text/plain",
+      "Content-Type": "application/json",
       token,
     },
   });
@@ -310,7 +317,7 @@ export const fetchLeadsById = async (id) => {
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Lead/${id}`, {
     method: "GET",
     headers: {
-      "Content-Type": "text/plain",
+      "Content-Type": "application/json",
       token: token, // ✅ backend expects this
     },
   });
@@ -330,7 +337,7 @@ export const createLead = async (payload) => {
   const token = localStorage.getItem("auth_token");
   const res = await fetch("https://gateway.aajneetiadvertising.com/Lead", {
     method: "POST",
-    headers: { "Content-Type": "text/plain", token: token },
+    headers: { "Content-Type": "application/json", token: token },
 
     body: JSON.stringify(payload),
   });
@@ -340,7 +347,7 @@ export const createLead = async (payload) => {
     throw new Error("Lead is not created", text);
   }
   // EspoCRM returns array
-  return text ? JSON.parse(text) : null;
+  return res.json();
 };
 
 export const updateLead = async (id, payload) => {
@@ -351,8 +358,8 @@ export const updateLead = async (id, payload) => {
     {
       method: "PUT",
       headers: {
-        "Content-Type": "text/plain",
-        Accept: "text/plain",
+        "Content-Type": "application/json",
+        Accept: "application/json",
         token: token,
       },
       body: JSON.stringify(payload),
@@ -365,7 +372,7 @@ export const updateLead = async (id, payload) => {
     throw new Error(text || "Lead update failed");
   }
 
-  return text ? JSON.parse(text) : null;
+  return res.json();
 };
 
 export const deleteLead = async (id) => {
@@ -374,7 +381,7 @@ export const deleteLead = async (id) => {
     `https://gateway.aajneetiadvertising.com/Lead/${id}`,
     {
       method: "DELETE",
-      headers: { "Content-Type": "text/plain", token: token },
+      headers: { "Content-Type": "application/json", token: token },
     }
   );
   if (!res.ok) {
@@ -469,13 +476,12 @@ export const createLeadActivity = async (payload) => {
 
     body: JSON.stringify(payload),
   });
-  const text = await res.text();
   if (!res.ok) {
     console.error("API ERROR:", text);
     throw new Error("Activity is not created", text);
   }
   // EspoCRM returns array
-  return text ? JSON.parse(text) : null;
+  return res.json();
 };
 
 // Meet call related Activities
@@ -483,7 +489,7 @@ export const createLeadActivity = async (payload) => {
 export const leadActivitesById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
+
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Activities/Lead/${id}/activities`,
     {
@@ -529,7 +535,7 @@ export const fetchThisMonthLeadsCount = async () => {
     `https://gateway.aajneetiadvertising.com/Lead?where[0][type]=between&where[0][attribute]=createdAt&where[0][value][]=${startOfMonth}&where[0][value][]=${endOfMonth}&maxSize=1`,
     {
       headers: {
-        "Content-Type": "text/plain",
+        "Content-Type": "application/json",
         token,
       },
     }
@@ -538,4 +544,9 @@ export const fetchThisMonthLeadsCount = async () => {
   const data = await res.json();
 
   return data.total; // 🔥 ONLY COUNT
+};
+
+export const clearLeadsCache = () => {
+  localStorage.removeItem("leads_count_cache"); // local cache
+  leadsCountCache.clear(); // memory cache
 };

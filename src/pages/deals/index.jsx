@@ -48,6 +48,7 @@ const DealsPage = () => {
   const [filters, setFilters] = useState({
     search: "",
     status: "",
+    sector: "",
     projectName: "",
     source: "",
     assignUser: "",
@@ -207,6 +208,7 @@ const DealsPage = () => {
       status: "",
       projectName: "",
       source: "",
+      sector: "",
       assignUser: "",
       dateType: "",        // 👈 NEW (today, before, between, etc.)
       closeDateFrom: "",
@@ -219,7 +221,6 @@ const DealsPage = () => {
     if (action === "mass-update") {
       if (!selectedDeals.length) {
         toast.error("Select at least one lead");
-        n;
       }
       setSelectedDeal(null);
       setMode("mass-update");
@@ -386,7 +387,7 @@ const DealsPage = () => {
                     <Icon name="X" size={20} />
                   </Button>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                   <IndustryChart leads={leads} />
 
                   <MultiLineChart leads={leads} />
@@ -394,7 +395,7 @@ const DealsPage = () => {
                   <StatusChart leads={leads} />
 
                   <AssignedUserChart leads={leads} />
-                </div>
+                </div> */}
               </div>
             )}
 

@@ -79,12 +79,8 @@ const DealsTable = ({
     await onDelete(deal.id); // 👈 parent ko bol rahe ho
   };
 
-  // const paginatedDeals = useMemo(() => {
-  //   if (!deals?.length) return [];
-  //   const startIndex = (page - 1) * setPage;
-  //   return deals?.slice(startIndex, startIndex + setPage);
-  // }, [deals, page, setPage]);
-const paginatedDeals = deals;
+
+  const paginatedDeals = deals;
   const isAllSelected =
     selectedDeals?.length === paginatedDeals?.length &&
     paginatedDeals?.length > 0;
@@ -253,7 +249,7 @@ const paginatedDeals = deals;
                     />
                   </td>
                   <td className="px-4 py-4" onClick={() => onDealClick(deal)}>
-                    <div className="font-medium text-foreground">
+                    <div className="font-medium text-foreground capitalize">
                       {deal?.name}
                     </div>
                   </td>
@@ -299,9 +295,8 @@ const paginatedDeals = deals;
                   </td>
                   <td className="px-4 py-4">
                     <div
-                      className={`flex items-center space-x-1 transition-opacity ${
-                        hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
-                      }`}
+                      className={`flex items-center space-x-1 transition-opacity ${hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
+                        }`}
                     >
                       <Button
                         variant="ghost"

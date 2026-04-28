@@ -307,7 +307,7 @@ const Dashboard = () => {
                   >
                     <div className="space-y-1">
                       <p className="text-xs font-medium tracking-wide text-blue-700 uppercase">
-                        Meetings Held
+                        Meetings Scheduling
                       </p>
                       <p className="text-3xl font-bold text-blue-600">
                         {meetings}
@@ -405,7 +405,7 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
                   >
                     <div className="space-y-1">
                       <p className="text-xs font-medium tracking-wide text-green-700 uppercase">
-                        Leads Closed
+                        Client Onboarded
                       </p>
                       <p className="text-3xl font-bold text-green-600">
                         {closedDeals}

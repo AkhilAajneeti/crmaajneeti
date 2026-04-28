@@ -93,63 +93,41 @@ const AccountDrawer = ({
   ];
   const IndustryOptions = [
     { value: "", label: "All Types" },
-
-    { value: "Advertising", label: "Advertising" },
-    { value: "Aerospace", label: "Aerospace" },
-    { value: "Agriculture", label: "Agriculture" },
-    { value: "Apparel & Accessories", label: "Apparel & Accessories" },
-    { value: "Architecture", label: "Architecture" },
-    { value: "Automotive", label: "Automotive" },
-    { value: "Banking", label: "Banking" },
-    { value: "Biotechnology", label: "Biotechnology" },
-
-    { value: "Building Materials & Equipment", label: "Building Materials & Equipment" },
-    { value: "Chemical", label: "Chemical" },
-    { value: "Computer", label: "Computer" },
-    { value: "Construction", label: "Construction" },
-    { value: "Consulting", label: "Consulting" },
-    { value: "Creative", label: "Creative" },
-    { value: "Culture", label: "Culture" },
-    { value: "Defense", label: "Defense" },
-    { value: "Education", label: "Education" },
-
-    { value: "Electric Power", label: "Electric Power" },
-    { value: "Electronics", label: "Electronics" },
-    { value: "Energy", label: "Energy" },
-    { value: "Entertainment & Leisure", label: "Entertainment & Leisure" },
-    { value: "Finance", label: "Finance" },
-    { value: "Food & Beverage", label: "Food & Beverage" },
-    { value: "Grocery", label: "Grocery" },
-    { value: "Healthcare", label: "Healthcare" },
-    { value: "Hospitality", label: "Hospitality" },
-
-    { value: "Insurance", label: "Insurance" },
-    { value: "Legal", label: "Legal" },
-    { value: "Manufacturing", label: "Manufacturing" },
-    { value: "Marketing", label: "Marketing" },
-    { value: "Mass Media", label: "Mass Media" },
-    { value: "Mining", label: "Mining" },
-    { value: "Music", label: "Music" },
-    { value: "Petroleum", label: "Petroleum" },
-    { value: "Publishing", label: "Publishing" },
-
-    { value: "Real Estate", label: "Real Estate" },
-    { value: "Retail", label: "Retail" },
-    { value: "Service", label: "Service" },
-    { value: "Shipping", label: "Shipping" },
-    { value: "Software", label: "Software" },
-    { value: "Sports", label: "Sports" },
-    { value: "Support", label: "Support" },
-    { value: "Technology", label: "Technology" },
-    { value: "Telecommunications", label: "Telecommunications" },
-
-    { value: "Television", label: "Television" },
-    { value: "Testing, Inspection & Certification", label: "Testing, Inspection & Certification" },
-    { value: "Transportation", label: "Transportation" },
-    { value: "Travel", label: "Travel" },
-    { value: "Venture Capital", label: "Venture Capital" },
-    { value: "Water", label: "Water" },
-    { value: "Wholesale", label: "Wholesale" }
+    { value: "AppDev", label: "App Development" },
+    { value: "Automobiles", label: "Automobiles" },
+    { value: "B2B", label: "B2B" },
+    { value: "BanquetHall", label: "Banquet Hall" },
+    { value: "BridalMakeup", label: "Bridal Makeup" },
+    { value: "CaseStudy", label: "Case Study" },
+    { value: "ContactForm", label: "Contact Form" },
+    { value: "ContentMarketing", label: "Content Marketing" },
+    { value: "CoWorking", label: "Co-Working" },
+    { value: "DJMusic", label: "DJ / Music" },
+    { value: "DubaiRELG", label: "Dubai Real Estate" },
+    { value: "FacebookAds", label: "Facebook Ads" },
+    { value: "FoodCatering", label: "Food Catering" },
+    { value: "GoogleAds", label: "Google Ads" },
+    { value: "HigherEducation", label: "Higher Education" },
+    { value: "Interior", label: "Interior Design" },
+    { value: "Leasing", label: "Leasing" },
+    { value: "LinkedinAds", label: "LinkedIn Ads" },
+    { value: "LogoDesign", label: "Logo Design" },
+    { value: "LuxuryEventPlanners", label: "Luxury Event Planners" },
+    { value: "LuxuryTransportation", label: "Luxury Transportation" },
+    { value: "ORM", label: "Online Reputation Management" },
+    { value: "PhotographersVideographers", label: "Photographers & Videographers" },
+    { value: "PlotsRELG", label: "Plots Real Estate" },
+    { value: "Political", label: "Political" },
+    { value: "PreWedding", label: "Pre-Wedding" },
+    { value: "RealEstate", label: "Real Estate" },
+    { value: "RealEstateCityPages", label: "Real Estate City Pages" },
+    { value: "SEO", label: "SEO" },
+    { value: "StudyAbroad", label: "Study Abroad" },
+    { value: "TourTravel", label: "Tour & Travel" },
+    { value: "WebDev", label: "Web Development" },
+    { value: "WeddingFloralDecor", label: "Wedding Floral Decor" },
+    { value: "WikipediaBrands", label: "Wikipedia Brands" },
+    { value: "WikipediaPoloticians", label: "Wikipedia Poloticians" }
   ];
 
   useEffect(() => {
@@ -725,7 +703,7 @@ const AccountDrawer = ({
           <div className="flex border-b border-border">
             {/* Tabs */}
             {/* Tabs */}
-            {drawerMode !== "create" && !isMassUpdate && (
+            {drawerMode !== "create" && !isMassUpdate && !isEditing && (
               <div className="flex border-b border-border overflow-x-scroll md:overflow-hidden ">
                 {tabs.map((tab) => (
                   <button
@@ -750,253 +728,159 @@ const AccountDrawer = ({
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6">
             {drawerMode === "create" && (
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Name <span className="text-destructive">*</span>
-                  </label>
-                  <Input
-                    name="name"
-                    value={formData?.name}
-                    onChange={handleInputChange}
-                    placeholder="Acme Corporation"
-                    required
-                  />
+              <div className=" bg-gradient-to-br from-background to-muted/30 rounded-2xl space-y-6">
+
+                {/* 🔹 Basic Info */}
+                <div className="bg-background border rounded-xl p-5 shadow-sm space-y-4">
+                  <h3 className="text-sm font-semibold text-primary">Basic Information</h3>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      name="name"
+                      value={formData?.name}
+                      onChange={handleInputChange}
+                      placeholder="Company Name *"
+                      className="h-11 rounded-lg"
+                    />
+
+                    <Input
+                      name="website"
+                      type="url"
+                      value={formData?.website}
+                      onChange={handleInputChange}
+                      placeholder="Website URL"
+                      className="h-11 rounded-lg"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Website
-                  </label>
-                  <Input
-                    name="website"
-                    type="url"
-                    value={formData?.website}
-                    onChange={handleInputChange}
-                    placeholder="https://www.acme.com"
-                  />
-                </div>
+                {/* 🔹 Contact */}
+                <div className="bg-background border rounded-xl p-5 shadow-sm space-y-4">
+                  <h3 className="text-sm font-semibold text-primary">Contact Details</h3>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Phone
-                    </label>
+                  <div className="grid grid-cols-2 gap-4">
                     <Input
                       name="phoneNumber"
                       type="tel"
                       value={formData?.phoneNumber}
                       onChange={handleInputChange}
-                      placeholder="+911234567891"
+                      placeholder="Phone Number"
+                      className="h-11 rounded-lg"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Email
-                    </label>
                     <Input
                       name="emailAddress"
                       type="email"
                       value={formData?.emailAddress}
                       onChange={handleInputChange}
-                      placeholder="example123@gmail.com"
+                      placeholder="Email Address"
+                      className="h-11 rounded-lg"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Billing Address
-                  </label>
+                {/* 🔹 Billing Address */}
+                <div className="bg-background border rounded-xl p-5 shadow-sm space-y-4">
+                  <h3 className="text-sm font-semibold text-primary">Billing Address</h3>
+
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Input
-                        name="billingAddressStreet"
-                        type="text"
-                        value={formData?.billingAddressStreet}
-                        onChange={handleInputChange}
-                        placeholder="Street"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="billingAddressCity"
-                        type="text"
-                        value={formData?.billingAddressCity}
-                        onChange={handleInputChange}
-                        placeholder="City"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="billingAddressState"
-                        type="text"
-                        value={formData?.billingAddressState}
-                        onChange={handleInputChange}
-                        placeholder="State"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="billingAddressPostalCode"
-                        type="text"
-                        value={formData?.billingAddressPostalCode}
-                        onChange={handleInputChange}
-                        placeholder="text"
-                      />
-                    </div>
+                    <Input name="billingAddressStreet" value={formData?.billingAddressStreet} onChange={handleInputChange} placeholder="Street" />
+                    <Input name="billingAddressCity" value={formData?.billingAddressCity} onChange={handleInputChange} placeholder="City" />
+                    <Input name="billingAddressState" value={formData?.billingAddressState} onChange={handleInputChange} placeholder="State" />
+                    <Input name="billingAddressPostalCode" value={formData?.billingAddressPostalCode} onChange={handleInputChange} placeholder="Postal Code" />
                     <div className="col-span-2">
-                      <Input
-                        name="billingAddressCountry"
-                        type="text"
-                        value={formData?.billingAddressCountry}
-                        onChange={handleInputChange}
-                        placeholder="Country"
-                      />
+                      <Input name="billingAddressCountry" value={formData?.billingAddressCountry} onChange={handleInputChange} placeholder="Country" />
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Shipping Address
-                  </label>
+                {/* 🔹 Shipping Address */}
+                <div className="bg-background border rounded-xl p-5 shadow-sm space-y-4">
+                  <h3 className="text-sm font-semibold text-primary">Shipping Address</h3>
+
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Input
-                        name="shippingAddressStreet"
-                        type="text"
-                        value={formData?.shippingAddressStreet}
-                        onChange={handleInputChange}
-                        placeholder="Street"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="shippingAddressCity"
-                        type="text"
-                        value={formData?.shippingAddressCity}
-                        onChange={handleInputChange}
-                        placeholder="City"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="shippingAddressState"
-                        type="text"
-                        value={formData?.shippingAddressState}
-                        onChange={handleInputChange}
-                        placeholder="State"
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        name="shippingAddressPostalCode"
-                        type="text"
-                        value={formData?.shippingAddressPostalCode}
-                        onChange={handleInputChange}
-                        placeholder="text"
-                      />
-                    </div>
+                    <Input name="shippingAddressStreet" value={formData?.shippingAddressStreet} onChange={handleInputChange} placeholder="Street" />
+                    <Input name="shippingAddressCity" value={formData?.shippingAddressCity} onChange={handleInputChange} placeholder="City" />
+                    <Input name="shippingAddressState" value={formData?.shippingAddressState} onChange={handleInputChange} placeholder="State" />
+                    <Input name="shippingAddressPostalCode" value={formData?.shippingAddressPostalCode} onChange={handleInputChange} placeholder="Postal Code" />
                     <div className="col-span-2">
-                      <Input
-                        name="shippingAddressCountry"
-                        type="text"
-                        value={formData?.shippingAddressCountry}
-                        onChange={handleInputChange}
-                        placeholder="Country"
-                      />
+                      <Input name="shippingAddressCountry" value={formData?.shippingAddressCountry} onChange={handleInputChange} placeholder="Country" />
                     </div>
                   </div>
                 </div>
 
-                <div>
+                {/* 🔹 Assignment */}
+                <div className="bg-background border rounded-xl p-5 shadow-sm space-y-4">
+                  <h3 className="text-sm font-semibold text-primary">Assignment</h3>
+
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Assigned User
-                      </label>
-                      <Select
-                        name="assignedUserId"
-                        value={formData.assignedUserId || ""}
-                        options={userOptions} // 👉 later API se users
-                        onChange={(value) =>
-                          handleSelectChange("assignedUserId", value)
-                        }
-                        searchable
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Teams
-                      </label>
-                      <Select
-                        name="teamId"
-                        value={formData.teamId || ""}
-                        options={teamOptions}
-                        onChange={(value) =>
-                          handleSelectChange("teamId", value)
-                        }
-                        placeholder="Select Team"
-                      />
-                    </div>
+                    <Select
+                      name="assignedUserId"
+                      value={formData.assignedUserId || ""}
+                      options={userOptions}
+                      onChange={(value) => handleSelectChange("assignedUserId", value)}
+                      placeholder="Assign User"
+                      searchable
+                    />
+                    <Select
+                      name="teamId"
+                      value={formData.teamId || ""}
+                      options={teamOptions}
+                      onChange={(value) => handleSelectChange("teamId", value)}
+                      placeholder="Select Team"
+                    />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Details
-                  </label>
+                {/* 🔹 Details */}
+                <div className="bg-background border rounded-xl p-5 shadow-sm space-y-4">
+                  <h3 className="text-sm font-semibold text-primary">Details</h3>
+
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Select
-                        label="Type"
-                        name="type"
-                        value={formData.type}
-                        options={accountType}
-                        onChange={(value) => handleSelectChange("type", value)}
-                      />
-                    </div>
-                    <div>
-                      <Select
-                        label="Industry"
-                        name="industry"
-                        value={formData.industry || ""}
-                        options={IndustryOptions}
-                        onChange={(value) =>
-                          handleSelectChange("industry", value)
-                        }
-                      />
-                    </div>
+                    <Select
+                      name="type"
+                      value={formData.type}
+                      options={accountType}
+                      onChange={(value) => handleSelectChange("type", value)}
+                      placeholder="Account Type"
+                    />
+                    <Select
+                      name="industry"
+                      value={formData.industry || ""}
+                      options={IndustryOptions}
+                      onChange={(value) => handleSelectChange("industry", value)}
+                      placeholder="Industry"
+                      searchable
+                    />
+
                     <div className="col-span-2">
                       <textarea
                         name="description"
                         value={formData?.description}
                         onChange={handleInputChange}
-                        placeholder="Brief description of the company..."
-                        rows={3}
-                        className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Write something about this company..."
+                        rows={4}
+                        className="w-full px-4 py-3 border rounded-lg bg-muted/20 focus:ring-2 focus:ring-primary outline-none"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 pt-4">
+                {/* 🔻 Actions */}
+                <div className="flex items-center gap-3 pt-4 sticky bottom-0 bg-background/80 backdrop-blur-md">
                   <Button
                     onClick={handleSave}
                     disabled={isLoading}
-                    className="flex-1"
+                    className="flex-1 h-11 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:scale-[1.02] transition shadow-lg"
                   >
                     {isLoading
                       ? "Saving..."
                       : drawerMode === "edit"
                         ? "Update Account"
-                        : "Save Account"}
+                        : "Create Account"}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={drawerMode === "edit" ? handleCancelEdit : onClose}
-                    disabled={isLoading}
                   >
                     Cancel
                   </Button>
@@ -1045,6 +929,7 @@ const AccountDrawer = ({
                       onChange={(value) =>
                         handleSelectChange("industry", value)
                       }
+                      searchable
                     />
                   </div>
                 </div>
@@ -1103,241 +988,146 @@ const AccountDrawer = ({
                   {/* Account Details update*/}
                   <div className="space-y-4">
                     {isEditing ? (
-                      <div className="p-6 space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            Name <span className="text-destructive">*</span>
-                          </label>
+                      <div className=" space-y-4 bg-gradient-to-br from-background to-muted/30">
+
+                        {/* ===== BASIC INFO ===== */}
+                        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-sm transition-all space-y-4">
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                            Basic Info
+                          </h3>
+
                           <Input
                             name="name"
                             value={formData?.name}
                             onChange={handleInputChange}
-                            placeholder="Acme Corporation"
+                            placeholder="Company Name"
                             required
+                            className="h-11 rounded-xl"
                           />
-                        </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            Website
-                          </label>
                           <Input
                             name="website"
                             type="url"
                             value={formData?.website}
                             onChange={handleInputChange}
-                            placeholder="https://www.acme.com"
+                            placeholder="Website URL"
+                            className="h-11 rounded-xl"
                           />
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-foreground mb-2">
-                              Phone
-                            </label>
+                          <div className="grid grid-cols-2 gap-4">
                             <Input
                               name="phoneNumber"
-                              type="tel"
                               value={formData?.phoneNumber}
                               onChange={handleInputChange}
-                              placeholder="1234567891"
+                              placeholder="Phone"
+                              className="h-11 rounded-xl"
                             />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-foreground mb-2">
-                              Email
-                            </label>
                             <Input
                               name="emailAddress"
-                              type="email"
                               value={formData?.emailAddress}
                               onChange={handleInputChange}
-                              placeholder="example123@gmail.com"
+                              placeholder="Email"
+                              className="h-11 rounded-xl"
                             />
                           </div>
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
+                        {/* ===== BILLING ===== */}
+                        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-sm transition-all">
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                             Billing Address
-                          </label>
+                          </h3>
+
                           <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Input
-                                name="billingAddressStreet"
-                                type="text"
-                                value={formData?.billingAddressStreet}
-                                onChange={handleInputChange}
-                                placeholder="Street"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="billingAddressCity"
-                                type="text"
-                                value={formData?.billingAddressCity}
-                                onChange={handleInputChange}
-                                placeholder="City"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="billingAddressState"
-                                type="text"
-                                value={formData?.billingAddressState}
-                                onChange={handleInputChange}
-                                placeholder="State"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="billingAddressPostalCode"
-                                type="text"
-                                value={formData?.billingAddressPostalCode}
-                                onChange={handleInputChange}
-                                placeholder="text"
-                              />
-                            </div>
+                            <Input name="billingAddressStreet" placeholder="Street" />
+                            <Input name="billingAddressCity" placeholder="City" />
+                            <Input name="billingAddressState" placeholder="State" />
+                            <Input name="billingAddressPostalCode" placeholder="Postal Code" />
                             <div className="col-span-2">
-                              <Input
-                                name="billingAddressCountry"
-                                type="text"
-                                value={formData?.billingAddressCountry}
-                                onChange={handleInputChange}
-                                placeholder="Country"
-                              />
+                              <Input name="billingAddressCountry" placeholder="Country" />
                             </div>
                           </div>
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
+                        {/* ===== SHIPPING ===== */}
+                        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadows-sm transition-all">
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                             Shipping Address
-                          </label>
+                          </h3>
+
                           <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Input
-                                name="shippingAddressStreet"
-                                type="text"
-                                value={formData?.shippingAddressStreet}
-                                onChange={handleInputChange}
-                                placeholder="Street"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="shippingAddressCity"
-                                type="text"
-                                value={formData?.shippingAddressCity}
-                                onChange={handleInputChange}
-                                placeholder="City"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="shippingAddressState"
-                                type="text"
-                                value={formData?.shippingAddressState}
-                                onChange={handleInputChange}
-                                placeholder="State"
-                              />
-                            </div>
-                            <div>
-                              <Input
-                                name="shippingAddressPostalCode"
-                                type="text"
-                                value={formData?.shippingAddressPostalCode}
-                                onChange={handleInputChange}
-                                placeholder="text"
-                              />
-                            </div>
+                            <Input name="shippingAddressStreet" placeholder="Street" />
+                            <Input name="shippingAddressCity" placeholder="City" />
+                            <Input name="shippingAddressState" placeholder="State" />
+                            <Input name="shippingAddressPostalCode" placeholder="Postal Code" />
                             <div className="col-span-2">
-                              <Input
-                                name="shippingAddressCountry"
-                                type="text"
-                                value={formData?.shippingAddressCountry}
-                                onChange={handleInputChange}
-                                placeholder="Country"
-                              />
+                              <Input name="shippingAddressCountry" placeholder="Country" />
                             </div>
                           </div>
                         </div>
 
-                        <div>
+                        {/* ===== ASSIGNMENT ===== */}
+                        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-sm transition-all">
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                            Assignment
+                          </h3>
+
                           <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-foreground mb-2">
-                                Assigned User
-                              </label>
-                              <Select
-                                name="assignedUserId"
-                                value={formData.assignedUserId || ""}
-                                options={userOptions} // 👉 later API se users
-                                onChange={(value) =>
-                                  handleSelectChange("assignedUserId", value)
-                                }
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-foreground mb-2">
-                                Teams
-                              </label>
-                              <Select
-                                name="teamId"
-                                value={formData.teamId || ""}
-                                options={teamOptions}
-                                onChange={(value) =>
-                                  handleSelectChange("teamId", value)
-                                }
-                                placeholder="Select Team"
-                              />
-                            </div>
+                            <Select
+                              name="assignedUserId"
+                              value={formData.assignedUserId || ""}
+                              options={userOptions}
+                              onChange={(v) => handleSelectChange("assignedUserId", v)}
+                            />
+                            <Select
+                              name="teamId"
+                              value={formData.teamId || ""}
+                              options={teamOptions}
+                              onChange={(v) => handleSelectChange("teamId", v)}
+                            />
                           </div>
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
+                        {/* ===== DETAILS ===== */}
+                        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-sm transition-all">
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                             Details
-                          </label>
+                          </h3>
+
                           <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Select
-                                label="Type"
-                                value={formData.type}
-                                options={accountType}
-                                disabled={!massFields.type}
-                                onChange={(v) => handleChange("type", v)}
-                              />
-                            </div>
-                            <div>
-                              <Select
-                                label="Industry"
-                                name="industry"
-                                value={formData.industry || ""}
-                                options={IndustryOptions}
-                                onChange={(value) =>
-                                  handleSelectChange("industry", value)
-                                }
-                              />
-                            </div>
+                            <Select
+                              label="Type"
+                              value={formData.type}
+                              options={accountType}
+                              onChange={(v) => handleChange("type", v)}
+                            />
+
+                            <Select
+                              label="Industry"
+                              value={formData.industry || ""}
+                              options={IndustryOptions}
+                              onChange={(v) => handleSelectChange("industry", v)}
+                            />
+
                             <div className="col-span-2">
                               <textarea
                                 name="description"
                                 value={formData?.description}
                                 onChange={handleInputChange}
-                                placeholder="Brief description of the company..."
-                                rows={3}
-                                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="Brief description..."
+                                rows={4}
+                                className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:ring-2 focus:ring-primary transition"
                               />
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center space-x-3 pt-4">
+                        {/* ===== ACTIONS ===== */}
+                        <div className="flex items-center gap-3 pt-4 sticky bottom-0 bg-background/80 backdrop-blur-md">
                           <Button
                             onClick={handleSave}
                             disabled={isLoading}
-                            className="flex-1"
+                            className="flex-1 h-11 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:scale-[1.02] transition shadow-lg"
                           >
                             {isLoading
                               ? "Saving..."
@@ -1345,16 +1135,16 @@ const AccountDrawer = ({
                                 ? "Update Account"
                                 : "Save Account"}
                           </Button>
+
                           <Button
                             variant="outline"
-                            onClick={
-                              drawerMode === "edit" ? handleCancelEdit : onClose
-                            }
-                            disabled={isLoading}
+                            onClick={drawerMode === "edit" ? handleCancelEdit : onClose}
+                            className="h-11 rounded-xl"
                           >
                             Cancel
                           </Button>
                         </div>
+
                       </div>
                     ) : (
                       <div className="space-y-2">

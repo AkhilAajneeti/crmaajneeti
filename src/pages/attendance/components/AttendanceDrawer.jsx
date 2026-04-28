@@ -26,8 +26,6 @@ import { useCalenderById, useCalenderStream } from "hooks/useCalender";
 import { createNewAttendance, updateAttendance } from "services/calender.service";
 const AttendanceDrawer = ({
   data,
-  accType,
-  industry,
   accounts,
   isOpen,
   onClose,
@@ -47,9 +45,9 @@ const AttendanceDrawer = ({
   const [activityLoading, setActivityLoading] = useState(false);
   const [expandedActivityId, setExpandedActivityId] = useState(null);
   const [tasks, setTasks] = useState([]);
-  const [contacts, setContacts] = useState([]);
+
   const [taskLoading, setTaskLoading] = useState(false);
-  const [contactLoading, setContactLoading] = useState(false);
+
 
   const [users, setUsers] = useState([]);
   const [team, setTeam] = useState([]);
@@ -67,9 +65,9 @@ const AttendanceDrawer = ({
     data: streams,
     isLoading: streamLoading,
   } = useCalenderStream(data?.id, isOpen, activeTab);
- console.log('stream',streams);
- 
-  
+  console.log('stream', streams);
+
+
   // Form state for create/edit mode
   const [formData, setFormData] = useState({
     name: "", // reason
@@ -79,9 +77,9 @@ const AttendanceDrawer = ({
     status: "Pending",
     startDate: "",
     endDate: "",
-    // leaveBalance: 0,
-    // leaveConsumed: 0,
+
     description: "",
+    reportingManagerIds: [],
     reportingManagerEmail: "",
     teamsIds: [],
     collaboratorsIds: []
@@ -105,7 +103,7 @@ const AttendanceDrawer = ({
       });
     }
   }, [account, drawerMode]);
-  
+
 
   const formatDateTime = (value) => {
     if (!value) return "—";
@@ -273,16 +271,8 @@ const AttendanceDrawer = ({
     value: t.id,
     label: t.name,
   }));
-  const IndustryOptions = (industry || []).filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const accountType = (accType || []).filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+
+
 
   const handleUpdate = async () => {
     if (!validateForm()) return;
@@ -315,7 +305,7 @@ const AttendanceDrawer = ({
         leaveBalance: Number(formData.leaveBalance),
         leaveConsumed: Number(formData.leaveConsumed),
         description: formData.description,
-        reportingManagerEmail: formData.reportingManagerEmail,
+        reportingManagerEmail: formData.reportingManagerIds,
         teamsIds: formData.teamsIds,
         collaboratorsIds: formData.collaboratorsIds
       };
@@ -589,6 +579,21 @@ const AttendanceDrawer = ({
       collaboratorsIds: ids
     }));
   };
+
+  useEffect(() => {
+    if (drawerMode === "create") {
+      const user = JSON.parse(localStorage.getItem("login_object"));
+
+      if (user?.id) {
+        setFormData(prev => ({
+          ...prev,
+
+          collaboratorsIds: [user.id] // ✅ default selected
+        }));
+      }
+    }
+  }, [drawerMode]);
+
   return (
     <>
       {/* Backdrop */}
@@ -608,7 +613,7 @@ const AttendanceDrawer = ({
           <div className="flex items-center justify-between p-6 border-b border-border">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Icon name="Building2" size={24} className="text-primary" />
+                <Icon name="ClipboardList" size={24} className="text-primary" />
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-foreground">
@@ -697,7 +702,6 @@ const AttendanceDrawer = ({
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Request Type
@@ -723,8 +727,6 @@ const AttendanceDrawer = ({
                     />
                   </div>
                 </div>
-
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Input
@@ -785,13 +787,22 @@ const AttendanceDrawer = ({
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Reporting Manager
                     </label>
-                    <Select
-                      value={formData.reportingManagerEmail || ""}
+                    <ReactSelect
+                      isMulti
+                      closeMenuOnSelect={false}
+                      components={animatedComponents}
                       options={userOptions}
-                      onChange={(v) => {
-                        const user = users.find(u => u.id === v);
-                        handleChange("reportingManagerEmail", user?.email);
-                      }}
+                      value={userOptions.filter(opt =>
+                        formData.reportingManagerIds?.includes(opt.value)
+                      )}
+                      onChange={(selected) =>
+                        setFormData(prev => ({
+                          ...prev,
+                          reportingManagerIds: (selected || []).map(opt => opt.value)
+                        }))
+                      }
+                      placeholder="Select Managers..."
+                      classNamePrefix="react-select"
                     />
                   </div>
                   <div>
@@ -814,36 +825,17 @@ const AttendanceDrawer = ({
                       closeMenuOnSelect={false}
                       components={animatedComponents}
                       options={userOptions}
-                      value={formData.fieldList}
-                      onChange={handleFieldListChange}
-                      placeholder="Select Field List..."
+                      value={userOptions.filter(opt =>
+                        formData.collaboratorsIds?.includes(opt.value)
+                      )}
+                      onChange={(selected) =>
+                        setFormData(prev => ({
+                          ...prev,
+                          collaboratorsIds: (selected || []).map(opt => opt.value)
+                        }))
+                      }
+                      placeholder="Select CC users..."
                       classNamePrefix="react-select"
-                      styles={{
-                        control: (base, state) => ({
-                          ...base,
-                          minHeight: "42px",
-                          borderColor: state.isFocused ? "#a3d9a5" : "#a3d9a5",
-                          boxShadow: "none",
-                          "&:hover": { borderColor: "#6366f1" },
-                        }),
-                        multiValue: (base) => ({
-                          ...base,
-                          backgroundColor: "#EEF2FF",
-                        }),
-                        multiValueLabel: (base) => ({
-                          ...base,
-                          color: "#000",
-                          fontWeight: 500,
-                        }),
-                        multiValueRemove: (base) => ({
-                          ...base,
-                          color: "#e8a8a0",
-                          ":hover": {
-                            backgroundColor: "#e8a8a0",
-                            color: "#fff",
-                          },
-                        }),
-                      }}
                     />
                   </div>
                 </div>
@@ -971,317 +963,283 @@ const AttendanceDrawer = ({
                   {/* Account Details update*/}
                   <div className="space-y-4">
                     {isEditing ? (
-                      <div className="p-6 space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            Reason <span className="text-destructive">*</span>
-                          </label>
+                      <div className="space-y-6">
+
+                        {/* ================= HEADER CARD ================= */}
+                        <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Editing Request</p>
+                            <h2 className="text-lg font-semibold text-foreground">
+                              {formData?.name || "Attendance Request"}
+                            </h2>
+                          </div>
+
+                          <span className="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700">
+                            {formData?.status || "Pending"}
+                          </span>
+                        </div>
+
+                        {/* ================= BASIC INFO ================= */}
+                        <div className="bg-background border border-border rounded-2xl p-5 space-y-4 shadow-sm">
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                            Basic Information
+                          </h3>
+
                           <textarea
                             name="name"
                             value={formData?.name}
                             onChange={handleInputChange}
-                            placeholder="Acme Corporation"
-                            required
+                            placeholder="Enter reason..."
+                            className="w-full p-3 border border-border rounded-xl focus:ring-2 focus:ring-primary"
                           />
-                        </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            Department
-                          </label>
                           <Input
                             name="department"
+                            label="Department"
                             value={formData.department}
                             onChange={handleInputChange}
                           />
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-foreground mb-2">
-                              Employee Code
-                            </label>
+                          <div className="grid grid-cols-2 gap-4">
                             <Input
                               name="employeeCode"
+                              label="Employee Code"
                               value={formData.employeeCode}
                               onChange={handleInputChange}
                             />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-foreground mb-2">
-                              Request Type
-                            </label>
+
                             <Select
-                              name="requestType"
-                              value={formData.requestType || ""}
+                              label="Request Type"
+                              value={formData.requestType}
                               options={requestType}
-                              onChange={(v) =>
-                                handleSelectChange("requestType", v.value)
-                              }
-                              placeholder="Select Team"
+                              onChange={(v) => handleChange("requestType", v.value)}
                             />
                           </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            Status
-                          </label>
+
                           <Select
-                            name="status"
-                            value={formData.status || ""}
+                            label="Status"
+                            value={formData.status}
                             options={[
                               { value: "Pending", label: "Pending" },
                               { value: "Approved", label: "Approved" },
                               { value: "Rejected", label: "Rejected" }
                             ]}
-                            onChange={(value) =>
-                              handleSelectChange("status", value)
-                            }
-                            placeholder="status"
+                            onChange={(v) => handleChange("status", v.value)}
                           />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
+                        {/* ================= DATE SECTION ================= */}
+                        <div className="bg-background border border-border rounded-2xl p-5 space-y-4 shadow-sm">
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                            Leave Duration
+                          </h3>
+
+                          <div className="grid grid-cols-3 gap-4">
                             <Input
                               type="date"
                               label="Start Date"
                               value={formData.startDate}
                               onChange={(e) => handleChange("startDate", e.target.value)}
                             />
-                          </div>
-                          <div>
+
                             <Input
                               type="date"
                               label="End Date"
                               value={formData.endDate}
                               onChange={(e) => handleChange("endDate", e.target.value)}
                             />
-                          </div>
-                        </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            Leave Balance
-                          </label>
+                            <Input
+                              name="leaveConsumed"
+                              label="Days"
+                              type="number"
+                              value={formData.leaveConsumed}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+
                           <Input
                             name="leaveBalance"
+                            label="Leave Balance"
                             type="number"
                             value={formData.leaveBalance}
                             onChange={handleInputChange}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            Leave Duration (Total Number of Days)
-                          </label>
-                          <Input
-                            name="leaveConsumed"
-                            type="number"
-                            value={formData.leaveConsumed}
-                            onChange={handleInputChange}
+
                           />
                         </div>
 
-                        <div className="col-span-2">
+                        {/* ================= DESCRIPTION ================= */}
+                        <div className="bg-background border border-border rounded-2xl p-5 shadow-sm">
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                            Description
+                          </h3>
+
                           <textarea
                             name="description"
                             value={formData.description}
                             onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            rows={4}
+                            className="w-full p-3 border border-border rounded-xl focus:ring-2 focus:ring-primary"
                           />
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            Reporting Manager
-                          </label>
-                          <Select
-                            value={formData.reportingManagerEmail || ""}
-                            options={userOptions}
-                            onChange={(v) => {
-                              const user = users.find(u => u.id === v);
-                              handleChange("reportingManagerEmail", user?.email);
-                            }}
-                          />
+                        {/* ================= TEAM & USERS ================= */}
+                        <div className="bg-background border border-border rounded-2xl p-5 space-y-4 shadow-sm">
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                            Assignment
+                          </h3>
 
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            Teams
-                          </label>
+                          {/* Reporting Manager */}
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">
+                              Reporting Manager
+                            </label>
+
+                            <ReactSelect
+                              isMulti
+                              options={userOptions}
+                              value={userOptions.filter(opt =>
+                                formData.reportingManagerIds?.includes(opt.value)
+                              )}
+                              onChange={(selected) =>
+                                setFormData(prev => ({
+                                  ...prev,
+                                  reportingManagerIds: (selected || []).map(opt => opt.value)
+                                }))
+                              }
+                              classNamePrefix="react-select"
+                            />
+                          </div>
+
+                          {/* Team */}
                           <Select
-                            value={formData.teamsIds[0] || ""}
+                            label="Team"
+                            value={formData.teamsIds?.[0] || ""}
                             options={teamOptions}
                             onChange={(v) => handleChange("teamsIds", [v])}
-                            placeholder="Select Team"
                           />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            CC
-                          </label>
-                          <ReactSelect
-                            isMulti
-                            closeMenuOnSelect={false}
-                            components={animatedComponents}
-                            options={userOptions}
-                            value={formData.fieldList}
-                            onChange={handleFieldListChange}
-                            placeholder="Select Field List..."
-                            classNamePrefix="react-select"
-                            styles={{
-                              control: (base, state) => ({
-                                ...base,
-                                minHeight: "42px",
-                                borderColor: state.isFocused ? "#a3d9a5" : "#a3d9a5",
-                                boxShadow: "none",
-                                "&:hover": { borderColor: "#6366f1" },
-                              }),
-                              multiValue: (base) => ({
-                                ...base,
-                                backgroundColor: "#EEF2FF",
-                              }),
-                              multiValueLabel: (base) => ({
-                                ...base,
-                                color: "#000",
-                                fontWeight: 500,
-                              }),
-                              multiValueRemove: (base) => ({
-                                ...base,
-                                color: "#e8a8a0",
-                                ":hover": {
-                                  backgroundColor: "#e8a8a0",
-                                  color: "#fff",
-                                },
-                              }),
-                            }}
-                          />
+
+                          {/* CC */}
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">
+                              CC
+                            </label>
+
+                            <ReactSelect
+                              isMulti
+                              options={userOptions}
+                              value={userOptions.filter(opt =>
+                                formData.collaboratorsIds?.includes(opt.value)
+                              )}
+                              onChange={(selected) =>
+                                setFormData(prev => ({
+                                  ...prev,
+                                  collaboratorsIds: (selected || []).map(opt => opt.value)
+                                }))
+                              }
+                              classNamePrefix="react-select"
+                            />
+                          </div>
                         </div>
 
-                        <div className="flex items-center space-x-3 pt-4">
+                        {/* ================= ACTION BUTTONS ================= */}
+                        <div className="flex gap-3 pt-2">
                           <Button
                             onClick={handleSave}
-                            disabled={isLoading}
-                            className="flex-1"
+                            className="flex-1 bg-primary hover:bg-primary/90 shadow-md"
                           >
-                            {isLoading
-                              ? "Saving..."
-                              : drawerMode === "edit"
-                                ? "Update Account"
-                                : "Save Account"}
+                            {isLoading ? "Saving..." : "Update Request"}
                           </Button>
-                          <Button
-                            variant="outline"
-                            onClick={
-                              drawerMode === "edit" ? handleCancelEdit : onClose
-                            }
-                            disabled={isLoading}
-                          >
+
+                          <Button variant="outline" onClick={handleCancelEdit}>
                             Cancel
                           </Button>
                         </div>
+
                       </div>
                     ) : (
                       <div className="space-y-2">
                         {/* ================= Overview ================= */}
-                        <div className="border border-border rounded-xl p-6">
+                        <div className="bg-gradient-to-br from-background to-muted/30 border border-border rounded-2xl p-6 shadow-sm space-y-6">
+
+                          {/* HEADER */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Reason</p>
+                              <h2 className="text-xl font-semibold text-foreground">
+                                {account?.name || "N/A"}
+                              </h2>
+                            </div>
+
+                            {/* STATUS BADGE */}
+                            <span
+                              className={`px-3 py-1 text-xs font-medium rounded-full
+        ${account?.status === "Approved"
+                                  ? "bg-green-100 text-green-700"
+                                  : account?.status === "Rejected"
+                                    ? "bg-red-100 text-red-600"
+                                    : "bg-yellow-100 text-yellow-700"
+                                }`}
+                            >
+                              {account?.status || "Pending"}
+                            </span>
+                          </div>
+
+                          {/* GRID INFO */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Name */}
-                            <div className="col-span-2">
-                              <p className="text-sm text-muted-foreground">
-                                Reason
-                              </p>
-                              <p className="text-foreground font-medium">
-                                {account?.name || "None"}
-                              </p>
+
+                            <div className="space-y-1">
+                              <p className="text-xs text-muted-foreground">Department</p>
+                              <p className="font-medium text-foreground">{account?.department || "None"}</p>
                             </div>
 
-                            {/* Website */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Department
-                              </p>
-                              <a
-                                href={account?.department}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline break-all"
-                              >
-                                {account?.department || "None"}
-                              </a>
+                            <div className="space-y-1">
+                              <p className="text-xs text-muted-foreground">Employee Code</p>
+                              <p className="font-medium text-foreground">{account?.employeeCode || "0"}</p>
                             </div>
 
-                            {/* Email */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Employee Code
-                              </p>
-                              <p className="text-foreground">
-                                {account?.employeeCode || "None"}
-                              </p>
+                            <div className="space-y-1">
+                              <p className="text-xs text-muted-foreground">Request Type</p>
+                              <p className="font-medium text-foreground">{account?.requestType || "None"}</p>
                             </div>
 
-                            {/* Phone */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Request Type
-                              </p>
-                              <p className="text-foreground">
-                                {account?.requestType || "None"}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Status
-                              </p>
-                              <p className="text-foreground">
-                                {account?.status || "None"}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Start Date
-                              </p>
-                              <p className="text-foreground font-medium">
-                                {account?.startDate || "None"}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                End Date
-                              </p>
-                              <p className="text-foreground font-medium">
-                                {account?.endDate || "None"}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Leave Balance
-                              </p>
-                              <p className="text-foreground font-medium">
-                                {account?.leaveBalance || "None"}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Leave Duration
-                              </p>
-                              <p className="text-foreground font-medium">
-                                {account?.leaveConsumed || "None"}
-                              </p>
-                            </div>
-                            <div className="md:col-span-2">
-                              <p className="text-sm text-muted-foreground">
-                                Description
-                              </p>
-                              <p className="text-foreground leading-relaxed">
-                                {account?.description || "None"}
-                              </p>
+                            <div className="space-y-1">
+                              <p className="text-xs text-muted-foreground">Leave Balance</p>
+                              <p className="font-medium text-foreground" >{account?.leaveBalance || "0"}</p>
                             </div>
                           </div>
-                        </div>
 
+                          {/* DATE SECTION (HIGHLIGHTED) */}
+                          <div className="grid grid-cols-3 gap-4">
+
+                            <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+                              <p className="text-xs text-muted-foreground">Start Date</p>
+                              <p className="font-semibold text-foreground">{account?.startDate || "None"}</p>
+                            </div>
+
+                            <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+                              <p className="text-xs text-muted-foreground">End Date</p>
+                              <p className="font-semibold text-foreground">{account?.endDate || "None"}</p>
+                            </div>
+
+                            <div className="p-4 bg-primary/10 rounded-xl border border-primary/20 text-center">
+                              <p className="text-xs text-muted-foreground">Duration</p>
+                              <p className="text-lg font-bold text-primary">
+                                {account?.leaveConsumed || 0} days
+                              </p>
+                            </div>
+
+                          </div>
+
+                          {/* DESCRIPTION (NOTE STYLE) */}
+                          <div className="bg-muted/40 border border-border rounded-xl p-4">
+                            <p className="text-xs text-muted-foreground mb-2">Description</p>
+                            <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
+                              {account?.description || "No description provided"}
+                            </p>
+                          </div>
+
+                        </div>
 
                       </div>
                     )}
@@ -1290,71 +1248,111 @@ const AttendanceDrawer = ({
               )}
 
             {activeTab === "contacts" && (
-              <div className="space-y-4">
-                {/* ================= Details ================= */}
-                <div className="border border-border rounded-xl p-6">
+              <div className="space-y-5">
 
+                <div className="bg-gradient-to-br from-background to-muted/30 border border-border rounded-2xl p-7 shadow-sm space-y-6">
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {/* Type */}
+                  {/* 🔹 Header */}
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-semibold tracking-wide text-foreground">
+                      Assignment Details
+                    </h3>
+                  </div>
+
+                  {/* 🔹 Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                    {/* Reporting Manager */}
                     <div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground mb-2">
                         Reporting Manager
                       </p>
-                      <p className="text-foreground font-medium">
-                        {account?.assignedUserName || "None"}
+
+                      {account?.assignedUserName ? (
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold shadow-sm hover:shadow transition">
+                          <span className="text-base">👤</span>
+                          {account.assignedUserName}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">None</p>
+                      )}
+                    </div>
+
+                    {/* Teams */}
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Teams
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+                        {account?.teamsIds?.length ? (
+                          account.teamsIds.map((id) => (
+                            <span
+                              key={id}
+                              className="px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold shadow-sm hover:shadow transition"
+                            >
+                              {account?.teamsNames?.[id]}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground">None</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* CC */}
+                    <div className="col-span-2">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        CC
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+                        {account?.collaboratorsIds?.length ? (
+                          account.collaboratorsIds.map((id) => (
+                            <span
+                              key={id}
+                              className="px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold shadow-sm hover:shadow transition"
+                            >
+                              {account?.collaboratorsNames?.[id]}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground">None</span>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* 🔹 Divider */}
+                  <div className="border-t border-border my-2" />
+
+                  {/* 🔹 Meta Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Created
+                      </p>
+                      <p className="text-base font-semibold text-foreground">
+                        {formatDateTime(account?.createdAt)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        by <span className="font-medium text-foreground">{account?.createdByName}</span>
                       </p>
                     </div>
 
-                    {/* Industry */}
                     <div>
-                      <p className="text-sm text-muted-foreground">
-                        Team Names
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Last Updated
                       </p>
-                      <p className="text-foreground font-medium">
-                        {account?.teamsIds?.length
-                          ? account.teamsIds
-                            .map((id) => account?.teamsNames?.[id])
-                            .filter(Boolean)
-                            .join(", ")
-                          : "None"}
-                      </p>
-                    </div>
-                    {/* Industry */}
-                    <div className="col-span-2">
-                      <p className="text-sm text-muted-foreground">
-                        CC
-                      </p>
-                      <p className="text-foreground font-medium">
-                        {account?.collaboratorsIds?.length
-                          ? account.collaboratorsIds
-                            .map((id) => account?.collaboratorsNames?.[id])
-                            .filter(Boolean)
-                            .join(", ")
-                          : "None"}
-                      </p>
-                    </div>
-                    {/* Industry */}
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Created
-                      </p>
-                      <p className="text-foreground font-medium">
-                        {formatDateTime(account?.createdAt)}{" : "}{account?.createdByName}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Modified At
-                      </p>
-                      <p className="text-foreground font-medium">
+                      <p className="text-base font-semibold text-foreground">
                         {formatDateTime(account?.modifiedAt)}
                       </p>
                     </div>
 
-                    {/* Description */}
-
                   </div>
+
                 </div>
 
               </div>
