@@ -4,7 +4,6 @@ import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import { fetchUser } from "services/user.service";
-import { fetchSources, fetchStatus } from "services/others.service";
 
 const DealsFilters = ({
   filters,
@@ -12,14 +11,11 @@ const DealsFilters = ({
   onClearFilters,
   dealCount,
   onBulkAction,
-  selectedCount,
-  toggleAnalytics,
+  selectedCount
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [assignUser, setAssignUser] = useState([]);
-  const [status, setStatus] = useState([]);
-  const [source, setSource] = useState([]);
 
   const bulkActions = [
     { value: "mass-update", label: "Mass Update", icon: "GitBranch" },
@@ -27,23 +23,6 @@ const DealsFilters = ({
     { value: "delete", label: "Delete Selected", icon: "Trash2" },
   ];
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [statusRes, sourceRes] = await Promise.all([
-          fetchStatus(),
-          fetchSources(),
-        ]);
-
-        setStatus(statusRes.options || []);
-        setSource(sourceRes.options || []);
-      } catch (err) {
-        console.error("Failed to load data", err);
-      }
-    };
-
-    loadData();
-  }, []);
   const ACTIVITY_DATE_FILTERS = [
     { label: "Today", value: "today" },
     { label: "Last 7 Days", value: "lastSevenDays" },
@@ -59,22 +38,22 @@ const DealsFilters = ({
   const langOptions = [
     { value: "Any", label: "Any" },
 
-    { value: "English (US)", label: "English (US)" },
-    { value: "Arabic", label: "Arabic" },
-    { value: "English (UK)", label: "English (UK)" },
-    { value: "Spanish (Mexico)", label: "Spanish (Mexico)" },
-    { value: "German", label: "German" },
-    { value: "Spanish (Spain)", label: "Spanish (Spain)" },
-    { value: "French (France)", label: "French (France)" },
-    { value: "Japanese", label: "Japanese" },
-    { value: "Indonesian", label: "Indonesian" },
-    { value: "Italian", label: "Italian" },
+    { value: "en_US", label: "English (US)" },
+    { value: "en_GB", label: "English (UK)" },
+    { value: "ar", label: "Arabic" },
+    { value: "de", label: "German" },
+    { value: "es_ES", label: "Spanish (Spain)" },
+    { value: "es_MX", label: "Spanish (Mexico)" },
+    { value: "fr_FR", label: "French (France)" },
+    { value: "ja", label: "Japanese" },
+    { value: "id", label: "Indonesian" },
+    { value: "it", label: "Italian" },
   ];
   const statusOptions = [
-    { value: "Draft", label: "New", color: "#000000" },
-    { value: "In Review", label: "Assigned", color: "#3b82f6" },
-    { value: "Published", label: "Pending", color: "#f59e0b" },
-    { value: "Archived", label: "Closed", color: "#22c55e" }
+    { value: "Draft", label: "Draft" },
+    { value: "In Review", label: "In Review" },
+    { value: "Published", label: "Published" },
+    { value: "Archived", label: "Archived" }
   ];
   const showDateInputs = [
     "between",
@@ -210,7 +189,7 @@ const DealsFilters = ({
       >
         <Input
           type="search"
-          placeholder="Search leads..."
+          placeholder="Search Article..."
           value={filters?.search || ""}
           onChange={(e) => handleFilterChange("search", e?.target?.value)}
           className="lg:col-span-2"
@@ -226,8 +205,8 @@ const DealsFilters = ({
         <Select
           placeholder="Language"
           options={langOptions}
-          value={filters?.source || ""}
-          onChange={(value) => handleFilterChange("source", value)}
+          value={filters?.language || ""}
+          onChange={(value) => handleFilterChange("language ", value)}
         />
         <Select
           placeholder="Assign User"

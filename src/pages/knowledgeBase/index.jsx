@@ -11,12 +11,7 @@ import DealDrawer from "./components/DealDrawer";
 import Papa from "papaparse";
 import TablePagination from "./components/TablePagination";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  createLead,
-  deleteActivity,
-  deleteLead,
-  updateLead,
-} from "services/leads.service";
+
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { useMetaData } from "hooks/useMetaData";
 import { useKnowledge, useKnowledgeById } from "hooks/useKnowledge";
@@ -44,13 +39,11 @@ const KnowledgeBase = () => {
   const [filters, setFilters] = useState({
     search: "",
     status: "",
-    projectName: "",
-    source: "",
+    language: "",
     assignUser: "",
-    dateType: "",        // 👈 NEW (today, before, between, etc.)
+    dateType: "",
     closeDateFrom: "",
-    closeDateTo: "",
-    xDays: ""            // 👈 for "Last X Days", "After X Days"
+    closeDateTo: "",     // 👈 for "Last X Days", "After X Days"
   });
   const { data: leadsData, isLoading } = useKnowledge({ limit, page, filters });
   const createLeadMutation = useMutation({
@@ -60,7 +53,7 @@ const KnowledgeBase = () => {
       queryClient.invalidateQueries({ queryKey: ["article"], exact: false });
     },
   });
-  const deleteLeadMutation = useMutation({
+  const deleteArticleMutation = useMutation({
     mutationFn: deleteArticle,
     onSuccess: () => {
       toast.success("Deleted");
@@ -73,22 +66,18 @@ const KnowledgeBase = () => {
   const status = metaData?.status || [];
   const industry = metaData?.industries || [];
   const total = leadsData?.total || 0;
-  const exportLeadsToCSV = (rows, fileName = "leads_export") => {
+  const exportLeadsToCSV = (rows, fileName = "article_export") => {
     if (!rows || rows.length === 0) {
       toast.error("No data to export");
       return;
     }
 
     const exportData = rows.map((lead) => ({
-      Name: lead?.name || "",
-      Email: lead?.emailAddress || "",
-      Phone: lead?.phoneNumber || "",
-      Status: lead?.status || "",
-      Source: lead?.source || "",
-      "Project Name": lead?.cProjectName || "",
-      "Assigned User": lead?.assignedUserName || "",
-      "Next Contact": lead?.cNextContact || "",
-      "Created At": lead?.createdAt || "",
+      Name: item?.name || "",
+      Status: item?.status || "",
+      Language: item?.language || "",
+      "Assigned User": item?.assignedUserName || "",
+      "Created At": item?.createdAt || "",
     }));
 
     const csv = Papa.unparse(exportData);
@@ -117,7 +106,7 @@ const KnowledgeBase = () => {
     setIsSidebarOpen(false);
   };
 
-  const handleAddLeads = () => {
+  const handleAddArticle = () => {
     setSelectedDeal(null);
     setMode("add");
     setIsDrawerOpen(true);
@@ -142,25 +131,32 @@ const KnowledgeBase = () => {
   };
 
   const handleUpdateArticle = async (id, payload) => {
-    await updateArticle(id, payload);
+    try {
+      await updateArticle(id, payload);
+
+      toast.success("Article updated ✏️");
+
+      queryClient.invalidateQueries(["article"]);
+    } catch (err) {
+      console.error(err);
+      toast.error("Update failed ❌");
+    }
   };
 
-  const handleDeleteArticle = async (id) => {
-    try {
-      toast.loading("Deleting lead...", { id: "delete-lead" });
-      deleteLeadMutation.mutate(id);
-    } catch (err) {
-      console.error("Delete failed", err);
-    }
+  const handleDeleteArticle = (id) => {
+    toast.loading("Deleting article...", { id: "delete" });
+
+    deleteArticleMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success("Article deleted ✅", { id: "delete" });
+        queryClient.invalidateQueries(["article"]);
+      },
+      onError: () => {
+        toast.error("Delete failed ❌", { id: "delete" });
+      },
+    });
   };
-  const handleDeleteActivity = async (id) => {
-    try {
-      await deleteActivity(id); // API call
-      toast.success("Activity deleted successfully");
-    } catch (err) {
-      console.error("Delete failed", err);
-    }
-  };
+
 
   const handleSelectDeal = (dealId, isSelected) => {
     if (isSelected) {
@@ -171,7 +167,7 @@ const KnowledgeBase = () => {
   };
 
   const handleSelectAll = (isSelected) => {
-    const currentPageDeals = deals.map((deal) => deal.id);
+    const currentPageDeals = leads.map((deal) => deal.id);
 
     if (isSelected) {
       setSelectedDeals([...new Set([...selectedDeals, ...currentPageDeals])]);
@@ -201,21 +197,18 @@ const KnowledgeBase = () => {
     setFilters({
       search: "",
       status: "",
-      projectName: "",
-      source: "",
+      language: "",
       assignUser: "",
-      dateType: "",        // 👈 NEW (today, before, between, etc.)
+      dateType: "",
       closeDateFrom: "",
       closeDateTo: "",
-      xDays: ""
     });
     setPage(1);
   };
   const handleBulkAction = (action) => {
     if (action === "mass-update") {
       if (!selectedDeals.length) {
-        toast.error("Select at least one lead");
-        n;
+        toast.error("Select at least one Article");
       }
       setSelectedDeal(null);
       setMode("mass-update");
@@ -254,24 +247,24 @@ const KnowledgeBase = () => {
   };
   const bulkDeleteMutation = useMutation({
     mutationFn: async (ids) => {
-      return Promise.all(ids.map((id) => deleteLead(id)));
+      return Promise.all(ids.map((id) => deleteArticle(id)));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["leads"]);
-      toast.success("Selected leads deleted");
+      queryClient.invalidateQueries(["article"]);
+      toast.success("Selected article deleted");
     },
   });
   const handleConfirmBulkDelete = () => {
     if (!selectedDeals.length) {
-      toast.error("No leads selected");
+      toast.error("No Article selected");
       return;
     }
 
-    toast.loading("Deleting leads...", { id: "bulk-delete" });
+    toast.loading("Deleting Article...", { id: "bulk-delete" });
 
     bulkDeleteMutation.mutate(selectedDeals, {
       onSuccess: () => {
-        toast.success("Selected leads deleted", { id: "bulk-delete" });
+        toast.success("Selected Article deleted", { id: "bulk-delete" });
         setSelectedDeals([]);
         setShowDeleteConfirm(false);
       },
@@ -281,26 +274,18 @@ const KnowledgeBase = () => {
     });
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  const handleItemsPerPageChange = (newItemsPerPage) => {
-    setItemsPerPage(newItemsPerPage);
-    setPage(1);
-  };
-  const handleBulkUpdateLeads = async (payload) => {
+  const handleBulkUpdateArticle = async (payload) => {
     try {
-      toast.loading("Updating leads...", { id: "bulk-update" });
+      toast.loading("Updating article...", { id: "bulk-update" });
 
-      await Promise.all(selectedDeals.map((id) => updateLead(id, payload)));
+      await Promise.all(selectedDeals.map((id) => updateArticle(id, payload)));
 
-      toast.success(`${selectedDeals.length} leads updated`, {
+      toast.success(`${selectedDeals.length} article updated`, {
         id: "bulk-update",
       });
 
-      // setLeads(data.list);
-      queryClient.invalidateQueries(["leads"]);
+      // setarticle(data.list);
+      queryClient.invalidateQueries(["article"]);
 
       setSelectedDeals([]);
       setIsDrawerOpen(false);
@@ -349,7 +334,7 @@ const KnowledgeBase = () => {
                 </Button>
 
                 <Button
-                  onClick={handleAddLeads}
+                  onClick={handleAddArticle}
                   className="linearbg-1 text-white hover:text-white"
                 >
                   <Icon name="Plus" size={16} className="mr-2" />
@@ -411,15 +396,15 @@ const KnowledgeBase = () => {
               onCreate={handleCreateArticle}
               onUpdate={handleUpdateArticle}
               onClose={handleDrawerClose}
-              onDelete={handleDeleteActivity}
-              onBulkUpdate={handleBulkUpdateLeads}
+
+              onBulkUpdate={handleBulkUpdateArticle}
               selectedIds={selectedDeals}
             />
 
             <ConfirmDeleteModal
               open={showDeleteConfirm}
-              title="Delete Selected Leads"
-              description={`Are you sure you want to delete ${selectedDeals.length} lead(s)? This action cannot be undone.`}
+              title="Delete Selected Articles"
+              description={`Are you sure you want to delete ${selectedDeals.length} article(s)? This action cannot be undone.`}
               onCancel={() => setShowDeleteConfirm(false)}
               onConfirm={handleConfirmBulkDelete}
             />

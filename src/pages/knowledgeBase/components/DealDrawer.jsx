@@ -150,9 +150,7 @@ const DealDrawer = ({
 
   const tabs = [
     { id: "overview", label: "Overview", icon: "Eye" },
-    { id: "AssignedUsers", label: "Assigned User", icon: "Users" },
-    { id: "Stream", label: "Stream", icon: "Calendar" },
-    { id: "Activity", label: "Activity", icon: "FileText" },
+    { id: "AssignedUsers", label: "Assigned User", icon: "Users" }
   ];
 
   const getActivityIcon = (type) => {
@@ -822,6 +820,83 @@ const DealDrawer = ({
                     </div>
                   )}
 
+                  {activeTab === "AssignedUsers" && (
+                    <div className="space-y-6">
+                      {/* ================= Assigned User ================= */}
+                      <div className="border border-border rounded-xl p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Assigned User */}
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Assigned User
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {deal?.assignedUserName || "None"}
+                            </p>
+                          </div>
+
+                          {/* Followers */}
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Teams
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {deal?.teamsNames ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {Object.entries(
+                                    deal.teams,
+                                  ).map(([id, name]) => (
+                                    <span
+                                      key={id}
+                                      className="text-sm text-primary font-medium"
+                                    >
+                                      {name}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span>None</span>
+                              )}
+                            </p>
+                          </div>
+
+                        </div>
+                      </div>
+
+                      {/* ================= Audit Information ================= */}
+                      <div className="border border-border rounded-xl p-6">
+                        <h3 className="text-base font-semibold text-foreground mb-6">
+                          Audit Information
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Created */}
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Created
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {deal?.createdAt
+                                ? `${formatDateTime(deal.createdAt)} by ${deal?.createdByName || "—"}`
+                                : "—"}
+                            </p>
+                          </div>
+
+                          {/* Modified */}
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Last Modified
+                            </p>
+                            <p className="text-foreground font-medium">
+                              {deal?.modifiedAt
+                                ? `${formatDateTime(deal.modifiedAt)} by ${deal?.modifiedByName || "—"}`
+                                : "—"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
