@@ -32,7 +32,7 @@ const Reports = () => {
   const [filters, setFilters] = useState({
     search: "",
     status: "",
-    projectName: "",
+    sector: "",
     source: "",
     assignUser: "",
     dateType: "today",        // 👈 NEW (today, before, between, etc.)
@@ -66,12 +66,12 @@ const Reports = () => {
     setFilters({
       search: "",
       status: "",
-      projectName: "",
+      sector: "",
       source: "",
       assignUser: "",
       dateType: "today",
       closeDateFrom: "",
-    closeDateTo: "",
+      closeDateTo: "",
     });
     setCurrentPage(1);
   };
@@ -570,7 +570,7 @@ const Reports = () => {
                   icon={metric?.icon}
                   iconColor={metric?.iconColor}
                   description={metric?.description}
-                />
+                /> 
               ))}
             </motion.div>
 
@@ -603,8 +603,7 @@ const Reports = () => {
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
                   {/* Conversion Funnel */}
                   <ConversionFunnelChart
-                    data={repConversionData}
-                    isLoading={isLoading}
+                    filters={filters}
                   />
 
                   {/* Win Rate Analytics */}

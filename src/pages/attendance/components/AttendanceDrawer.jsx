@@ -77,7 +77,7 @@ const AttendanceDrawer = ({
     status: "Pending",
     startDate: "",
     endDate: "",
-
+    duration: "",
     description: "",
     reportingManagerIds: [],
     reportingManagerEmail: "",
@@ -91,11 +91,10 @@ const AttendanceDrawer = ({
         department: account?.department || "",
         employeeCode: account?.employeeCode || "",
         requestType: account?.requestType || "",
+        duration: account?.duration || "",
         status: account?.status || "Pending",
         startDate: account?.startDate || "",
         endDate: account?.endDate || "",
-        // leaveBalance: account?.leaveBalance || 0,
-        // leaveConsumed: account?.leaveConsumed || 0,
         description: account?.description || "",
         reportingManagerEmail: account?.reportingManagerEmail || "",
         teamsIds: account?.teamsIds || [],
@@ -565,8 +564,8 @@ const AttendanceDrawer = ({
     }
   };
 
-  const requestType = [
-    { value: "Contribution Credit", label: "Contribution Credit" },
+  const requestOption = [
+    { value: "SLC", label: "Contribution Credit" },
     { value: "Short Leave", label: "Short Leave" },
     { value: "Leave", label: "Leave" },
     { value: "Half Day", label: "Half Day" }
@@ -708,8 +707,8 @@ const AttendanceDrawer = ({
                     </label>
                     <Select
                       value={formData.requestType}
-                      options={requestType}
-                      onChange={(v) => handleChange("requestType", v.value)}
+                      options={requestOption}
+                      onChange={(v) => handleChange("requestType", v)}
                     />
                   </div>
                   <div>
@@ -723,28 +722,52 @@ const AttendanceDrawer = ({
                         { value: "Approved", label: "Approved" },
                         { value: "Rejected", label: "Rejected" }
                       ]}
-                      onChange={(v) => handleChange("status", v.value)}
+                      onChange={(v) => handleChange("status", v)}
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                <div className="grid grid-cols-2 gap-4">
+
+                  {/* ✅ ALWAYS visible */}
+                  <Input
+                    type="date"
+                    label="Start Date"
+                    value={formData.startDate}
+                    onChange={(e) => handleChange("startDate", e.target.value)}
+                  />
+
+                  {/* ✅ ONLY for short leave */}
+                  {formData.requestType === "Short Leave" && (
                     <Input
-                      type="date"
-                      label="Start Date"
-                      value={formData.startDate}
-                      onChange={(e) => handleChange("startDate", e.target.value)}
+                      type="number"
+                      label="Duration (in minutes)"
+                      value={formData.duration || ""}
+                      onChange={(e) => handleChange("duration", e.target.value)}
+                      placeholder="Enter minutes"
                     />
-                  </div>
-                  <div>
-                    <Input
-                      type="date"
-                      label="End Date"
-                      value={formData.endDate}
-                      onChange={(e) => handleChange("endDate", e.target.value)}
-                    />
-                  </div>
+                  )}
                 </div>
+                {formData.requestType !== "Short Leave" && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Input
+                        type="date"
+                        label="End Date"
+                        value={formData.endDate}
+                        onChange={(e) => handleChange("endDate", e.target.value)}
+                      />
+
+                      <Input
+                        name="leaveConsumed"
+                        label="Leave Duration (Days)"
+                        type="number"
+                        value={formData.leaveConsumed}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+
+                  </>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
@@ -754,7 +777,7 @@ const AttendanceDrawer = ({
                       name="leaveBalance"
                       type="number"
                       value={formData.leaveBalance}
-                      onChange={handleInputChange}
+                      onChange={handleInputChange} disabled
                     />
                   </div>
                   <div>
@@ -1010,9 +1033,9 @@ const AttendanceDrawer = ({
 
                             <Select
                               label="Request Type"
-                              value={formData.requestType}
-                              options={requestType}
-                              onChange={(v) => handleChange("requestType", v.value)}
+                              value={formData?.requestType}
+                              options={requestOption}
+                              onChange={(v) => handleChange("requestType", v)}
                             />
                           </div>
 
@@ -1024,7 +1047,7 @@ const AttendanceDrawer = ({
                               { value: "Approved", label: "Approved" },
                               { value: "Rejected", label: "Rejected" }
                             ]}
-                            onChange={(v) => handleChange("status", v.value)}
+                            onChange={(v) => handleChange("status", v)}
                           />
                         </div>
 
@@ -1053,7 +1076,7 @@ const AttendanceDrawer = ({
                               name="leaveConsumed"
                               label="Days"
                               type="number"
-                              value={formData.leaveConsumed}
+                              value={formData?.leaveConsumed}
                               onChange={handleInputChange}
                             />
                           </div>

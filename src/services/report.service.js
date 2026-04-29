@@ -90,6 +90,13 @@ export const fetchreportLeads = async ({ limit, page, filters = {} }) => {
       value: filters.source,
     });
   }
+  if (filters.sector) {
+    where.push({
+      type: "equals",
+      attribute: "cSector",
+      value: filters.sector,
+    });
+  }
 
   if (filters.assignUser) {
     where.push({

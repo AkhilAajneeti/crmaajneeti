@@ -7,7 +7,6 @@ import PipelineChart from "./components/PipelineChart";
 import Icon from "../../components/AppIcon";
 import RightRail from "./components/RightRail";
 import { fetchLeads } from "services/leads.service";
-import { fetchActivity } from "services/activity.service";
 import MultiLineChart from "./components/MultiLineChart";
 import { fetchMeeting } from "services/meeting.service";
 import Button from "../../components/ui/Button";
@@ -101,18 +100,12 @@ const Dashboard = () => {
   });
   const leads = data?.list || [];
 
-  // acctivity
-  const { data: activityData = [] } = useQuery({
-    queryKey: ["activity"],
-    queryFn: fetchActivity
-  });
   const { data: meetingData = [] } = useQuery({
     queryKey: ["meetings"],
     queryFn: fetchMeeting
   });
 
   const meetingsList = meetingData?.list || [];
-  const activities = activityData?.list || [];
   const isSameMonth = (date1, date2) => {
     const d1 = new Date(date1);
     return (
@@ -212,7 +205,7 @@ const Dashboard = () => {
       icon: "Users",
       iconBg: "bg-blue-100",
       iconColor: "#3B82F6",
-      comparisonLabel: "last month",
+      comparisonLabel: "compared to last month",
     },
     {
       title: "Today Leads",
@@ -222,17 +215,17 @@ const Dashboard = () => {
       icon: "Calendar",
       iconBg: "bg-green-100",
       iconColor: "#10B981",
-      comparisonLabel: "yesterday",
+      comparisonLabel: "since yesterday",
     },
     {
-      title: "Interested Leads",
+      title: "Interested Leads (This Month)",
       value: interested,
       change: `${interestedGrowth}%`,
       changeType: interestedGrowth >= 0 ? "positive" : "negative",
       icon: "Star",
       iconBg: "bg-yellow-100",
       iconColor: "#F59E0B",
-      comparisonLabel: "last month",
+      comparisonLabel: "compared to last month",
     },
   ];
 
@@ -573,4 +566,3 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
 };
 
 export default Dashboard;
-

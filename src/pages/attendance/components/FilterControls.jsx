@@ -31,6 +31,12 @@ const FilterControls = ({
     { label: "This Month", value: "currentMonth" },
     { label: "Last Month", value: "lastMonth" },
   ];
+  const requestOptions = [
+    { value: "SLC", label: "Contribution Credit" },
+    { value: "Short Leave", label: "Short Leave" },
+    { value: "Leave", label: "Leave" },
+    { value: "Half Day", label: "Half Day" },
+  ];
 
   const handleFilterChange = (key, value) => {
     onFiltersChange({
@@ -171,6 +177,12 @@ const FilterControls = ({
           value={filters?.status || ""}
           onChange={(value) => handleFilterChange("status", value)}
         />
+        <Select
+          placeholder="Request Type"
+          options={requestOptions}
+          value={filters?.requestType || ""}
+          onChange={(value) => handleFilterChange("requestType", value)}
+        />
 
         <Select
           placeholder="Filter By Days"
@@ -217,7 +229,7 @@ const FilterControls = ({
             </div>
           )}
         </div>
-        
+
       </div>
     </div>
   );

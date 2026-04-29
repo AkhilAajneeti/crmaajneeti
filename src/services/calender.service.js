@@ -170,6 +170,13 @@ export const fetchcalenderDetails = async ({ limit, page, filters }) => {
             value: filters.source,
         });
     }
+    if (filters.requestType) {
+        where.push({
+            type: "equals",
+            attribute: "requestType",
+            value: filters.requestType,
+        });
+    }
 
     if (filters.assignUser) {
         where.push({

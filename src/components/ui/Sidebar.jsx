@@ -2,12 +2,6 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Icon from "../AppIcon";
 import Button from "./Button";
-import { useLeads, } from "hooks/useLeads";
-import { useTasks } from "hooks/useTasks";
-import { useMeetings } from "hooks/useMeetings";
-import { useTraining } from "hooks/useTraining";
-import { useQuery } from "@tanstack/react-query";
-import { fetchLeadsCount } from "services/leads.service";
 const Sidebar = ({ isOpen = false, onClose }) => {
   const user = JSON.parse(localStorage.getItem("login_object") || "{}");
   const isAdmin = String(user?.type).toLowerCase() === "admin";
@@ -16,134 +10,59 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   const navigate = useNavigate();
   const [isUpgradeCardVisible, setIsUpgradeCardVisible] = useState(true);
 
-  const { data: taskData } = useTasks();
-  const { data: meetingData } = useMeetings();
-
-  const { data: trainingData } = useTraining();
-
-  const tasks = taskData?.list || [];
-  const meetings = meetingData?.list || [];
-  const calls = trainingData?.list || [];
-  const { data: todayLeadsCount = 0 } = useQuery({
-    queryKey: ["leads-count", "today"],
-    queryFn: () =>
-      fetchLeadsCount([
-        {
-          type: "today",
-          attribute: "createdAt",
-        },
-      ]),
-    staleTime: 60 * 1000, // cache for 1 min
-  });
-  const isToday = (date) => {
-    const d = new Date(date);
-    const now = new Date();
-    return (
-      d.getDate() === now.getDate() &&
-      d.getMonth() === now.getMonth() &&
-      d.getFullYear() === now.getFullYear()
-    );
-  };
-
-  const pendingTasksCount = tasks.filter(
-    (t) => t.status !== "Completed",
-  ).length;
-  const todayMeetingsCount = meetings.filter(
-    (m) => m.dateStart && isToday(m.dateStart),
-  ).length;
-  const trainingCountll = calls.filter(
-    (c) => c.dateStart && isToday(c.dateStart),
-  ).length;
-
-  const allNavigationItems = [
+  const navigationGroups = [
     {
-      label: "Dashboard",
-      path: "/dashboard",
-      icon: "LayoutDashboard",
+      title: "MAIN",
+      items: [
+        { label: "Dashboard", path: "/dashboard", icon: "LayoutDashboard" },
+      ],
     },
     {
-      label: "Accounts",
-      path: "/accounts",
-      icon: "Building2",
+      title: "CRM",
+      items: [
+        { label: "Accounts", path: "/accounts", icon: "Building2" },
+        { label: "Leads", path: "/leads", icon: "Target" },
+        { label: "Task", path: "/tasks", icon: "ListChecks" },
+        { label: "Meeting", path: "/meeting", icon: "Projector" },
+      ],
     },
     {
-      label: "Leads",
-      path: "/leads",
-      icon: "Target",
-      badge: todayLeadsCount == 0 ? " " : todayLeadsCount,
+      title: "ANALYTICS",
+      items: [
+        { label: "Reports", path: "/reports", icon: "BarChart3" },
+      ],
     },
     {
-      label: "Task",
-      path: "/tasks",
-      icon: "ListChecks",
-      badge: pendingTasksCount == 0 ? " " : pendingTasksCount,
-    },
-    // {
-    //   label: "Contacts",
-    //   path: "/contacts",
-    //   icon: "Phone",
-    //   badge: todayMeetingsCount == 0 ? " " : todayMeetingsCount,
-    // },
-    {
-      label: "Meeting",
-      path: "/meeting",
-      icon: "Projector",
-      badge: todayMeetingsCount == 0 ? " " : todayMeetingsCount,
+      title: "SYSTEM",
+      items: [
+        { label: "Integrations", path: "/integrations", icon: "Puzzle" },
+        { label: "Attendance", path: "/attendance", icon: "ClipboardList" },
+        { label: "Profile", path: "/profile", icon: "User" },
+      ],
     },
     {
-      label: "Reports",
-      path: "/reports",
-      icon: "BarChart3",
+      title: "WORKSPACE",
+      items: [
+        { label: "Notes", path: "/workplace", icon: "NotebookText" },
+        { label: "Complaints", path: "/complaints", icon: "AlertTriangle" },
+        { label: "Knowledge", path: "/knowledge-base", icon: "LibraryBig" },
+      ],
     },
-    {
-      label: "Integrations",
-      path: "/integrations",
-      icon: "Puzzle",
-    },
-    {
-      label: "Attendance Requests",
-      path: "/attendance",
-      icon: "ClipboardList",
-    },
-    {
-      label: "Profile & Details",
-      path: "/profile",
-      icon: "User",
-    },
-    {
-      label: "Workplace Notes",
-      path: "/workplace",
-      icon: "NotebookText",
-    },
-    {
-      label: "Complaints",
-      path: "/complaints",
-      icon: "AlertTriangle",
-    },
-    {
-      label: "Knowledge Base",
-      path: "/knowledge-base",
-      icon: "LibraryBig",
-    },
-    // {
-    //   label: "Pipeline",
-    //   path: "/pipeline",
-    //   icon: "Filter",
-    // },
-
-    // 🔥 ADMIN ONLY
+    // ✅ ADMIN ONLY
     ...(isAdmin
       ? [
         {
-          label: "Settings",
-          path: "/settings",
-          icon: "Settings",
+          title: "ADMIN",
+          items: [
+            { label: "Settings", path: "/settings", icon: "Settings" },
+
+          ],
         },
       ]
       : []),
   ];
 
-  const navigationItems = allNavigationItems;
+  const navigationItems = navigationGroups;
 
   const handleNavigation = (path) => {
     navigate(path);
@@ -175,7 +94,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full w-64 bg-background border-r border-border z-50 lg:z-30
+          fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 shadow-sm z-50 lg:z-30
           transform transition-transform duration-300 ease-out
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
@@ -211,50 +130,93 @@ const Sidebar = ({ isOpen = false, onClose }) => {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-4">
-            <div className="px-3 space-y-1">
-              {navigationItems?.map((item) => {
-                const isActive = location?.pathname === item?.path;
+            <div className="px-3 space-y-6">
 
-                return (
-                  <button
-                    key={item?.path}
-                    onClick={() => handleNavigation(item?.path)}
-                    className={`
-                      w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg
-                      transition-smooth group
-                      ${isActive
-                        ? "linearbg-1 text-white shadow-sm"
-                        : "text-muted-foreground hover:text-foreground hover:bg-mahroon"
-                      }
-                    `}
-                    aria-current={isActive ? "page" : undefined}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Icon
-                        name={item?.icon}
-                        size={18}
-                        className={`
-                          ${isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground"}
-                        `}
-                      />
-                      <span>{item?.label}</span>
-                    </div>
-                    {item?.badge > 0 && (
-                      <span
-                        className={`
-                          px-2 py-0.5 text-xs font-medium rounded-full
-                          ${isActive
-                            ? "bg-primary-foreground/20 text-primary-foreground"
-                            : "bg-mahroon-400 text-accent-foreground"
-                          }
-                        `}
-                      >
-                        {item?.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+              {navigationGroups.map((group) => (
+                <div key={group.title}>
+
+                  {/* SECTION TITLE */}
+                  <p className="px-3 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {group.title}
+                  </p>
+
+                  <div className="space-y-1">
+                    {group.items.map((item) => {
+                      const isActive = location.pathname === item.path;
+
+                      return (
+                        <div key={item.path}>
+
+                          {/* 🔴 PARENT */}
+                          <button
+                            onClick={() => handleNavigation(item.path)}
+                            className={`
+                    group w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm
+                    transition-all duration-200 ease-out
+                    ${isActive
+                                ? "bg-gradient-to-r from-black to-[#AC2334] text-white"
+                                : "text-gray-600 hover:bg-gray-100"}
+                  `}
+                          >
+                            <Icon name={item.icon} size={18} className={`
+    transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:rotate-6 group-hover:scale-110 group-active:scale-95
+    ${isActive ? "text-white" : "text-gray-500 group-hover:text-red-600"}
+  `} />
+                            <span className={`
+    transition-all duration-300 ease-out group-hover:-translate-y-0.1 group-hover:rotate-3 group-hover:scale-110 group-active:scale-95
+    ${isActive ? "text-white" : "text-gray-800 group-hover:text-red-600 font-semibold"}`}>{item.label}</span>
+                          </button>
+
+                          {/* 🌳 CHILD TREE (ONLY if exists) */}
+                          {item.children && (
+                            <div className="ml-6 mt-2 relative">
+
+                              {/* Vertical line */}
+                              <div className="absolute left-3 top-0 bottom-0 w-px bg-gray-300"></div>
+
+                              <div className="space-y-3">
+                                {item.children.map((child) => {
+                                  const isChildActive = location.pathname === child.path;
+
+                                  return (
+                                    <div key={child.path} className="relative">
+
+                                      {/* Curve */}
+                                      <div className="absolute left-3 top-4 w-4 h-4 border-l border-b border-gray-300 rounded-bl-lg"></div>
+
+                                      <button
+                                        onClick={() => handleNavigation(child.path)}
+                                        className={`
+                                ml-6 w-full px-3 py-2 text-sm rounded-xl text-left
+                                transition-all
+                                ${isChildActive
+                                            ? "bg-red-50 text-red-600 shadow-sm"
+                                            : "text-gray-500 hover:bg-red-50 hover:text-red-500"}
+                              `}
+                                      >
+                                        {/* Active red bar */}
+                                        {isChildActive && (
+                                          <span className="absolute left-0 top-1 bottom-1 w-1 bg-red-600 rounded-r-md"></span>
+                                        )}
+
+                                        {child.label}
+                                      </button>
+
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                </div>
+              ))}
+
             </div>
           </nav>
 

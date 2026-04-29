@@ -9,8 +9,6 @@ import RoleGuard from "components/RoleGuard";
 const FilterControls = ({
   filters,
   onFiltersChange,
-  source,
-  status,
   onClearFilters,
   dealCount,
   onBulkAction,
@@ -31,6 +29,43 @@ const FilterControls = ({
     { label: "Before", value: "before" },
     { label: "After", value: "after" },
     { label: "Between", value: "between" },
+  ];
+  const IndustryOptions = [
+    { value: "AppDev", label: "App Development" },
+    { value: "Automobiles", label: "Automobiles" },
+    { value: "B2B", label: "B2B" },
+    { value: "BanquetHall", label: "Banquet Hall" },
+    { value: "BridalMakeup", label: "Bridal Makeup" },
+    { value: "CaseStudy", label: "Case Study" },
+    { value: "ContactForm", label: "Contact Form" },
+    { value: "ContentMarketing", label: "Content Marketing" },
+    { value: "CoWorking", label: "Co-Working" },
+    { value: "DJMusic", label: "DJ / Music" },
+    { value: "DubaiRELG", label: "Dubai Real Estate" },
+    { value: "FacebookAds", label: "Facebook Ads" },
+    { value: "FoodCatering", label: "Food Catering" },
+    { value: "GoogleAds", label: "Google Ads" },
+    { value: "HigherEducation", label: "Higher Education" },
+    { value: "Interior", label: "Interior Design" },
+    { value: "Leasing", label: "Leasing" },
+    { value: "LinkedinAds", label: "LinkedIn Ads" },
+    { value: "LogoDesign", label: "Logo Design" },
+    { value: "LuxuryEventPlanners", label: "Luxury Event Planners" },
+    { value: "LuxuryTransportation", label: "Luxury Transportation" },
+    { value: "ORM", label: "Online Reputation Management" },
+    { value: "PhotographersVideographers", label: "Photographers & Videographers" },
+    { value: "PlotsRELG", label: "Plots Real Estate" },
+    { value: "Political", label: "Political" },
+    { value: "PreWedding", label: "Pre-Wedding" },
+    { value: "RealEstate", label: "Real Estate" },
+    { value: "RealEstateCityPages", label: "Real Estate City Pages" },
+    { value: "SEO", label: "SEO" },
+    { value: "StudyAbroad", label: "Study Abroad" },
+    { value: "TourTravel", label: "Tour & Travel" },
+    { value: "WebDev", label: "Web Development" },
+    { value: "WeddingFloralDecor", label: "Wedding Floral Decor" },
+    { value: "WikipediaBrands", label: "Wikipedia Brands" },
+    { value: "WikipediaPoloticians", label: "Wikipedia Poloticians" }
   ];
 
   const handleFilterChange = (key, value) => {
@@ -223,6 +258,13 @@ const FilterControls = ({
           onChange={(value) => handleFilterChange("source", value)}
         />
         <Select
+          placeholder="Sectors"
+          options={IndustryOptions}
+          value={filters?.sector || ""}
+          onChange={(value) => handleFilterChange("sector", value)}
+          searchable
+        />
+        <Select
           placeholder="Assign User"
           options={assignUserOptions}
           value={filters?.assignUser || ""}
@@ -254,9 +296,9 @@ const FilterControls = ({
             </div>
           )}
         </div>
-        <RoleGuard allowedRoles={["admin", "manager","regular"]}>
+        {/* <RoleGuard allowedRoles={["admin", "manager", "regular"]}>
           <Button onClick={toggleAnalytics} className="linearbg-1 text-white hover:text-white">Anaylze By Chart</Button>
-        </RoleGuard>
+        </RoleGuard> */}
       </div>
     </div>
   );
