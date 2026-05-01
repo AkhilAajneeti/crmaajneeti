@@ -263,7 +263,7 @@ const AttendanceDrawer = ({
 
   const userOptions = (users || [])?.filter((u) => u?.isActive) // ✅ only active users
     ?.map((u) => ({
-      value: u.id,
+      value: u.email,
       label: u.name || u.userName,
     }));
   const teamOptions = (team || [])?.map((t) => ({
