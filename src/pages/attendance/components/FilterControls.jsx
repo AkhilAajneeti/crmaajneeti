@@ -75,7 +75,7 @@ const FilterControls = ({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
         <div className="flex items-center space-x-4">
           <h2 className="text-lg font-semibold text-foreground">
-            Attendance Request ({dealCount?.toLocaleString()})
+            Total Request ({dealCount?.toLocaleString()})
           </h2>
           {activeFiltersCount > 0 && (
             <div className="flex items-center space-x-2">
@@ -194,8 +194,9 @@ const FilterControls = ({
         <Select
           placeholder="By User Name"
           options={assignUserOptions}
-          value={filters?.createdByName || ""}
-          onChange={(value) => handleFilterChange("createdByName", value)}
+          value={filters?.createdById || ""}
+          onChange={(value) => handleFilterChange("createdById", value)}
+          searchable
         />
         <Button
           onClick={toggleAnalytics}

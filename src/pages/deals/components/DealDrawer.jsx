@@ -12,6 +12,7 @@ import { useUsers } from "hooks/useUsers";
 import { useLeadStream } from "hooks/useLeadStream";
 import { useLeadActivity } from "hooks/useLeadActivity";
 import { useQueryClient } from "@tanstack/react-query";
+import RoleGuard from "components/RoleGuard";
 
 const DealDrawer = ({
   status,
@@ -474,6 +475,7 @@ const DealDrawer = ({
               </span>
             </div>
             <div className="flex items-center space-x-2">
+              <RoleGuard allowedRoles={"admin"}>
               {mode == "view" && (
                 <Button
                   variant="outline"
@@ -487,6 +489,7 @@ const DealDrawer = ({
                   {isEditing ? "Cancel" : "Edit"}
                 </Button>
               )}
+              </RoleGuard>
 
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <Icon name="X" size={20} />

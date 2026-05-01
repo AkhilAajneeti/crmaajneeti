@@ -19,6 +19,7 @@ import {
   canEditField,
   canEditRecord,
 } from "utils/permissions";
+import { deleteAttendance } from "services/calender.service";
 
 const Attendance = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -44,7 +45,7 @@ const Attendance = () => {
     status: "",
     dateType: "",
     requestType: "",
-    createdByName: "",
+    createdById: "",
     closeDateFrom: "",
     closeDateTo: "",
   });
@@ -62,7 +63,7 @@ const Attendance = () => {
     canEditRecord("CAttendanceRequest", selectedDeal) &&
     canEditField("CAttendanceRequest", "employeeCode");
 
-  const { data, isLoading } = useCalender({
+  const { data, isLoading, refetch } = useCalender({
     limit,
     page,
     filters
@@ -84,7 +85,7 @@ const Attendance = () => {
       status: "",
       dateType: "",
       requestType: "",
-      createdByName: "",
+      createdById: "",
       closeDateFrom: "",
       closeDateTo: "",
     });
@@ -138,7 +139,10 @@ const Attendance = () => {
     return [
       {
         title: "Total Leaves",
-        value: total || 0,
+        value:
+          mockcalender?.filter(
+            (deal) => deal?.requestType !== "SLC"
+          )?.length || 0,
         icon: "TrendingUp",
         iconColor: "bg-success",
         description: "All leave requests",
@@ -187,6 +191,19 @@ const Attendance = () => {
     setDrawerMode("edit");
     setSelectedDeal(deal);
     setIsDrawerOpen(true);
+  };
+  const handleDelete = async (deal) => {
+    try {
+      const ok = window.confirm(`Delete request "${deal?.name}"?`);
+      if (!ok) return;
+
+      await deleteAttendance(deal.id);
+
+      await refetch();
+
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
   };
 
   // ✅ CLOSE
@@ -309,7 +326,7 @@ const Attendance = () => {
               onSort={handleSort}
               onDealClick={handleView}   // ✅ ADD
               onEdit={handleEdit}        // ✅ ADD
-              onDelete={(deal) => console.log("delete", deal)} // optional
+              onDelete={handleDelete} // optional
               canEdit={(deal) => canEditRecord("CAttendanceRequest", deal)}
               canDelete={(deal) => canDeleteRecord("CAttendanceRequest", deal)}
               currentPage={page}

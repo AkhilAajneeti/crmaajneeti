@@ -175,48 +175,76 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
                   className={`transition-transform ${isUserDropdownOpen ? "rotate-180" : ""}`}
                 />
               </button>
-
               {isUserDropdownOpen && (
                 <>
+                  {/* Overlay */}
                   <div
-                    className="fixed inset-0 z-50"
+                    className="fixed inset-0 z-40 backdrop-blur-[1px]"
                     onClick={handleDropdownClose}
                   />
-                  <div className="absolute right-0 mt-2 w-64 bg-popover border border-border rounded-lg shadow-elevation-2 z-60">
-                    <div className="p-4 border-b border-border">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-mahroon-400 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-primary-foreground">
+
+                  {/* Dropdown Card */}
+                  <div className="absolute right-0 mt-3 w-72 rounded-xl border border-neutral-200/70 bg-white/90 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 overflow-hidden">
+
+                    {/* Profile Section */}
+                    <div className="px-5 py-4 border-b border-neutral-200/60">
+                      <div className="flex items-center gap-3">
+
+                        {/* Avatar */}
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
+                          <span className="text-sm font-semibold text-white tracking-wide">
                             ACL
                           </span>
                         </div>
-                        <div>
-                          <div className="font-medium text-popover-foreground">
+
+                        {/* User Info */}
+                        <div className="leading-tight">
+                          <p className="text-sm font-semibold text-gray-900">
                             {LogInuser.username}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Aajneeti Connect ltd
-                          </div>
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Aajneeti Connect Ltd
+                          </p>
                         </div>
                       </div>
                     </div>
-                    <div className="py-1">
+
+                    {/* Actions */}
+                    <div className="py-2">
+
+                      {/* Profile Button */}
                       <button
                         onClick={handleProfileClick}
-                        className="flex items-center w-full px-4 py-2 text-sm text-popover-foreground hover:bg-muted transition-smooth">
-                        <Icon name="User" size={16} className="mr-3" />
-                        Profile Settings
+                        className="group flex items-center w-full px-5 py-2.5 text-sm text-gray-700 hover:bg-gray-100/70 transition-all duration-200"
+                      >
+                        <Icon
+                          name="User"
+                          size={16}
+                          className="mr-3 text-gray-500 group-hover:text-indigo-600 transition"
+                        />
+                        <span className="group-hover:translate-x-0.5 transition">
+                          Profile Settings
+                        </span>
                       </button>
 
+                      {/* Divider */}
+                      <div className="my-2 border-t border-neutral-200/60" />
 
-                      <div className="border-t border-border my-1" />
+                      {/* Logout Button */}
                       <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-2 text-sm text-popover-foreground hover:bg-muted transition-smooth"
+                        className="group flex items-center w-full px-5 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-all duration-200"
                       >
-                        <Icon name="LogOut" size={16} className="mr-3" />
-                        Sign Out
+                        <Icon
+                          name="LogOut"
+                          size={16}
+                          className="mr-3 text-red-500 group-hover:scale-110 transition"
+                        />
+                        <span className="group-hover:translate-x-0.5 transition">
+                          Sign Out
+                        </span>
                       </button>
+
                     </div>
                   </div>
                 </>

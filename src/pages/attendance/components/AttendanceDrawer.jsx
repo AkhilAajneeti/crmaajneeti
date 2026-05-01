@@ -92,7 +92,7 @@ const AttendanceDrawer = ({
     rejectionReason: null,
 
     // Assignment
-    reportingManagerEmail: "",
+    assignedUserId: "",
     teamsIds: [],
     collaboratorsIds: [],
 
@@ -130,7 +130,7 @@ const AttendanceDrawer = ({
         rejectionReason: account?.rejectionReason || null,
 
         // Assignment
-        reportingManagerEmail: account?.reportingManagerEmail || "",
+        assignedUserId: account?.assignedUserId || "",
         teamsIds: Array.isArray(account?.teamsIds) ? account.teamsIds : [],
         collaboratorsIds: Array.isArray(account?.collaboratorsIds)
           ? account.collaboratorsIds
@@ -233,7 +233,7 @@ const AttendanceDrawer = ({
         leaveConsumed: account?.leaveConsumed || 0,
         leaveCreditsDeducted: account?.leaveCreditsDeducted || 0,
         description: account?.description || "",
-        reportingManagerEmail: account?.reportingManagerEmail || "",
+        assignedUserId: account?.assignedUserId || "",
         teamsIds: account?.teamsIds || [],
         collaboratorsIds: account?.collaboratorsIds || [],
         applicantEmail: account?.applicantEmail || "",
@@ -309,6 +309,12 @@ const AttendanceDrawer = ({
     loadTasks();
   }, [isOpen, account?.id, activeTab]);
 
+  const ccOptions = (users || [])
+    ?.filter((u) => u?.isActive)
+    ?.map((u) => ({
+      value: u.id,
+      label: u.name || u.userName,
+    }));
   const userOptions = (users || [])
     ?.filter((u) => u?.isActive)
     ?.map((u) => ({
@@ -347,14 +353,12 @@ const AttendanceDrawer = ({
         durationInMinutes: Number(formData.durationInMinutes) || null,
 
         // Assignment can be updated
-        reportingManagerEmail: formData.reportingManagerEmail,
+        assignedUserId: formData.assignedUserId,
         teamsIds: Array.isArray(formData.teamsIds) ? formData.teamsIds : [],
         collaboratorsIds: Array.isArray(formData.collaboratorsIds)
           ? formData.collaboratorsIds
           : [],
       };
-
-      console.log("UPDATE ATTENDANCE PAYLOAD", payload);
 
       await updateAttendance(account.id, payload);
       toast.success("Attendance request updated successfully");
@@ -407,7 +411,7 @@ const AttendanceDrawer = ({
         rejectionReason: null,
 
         // Assignment
-        reportingManagerEmail: formData.reportingManagerEmail,
+        assignedUserId: formData.assignedUserId,
         teamsIds: Array.isArray(formData.teamsIds) ? formData.teamsIds : [],
         collaboratorsIds: Array.isArray(formData.collaboratorsIds)
           ? formData.collaboratorsIds
@@ -593,7 +597,7 @@ const AttendanceDrawer = ({
         leaveBalance: 0,
         leaveConsumed: 0,
         description: "",
-        reportingManagerEmail: "",
+        assignedUserId: "",
         teamsIds: [],
         collaboratorsIds: [],
       }));
@@ -725,11 +729,10 @@ const AttendanceDrawer = ({
                     onClick={() => setActiveTab(tab.id)}
                     className={`
           flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors
-          ${
-            activeTab === tab.id
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-            }
+          ${activeTab === tab.id
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                      }
         `}
                   >
                     <Icon name={tab.icon} size={16} />
@@ -917,12 +920,13 @@ const AttendanceDrawer = ({
                       Reporting Manager
                     </label>
                     <Select
-                      value={formData.reportingManagerEmail || ""}
+                      value={formData.assignedUserId || ""}
                       options={userOptions}
                       onChange={(v) =>
-                        handleChange("reportingManagerEmail", v)
+                        handleChange("assignedUserId", v)
                       }
                       placeholder="Select Reporting Manager"
+                      searchable
                     />
                   </div>
 
@@ -946,8 +950,8 @@ const AttendanceDrawer = ({
                       isMulti
                       closeMenuOnSelect={false}
                       components={animatedComponents}
-                      options={userOptions}
-                      value={userOptions.filter((opt) =>
+                      options={ccOptions}
+                      value={ccOptions.filter((opt) =>
                         formData.collaboratorsIds?.includes(opt.value)
                       )}
                       onChange={(selected) =>
@@ -1083,8 +1087,9 @@ const AttendanceDrawer = ({
                             name="department"
                             value={formData.department}
                             onChange={handleInputChange}
-                            disabled={!canEditDep}
-                            placeholder={canEditDep ? "" : "No edit access"}
+                            disabled
+                            placeholder={canEditDep ? "" : "-"}
+
                           />
                         </div>
 
@@ -1103,7 +1108,7 @@ const AttendanceDrawer = ({
                               name="employeeCode"
                               value={formData.employeeCode}
                               onChange={handleInputChange}
-                              disabled={!canEditEmpCode}
+                              disabled
                               placeholder={canEditEmpCode ? "" : "No edit access"}
                             />
                           </div>
@@ -1168,13 +1173,25 @@ const AttendanceDrawer = ({
                             }
                           />
 
-                          <Input
-                            name="leaveConsumed"
-                            label="Days"
-                            type="number"
-                            value={formData?.leaveConsumed}
-                            onChange={handleInputChange}
-                          />
+                          {["Short Leave", "SLC"].includes(formData.requestType) ? (
+                            <Input
+                              name="durationInMinutes"
+                              label="Duration (Minutes)"
+                              type="number"
+                              value={formData.durationInMinutes ?? ""}
+                              onChange={(e) =>
+                                handleChange("durationInMinutes", Number(e.target.value))
+                              }
+                            />
+                          ) : (
+                            <Input
+                              name="leaveConsumed"
+                              label="Days"
+                              type="number"
+                              value={formData.leaveConsumed ?? ""}
+                              onChange={handleInputChange}
+                            />
+                          )}
                         </div>
 
                         <Input
@@ -1183,6 +1200,7 @@ const AttendanceDrawer = ({
                           type="number"
                           value={formData.leaveBalance}
                           onChange={handleInputChange}
+                          disabled
                         />
                       </div>
 
@@ -1211,12 +1229,13 @@ const AttendanceDrawer = ({
                           </label>
 
                           <Select
-                            value={formData.reportingManagerEmail || ""}
+                            value={formData.assignedUserId || ""}
                             options={userOptions}
                             onChange={(v) =>
-                              handleChange("reportingManagerEmail", v)
+                              handleChange("assignedUserId", v)
                             }
                             placeholder="Select Reporting Manager"
+                            searchable
                           />
                         </div>
 
@@ -1240,8 +1259,8 @@ const AttendanceDrawer = ({
 
                           <ReactSelect
                             isMulti
-                            options={userOptions}
-                            value={userOptions.filter((opt) =>
+                            options={ccOptions}
+                            value={ccOptions.filter((opt) =>
                               formData.collaboratorsIds?.includes(opt.value)
                             )}
                             onChange={(selected) =>
@@ -1357,7 +1376,9 @@ const AttendanceDrawer = ({
                               Duration
                             </p>
                             <p className="text-lg font-bold text-primary">
-                              {account?.leaveConsumed || 0} days
+                              {["Short Leave", "SLC"].includes(account?.requestType)
+                                ? `${account?.durationInMinutes || 0} minutes`
+                                : `${account?.leaveConsumed || 0} days`}
                             </p>
                           </div>
                         </div>
@@ -1758,11 +1779,10 @@ const AttendanceDrawer = ({
                         </div>
 
                         <div
-                          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                            isOpen
-                              ? "max-h-[500px] opacity-100 mt-4"
-                              : "max-h-0 opacity-0"
-                          }`}
+                          className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen
+                            ? "max-h-[500px] opacity-100 mt-4"
+                            : "max-h-0 opacity-0"
+                            }`}
                         >
                           <div className="border-t pt-4 grid grid-cols-2 gap-4 text-sm">
                             <div>

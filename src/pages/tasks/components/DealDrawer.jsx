@@ -17,6 +17,7 @@ import { useTeams } from "hooks/useTeams";
 import { useAccounts } from "hooks/useAccounts";
 import { useNewLeads } from "hooks/useLeads";
 import { ParentSelectorModal } from "../../../components/ParentSelectorModal";
+import RoleGuard from "components/RoleGuard";
 
 const DealDrawer = ({
   deal,
@@ -86,8 +87,7 @@ const DealDrawer = ({
   }, [deal, mode]);
 
   // now use hooks
-  const { data: task, isLoading } = useTasksById(deal?.id);
-  console.log("deasl drwaer ", selectedIds);
+
   // mass update
   const isMassUpdate = mode === "mass-update";
   const [parentPage, setParentPage] = useState(1);
@@ -117,25 +117,6 @@ const DealDrawer = ({
   const toggleMassField = (field) => {
     setMassFields((prev) => ({ ...prev, [field]: !prev[field] }));
   };
-
-  // fetching lead stream from id
-  useEffect(() => {
-    if (!isOpen || !deal?.id) return;
-
-    const loadStream = async () => {
-      try {
-        const id = deal?.id;
-        const res = await taskStreamById(id);
-        console.log("LEAD DETAIL RESPONSE:", res);
-        setmockStream(res.list || []);
-      } catch (err) {
-        console.error("Failed to fetch streams", err);
-        toast.error("Failed to load activity");
-      }
-    };
-
-    loadStream();
-  }, [isOpen, deal?.id]);
 
   // mockactivities
 
@@ -523,6 +504,7 @@ const DealDrawer = ({
               </span>
             </div>
             <div className="flex items-center space-x-2">
+
               {!isMassUpdate && (
                 <Button
                   variant="outline"

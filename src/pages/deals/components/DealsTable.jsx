@@ -71,7 +71,7 @@ const DealsTable = ({
   const handleQuickAction = (e, action, deal) => {
     e?.stopPropagation();
     onDealClick(deal);
-    console.log(`${action} action for deal:`, deal?.id);
+    // console.log(`${action} action for deal:`, deal?.id);
   };
   const handleDelete = async (e, deal) => {
     e.stopPropagation();

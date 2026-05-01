@@ -15,8 +15,8 @@ const DealsTable = ({
   currentPage,
   itemsPerPage,
   isLoading,
-  onEdit,      
-  onDelete,   
+  onEdit,
+  onDelete,
   canEdit = true,
   canDelete = true,
 }) => {
@@ -111,7 +111,7 @@ const DealsTable = ({
       </td>
     </tr>
   );
-  
+
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       {/* Desktop Table */}
@@ -202,7 +202,9 @@ const DealsTable = ({
                   </td>
                   <td className="px-4 py-4">
                     <div className="font-medium text-foreground">
-                      {deal?.requestType}
+                      {deal?.requestType === "SLC"
+                        ? "Contribution Credit"
+                        : deal?.requestType}
                     </div>
                   </td>
                   <td className="px-4 py-4">

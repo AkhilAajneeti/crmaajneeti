@@ -374,11 +374,12 @@ const AccountsTable = ({
                   {visibleColumns?.actions && (
                     <td className="p-4" onClick={(e) => e?.stopPropagation()}>
                       <div className="flex items-center space-x-1">
+                        
                         {canEdit && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => onRowClick(account.id, "edit")}
+                            onClick={() => onRowClick(account.id, "view")}
                           >
                             <Icon name="Edit" size={16} />
                           </Button>

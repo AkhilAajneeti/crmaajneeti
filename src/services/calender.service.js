@@ -178,11 +178,11 @@ export const fetchcalenderDetails = async ({ limit, page, filters }) => {
         });
     }
 
-    if (filters.assignUser) {
+    if (filters.createdById) {
         where.push({
             type: "equals",
-            attribute: "assignedUserId",
-            value: filters.assignUser,
+            attribute: "createdById",
+            value: filters.createdById,
         });
     }
 
@@ -288,21 +288,31 @@ export const updateAttendance = async (id, payload) => {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
-                Accept: "application/json",
                 token: token,
             },
             body: JSON.stringify(payload),
         },
     );
 
-    const text = await res.text();
-    console.log("response from servicejs", res);
     if (!res.ok) {
         throw new Error(text || "Attendance update failed");
     }
 
     return await res.json();
 };
+
+export const deleteAttendance = async (id) => {
+    const token = localStorage.getItem("auth_token");
+    const res = await fetch(
+        `https://gateway.aajneetiadvertising.com/CAttendanceRequest/${id}`,
+        {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json", token: token },
+        },
+    );
+    return res.json();
+};
+
 
 
 
