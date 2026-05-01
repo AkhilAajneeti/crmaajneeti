@@ -6,20 +6,23 @@ import Sidebar from "../../components/ui/Sidebar";
 import MetricsCard from "./components/MetricsCard";
 import FilterControls from "./components/FilterControls";
 import TablePagination from "./components/TablePagination";
-import { fetchSources, fetchStatus } from "services/others.service";
 import Button from "components/ui/Button";
 import Icon from "../../components/AppIcon";
 import DealsTable from "./components/DealsTable";
 import AttendanceCalendar from "./components/AttendanceCalendar";
 import { useCalender } from "hooks/useCalender";
 import AttendanceDrawer from "./components/AttendanceDrawer";
+import {
+  canCreate,
+  canDeleteRecord,
+  canEdit,
+  canEditField,
+  canEditRecord,
+} from "utils/permissions";
 
 const Attendance = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [source, setSource] = useState([]);
-  const [status, setStatus] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const [selectedDeals, setSelectedDeals] = useState([]);
   const [showAnalytics, setShowAnalytics] = useState(false);
   // drawer
@@ -40,11 +43,25 @@ const Attendance = () => {
     search: "",
     status: "",
     dateType: "",
-    requestType:"",
+    requestType: "",
     createdByName: "",
     closeDateFrom: "",
     closeDateTo: "",
   });
+  const canCreateAttendance = canCreate("CAttendanceRequest");
+  const canEditAttendance = canEdit("CAttendanceRequest");
+  const canEditAttendanceStatus =
+    canEditAttendance &&
+    canEditRecord("CAttendanceRequest", selectedDeal) &&
+    canEditField("CAttendanceRequest", "status");
+  const canEditDepartment =
+    canEditRecord("CAttendanceRequest", selectedDeal) &&
+    canEditField("CAttendanceRequest", "department");
+
+  const canEditEmployeeCode =
+    canEditRecord("CAttendanceRequest", selectedDeal) &&
+    canEditField("CAttendanceRequest", "employeeCode");
+
   const { data, isLoading } = useCalender({
     limit,
     page,
@@ -56,19 +73,7 @@ const Attendance = () => {
 
 
   const STATUS = ["Approved", "Pending"];
-  useEffect(() => {
-    const loadSource = async () => {
-      try {
-        const data = await fetchSources();
-        setSource(data.options || []);
-        // console.log(data.list);
-      } catch (error) {
-        console.log("failed to fetch data", error);
-      } finally {
-      }
-    };
-    loadSource();
-  }, []);
+
 
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -113,29 +118,6 @@ const Attendance = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // fetch status
-  useEffect(() => {
-    const loadStatus = async () => {
-      try {
-        const data = await fetchStatus();
-        setStatus(data.options || []);
-        console.log(data.list);
-      } catch (error) {
-        console.log("failed to fetch data", error);
-      } finally {
-      }
-    };
-    loadStatus();
-  }, []);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  const handleItemsPerPageChange = (newItemsPerPage) => {
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1);
-  };
   const totalPages = Math.ceil(total / limit);
   const handleSort = (key) => {
     setSortConfig((prevConfig) => ({
@@ -186,6 +168,7 @@ const Attendance = () => {
   }, [mockcalender, total]);
   // ✅ CREATE
   const handleCreate = () => {
+    if (!canCreateAttendance) return;
     setDrawerMode("create");
     setSelectedDeal(null);
     setIsDrawerOpen(true);
@@ -200,6 +183,7 @@ const Attendance = () => {
 
   // ✅ EDIT
   const handleEdit = (deal) => {
+    if (!canEditRecord("CAttendanceRequest", deal)) return;
     setDrawerMode("edit");
     setSelectedDeal(deal);
     setIsDrawerOpen(true);
@@ -247,12 +231,14 @@ const Attendance = () => {
                     <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
                     <span>Live data</span>
                   </div>
-                  <Button
-                    onClick={handleCreate}
-                    className="linearbg-1 text-white hover:text-white"
-                  >
-                    Create Attendance Request
-                  </Button>
+                  {canCreateAttendance && (
+                    <Button
+                      onClick={handleCreate}
+                      className="linearbg-1 text-white hover:text-white"
+                    >
+                      Create Attendance Request
+                    </Button>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -309,7 +295,7 @@ const Attendance = () => {
                   <AttendanceCalendar
                     attendanceData={mockcalender}
                     onDateChange={setDateRange}
-                    onCloseCalendar={() => setShowAnalytics(false)} 
+                    onCloseCalendar={() => setShowAnalytics(false)}
                   />
                 </motion.div>
               )}
@@ -324,6 +310,8 @@ const Attendance = () => {
               onDealClick={handleView}   // ✅ ADD
               onEdit={handleEdit}        // ✅ ADD
               onDelete={(deal) => console.log("delete", deal)} // optional
+              canEdit={(deal) => canEditRecord("CAttendanceRequest", deal)}
+              canDelete={(deal) => canDeleteRecord("CAttendanceRequest", deal)}
               currentPage={page}
               itemsPerPage={limit}
               isLoading={isLoading}
@@ -356,6 +344,11 @@ const Attendance = () => {
             setIsDrawerOpen(false);
           }}
           isLoading={isLoading}
+          canCreate={canCreateAttendance}
+          canEdit={canEditRecord("CAttendanceRequest", selectedDeal)}
+          canEditStatus={canEditAttendanceStatus}
+          canEditDep={canEditDepartment}
+          canEditEmpCode={canEditEmployeeCode}
         />
       </div>
     </>

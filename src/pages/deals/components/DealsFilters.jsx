@@ -14,6 +14,9 @@ const DealsFilters = ({
   onBulkAction,
   selectedCount,
   toggleAnalytics,
+  canDelete = true,
+  canExport = true,
+  canMassUpdate = true,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
@@ -22,7 +25,12 @@ const DealsFilters = ({
     { value: "mass-update", label: "Mass Update", icon: "GitBranch" },
     { value: "export", label: "Export Selected", icon: "Download" },
     { value: "delete", label: "Delete Selected", icon: "Trash2" },
-  ];
+  ].filter((action) => {
+    if (action.value === "mass-update") return canMassUpdate;
+    if (action.value === "export") return canExport;
+    if (action.value === "delete") return canDelete;
+    return true;
+  });
 
   // Source
   const sourceOptions = [
@@ -181,7 +189,7 @@ const DealsFilters = ({
         </div>
 
         <div className="flex items-center space-x-2">
-          {selectedCount > 0 && (
+          {selectedCount > 0 && bulkActions.length > 0 && (
             <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground">
                 {selectedCount} selected

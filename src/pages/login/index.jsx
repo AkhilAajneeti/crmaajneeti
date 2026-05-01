@@ -11,7 +11,7 @@ const LoginPage = () => {
   useEffect(() => {
     // Check if user is already authenticated
     const isAuthenticated = localStorage.getItem("auth_token");
-    if (isAuthenticated === "true") {
+    if (isAuthenticated) {
       navigate("/dashboard");
     }
   }, [navigate]);

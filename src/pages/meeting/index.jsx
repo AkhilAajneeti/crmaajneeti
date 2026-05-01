@@ -21,6 +21,7 @@ import {
   updateMeeting,
 } from "services/meeting.service";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
+import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
 
 const MeetingPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -47,6 +48,10 @@ const MeetingPage = () => {
     endDate: "",
     dateType: "",
   });
+  const canCreateMeeting = canCreate("Meeting");
+  const canEditMeeting = canEdit("Meeting");
+  const canDeleteMeeting = canDelete("Meeting");
+  const canMassUpdateMeeting = canGlobal("massUpdatePermission") && canEditMeeting;
   const { data, isLoading } = useAllMeetings({ limit, page, filters });
 
   const leads = data?.list || [];
@@ -75,6 +80,7 @@ const MeetingPage = () => {
   };
 
   const handleAddMeeting = () => {
+    if (!canCreateMeeting) return;
     setSelectedDeal(null);
     setMode("add");
     setIsDrawerOpen(true);
@@ -87,6 +93,7 @@ const MeetingPage = () => {
   };
 
   const handleCreateMeeting = async (payload) => {
+    if (!canCreateMeeting) return;
     try {
       await createMeeting(payload); // API
       queryClient.invalidateQueries(["meetings"]);
@@ -97,11 +104,13 @@ const MeetingPage = () => {
   };
 
   const handleUpdateMeeting = async (id, payload) => {
+    if (!canEditMeeting) return;
     await updateMeeting(id, payload);
     queryClient.invalidateQueries(["meetings"]);
   };
 
   const handleDeleteMeeting = async (id) => {
+    if (!canDeleteMeeting) return;
     try {
       toast.loading("Deleting meeting...", { id: "delete-lead" });
       await deleteMeeting(id);
@@ -178,6 +187,7 @@ const MeetingPage = () => {
 
   const handleBulkAction = (action) => {
     if (action === "mass-update") {
+      if (!canMassUpdateMeeting) return;
       if (!selectedDeals.length) {
         toast.error("Select at least one lead");
         return;
@@ -191,6 +201,7 @@ const MeetingPage = () => {
     }
 
     if (action === "delete") {
+      if (!canDeleteMeeting) return;
       if (!selectedDeals.length) {
         toast.error("Select at least one lead");
         return;
@@ -201,6 +212,7 @@ const MeetingPage = () => {
     }
   };
   const handleConfirmBulkDelete = async () => {
+    if (!canDeleteMeeting) return;
     try {
       toast.loading("Deleting meetings...", { id: "bulk-delete" });
 
@@ -229,6 +241,7 @@ const MeetingPage = () => {
     setCurrentPage(1);
   };
   const handleBulkUpdateMeet = async (payload) => {
+    if (!canMassUpdateMeeting) return;
     try {
       toast.loading("Updating meeting...", { id: "bulk-update" });
 
@@ -280,10 +293,12 @@ const MeetingPage = () => {
                 </p>
               </div>
               <div className="flex items-center space-x-3">
-                <Button onClick={handleAddMeeting} className="linearbg-1 text-white hover:text-white">
-                  <Icon name="Plus" size={16} className="mr-2" />
-                  New Meeting
-                </Button>
+                {canCreateMeeting && (
+                  <Button onClick={handleAddMeeting} className="linearbg-1 text-white hover:text-white">
+                    <Icon name="Plus" size={16} className="mr-2" />
+                    New Meeting
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -295,6 +310,8 @@ const MeetingPage = () => {
               dealCount={total}
               onBulkAction={handleBulkAction}
               selectedCount={selectedDeals?.length}
+              canDelete={canDeleteMeeting}
+              canMassUpdate={canMassUpdateMeeting}
             />
 
             {/* Deals Table */}
@@ -310,6 +327,8 @@ const MeetingPage = () => {
               itemsPerPage={limit}
               onDelete={handleDeleteMeeting}
               isLoading={loading}
+              canEdit={canEditMeeting}
+              canDelete={canDeleteMeeting}
             />
 
             {/* Pagination */}

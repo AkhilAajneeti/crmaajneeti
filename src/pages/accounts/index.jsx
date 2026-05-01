@@ -16,6 +16,7 @@ import ImportModel from "./components/ImportModel";
 import { useAccounts } from "hooks/useAccounts";
 import { useMetaData } from "hooks/useMetaData";
 import { useQueryClient } from "@tanstack/react-query";
+import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
 
 const AccountsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -28,6 +29,11 @@ const AccountsPage = () => {
   const [page, setPage] = useState(1);
 
   const [selectedAccountIds, setSelectedAccountIds] = useState([]);
+  const canCreateAccount = canCreate("Account");
+  const canEditAccount = canEdit("Account");
+  const canDeleteAccount = canDelete("Account");
+  const canExportAccount = canGlobal("exportPermission");
+  const canMassUpdateAccount = canGlobal("massUpdatePermission") && canEditAccount;
 
   const [filters, setFilters] = useState({
     search: "",
@@ -74,6 +80,7 @@ const AccountsPage = () => {
 
   const handleBulkAction = (action, ids) => {
     if (action === "mass-update") {
+      if (!canMassUpdateAccount) return;
       if (!ids.length) {
         alert("Select at least one account");
         return;
@@ -86,6 +93,7 @@ const AccountsPage = () => {
       return;
     }
     if (action === "export") {
+      if (!canExportAccount) return;
       // 1️⃣ Agar kuch selected hai → sirf wahi export
       const accountsToExport =
         ids && ids.length > 0
@@ -107,6 +115,7 @@ const AccountsPage = () => {
   };
 
   const handleAccountButton = () => {
+    if (!canCreateAccount) return;
     setSelectedAccount(null);
     setDrawerMode("create");
 
@@ -114,6 +123,7 @@ const AccountsPage = () => {
   };
   // handle exports (bulk and indivisual)
   const handleExportAccount = (account) => {
+    if (!canExportAccount) return;
     try {
       const exportData = account.map((account) => ({
         Name: account?.name || "",
@@ -157,6 +167,7 @@ const AccountsPage = () => {
     }
   };
   const handleImportAccounts = async (rows) => {
+    if (!canCreateAccount) return;
     try {
       toast.loading("Importing accounts...", { id: "import" });
 
@@ -228,6 +239,7 @@ const AccountsPage = () => {
   };
 
   const handleBulkUpdateAccounts = async (ids, payload) => {
+    if (!canMassUpdateAccount) return;
     try {
       toast.loading("Updating accounts...", { id: "bulk-update" });
 
@@ -276,18 +288,22 @@ const AccountsPage = () => {
                 <Icon name="Upload" size={16} className="mr-2" />
                 Export
               </Button>
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => setIsQuickAddOpen(true)}
-              >
-                <Icon name="Upload" size={16} className="mr-2" />
-                Import
-              </Button>
-              <Button onClick={handleAccountButton} className="linearbg-1">
-                <Icon name="Plus" size={16} className="mr-2" />
-                Add Account
-              </Button>
+              {canCreateAccount && (
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setIsQuickAddOpen(true)}
+                >
+                  <Icon name="Upload" size={16} className="mr-2" />
+                  Import
+                </Button>
+              )}
+              {canCreateAccount && (
+                <Button onClick={handleAccountButton} className="linearbg-1">
+                  <Icon name="Plus" size={16} className="mr-2" />
+                  Add Account
+                </Button>
+              )}
             </div>
           </div>
 
@@ -313,6 +329,10 @@ const AccountsPage = () => {
             total={total}
             limit={limit}
             setLimit={setLimit}
+            canEdit={canEditAccount}
+            canDelete={canDeleteAccount}
+            canExport={canExportAccount}
+            canMassUpdate={canMassUpdateAccount}
           />
         </div>
       </main>

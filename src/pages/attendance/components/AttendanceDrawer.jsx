@@ -8,10 +8,8 @@ import makeAnimated from "react-select/animated";
 import Input from "../../../components/ui/Input";
 import {
   accActivitesById,
-  createAccount,
   createAccStream,
   deleteAccStream,
-  fetchContactByAccount,
   fetchTaskByAccount,
   unlinkContactFromAccount,
   updateAccount,
@@ -24,19 +22,24 @@ import { deleteTasks } from "services/tasks.service";
 import { useAccountById } from "hooks/useAccounts";
 import { useCalenderById, useCalenderStream } from "hooks/useCalender";
 import { createNewAttendance, updateAttendance } from "services/calender.service";
+
 const AttendanceDrawer = ({
   data,
-  accounts,
   isOpen,
   onClose,
   mode = "view",
   onSuccess,
   onBulkUpdate,
   selectedIds = [],
+  // ✅ NEW: Permission props
+  canCreate = false,
+  canEdit = false,
+  canEditStatus = false,
+  canEditDep = false,
+  canEditEmpCode = false,
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState(accounts || {});
   const [drawerMode, setDrawerMode] = useState(mode);
   const [showStreamForm, setShowStreamForm] = useState(false);
   const [streamText, setStreamText] = useState("");
@@ -45,10 +48,8 @@ const AttendanceDrawer = ({
   const [activityLoading, setActivityLoading] = useState(false);
   const [expandedActivityId, setExpandedActivityId] = useState(null);
   const [tasks, setTasks] = useState([]);
-
   const [taskLoading, setTaskLoading] = useState(false);
-
-
+  const [isSaving, setIsSaving] = useState(false);
   const [users, setUsers] = useState([]);
   const [team, setTeam] = useState([]);
   const [massFields, setMassFields] = useState({
@@ -65,50 +66,90 @@ const AttendanceDrawer = ({
     data: streams,
     isLoading: streamLoading,
   } = useCalenderStream(data?.id, isOpen, activeTab);
-  console.log('stream', streams);
 
-
-  // Form state for create/edit mode
+  // ✅ FIXED: Complete form state with all fields
   const [formData, setFormData] = useState({
-    name: "", // reason
+    // Basic Info
+    name: "",
     department: "",
     employeeCode: "",
+
+    // Request Details
     requestType: "",
     status: "Pending",
     startDate: "",
     endDate: "",
     duration: "",
+    durationInMinutes: 0,
+
+    // Leave Details
+    leaveBalance: 0,
+    leaveConsumed: 0,
+    leaveCreditsDeducted: 0,
+
+    // Description & Notes
     description: "",
-    reportingManagerIds: [],
+    rejectionReason: null,
+
+    // Assignment
     reportingManagerEmail: "",
     teamsIds: [],
-    collaboratorsIds: []
+    collaboratorsIds: [],
+
+    // Meta Fields
+    applicantEmail: "",
+    jobDesignation: [],
+    selfRejected: false,
   });
+
+  // ✅ FIXED: Complete initialization from account data
   useEffect(() => {
     if (account && (drawerMode === "view" || drawerMode === "edit")) {
       setFormData({
+        // Basic Info
         name: account?.name || "",
         department: account?.department || "",
         employeeCode: account?.employeeCode || "",
+
+        // Request Details
         requestType: account?.requestType || "",
-        duration: account?.duration || "",
         status: account?.status || "Pending",
+        date: account?.startDate || "",
         startDate: account?.startDate || "",
-        endDate: account?.endDate || "",
+        endDate: account?.endDate || account?.startDate,
+        duration: account?.durationInMinutes || "",
+        durationInMinutes: account?.durationInMinutes || 0,
+
+        // Leave Details
+        leaveBalance: account?.leaveBalance || 0,
+        leaveConsumed: account?.leaveConsumed || 0,
+        leaveCreditsDeducted: account?.leaveCreditsDeducted || 0,
+
+        // Description & Notes
         description: account?.description || "",
+        rejectionReason: account?.rejectionReason || null,
+
+        // Assignment
         reportingManagerEmail: account?.reportingManagerEmail || "",
-        teamsIds: account?.teamsIds || [],
-        collaboratorsIds: account?.collaboratorsIds || []
+        teamsIds: Array.isArray(account?.teamsIds) ? account.teamsIds : [],
+        collaboratorsIds: Array.isArray(account?.collaboratorsIds)
+          ? account.collaboratorsIds
+          : [],
+
+        // Meta Fields
+        applicantEmail: account?.applicantEmail || "",
+        jobDesignation: Array.isArray(account?.jobDesignation)
+          ? account.jobDesignation
+          : [],
+        selfRejected: account?.selfRejected || false,
       });
     }
   }, [account, drawerMode]);
 
-
   const formatDateTime = (value) => {
     if (!value) return "—";
 
-    // backend format: "YYYY-MM-DD HH:mm:ss"
-    const safeValue = value.replace(" ", "T"); // ISO safe
+    const safeValue = value.replace(" ", "T");
     const date = new Date(safeValue);
 
     if (isNaN(date.getTime())) return "—";
@@ -179,19 +220,31 @@ const AttendanceDrawer = ({
   const handleCancelEdit = () => {
     setIsEditing(false);
     setDrawerMode("view");
-    // Reset form data to original account data
     if (account) {
       setFormData({
         name: account?.name || "",
-        website: account?.website || "",
-        industry: account?.industry || "",
-        phoneNumber: account?.phoneNumber || "",
+        department: account?.department || "",
+        employeeCode: account?.employeeCode || "",
+        requestType: account?.requestType || "",
+        status: account?.status || "Pending",
+        startDate: account?.startDate || "",
+        endDate: account?.endDate || "",
+        leaveBalance: account?.leaveBalance || 0,
+        leaveConsumed: account?.leaveConsumed || 0,
+        leaveCreditsDeducted: account?.leaveCreditsDeducted || 0,
+        description: account?.description || "",
+        reportingManagerEmail: account?.reportingManagerEmail || "",
+        teamsIds: account?.teamsIds || [],
+        collaboratorsIds: account?.collaboratorsIds || [],
+        applicantEmail: account?.applicantEmail || "",
       });
     }
   };
+
   const handleChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
+
   const tabs = [
     { id: "overview", label: "Overview", icon: "Building2" },
     { id: "contacts", label: "Contacts", icon: "Users" },
@@ -202,14 +255,26 @@ const AttendanceDrawer = ({
 
   const validateForm = () => {
     if (!formData?.name?.trim()) {
-      alert("Account name is required");
+      toast.error("Reason is required");
+      return false;
+    }
+    if (!formData?.requestType) {
+      toast.error("Request type is required");
+      return false;
+    }
+    if (!formData?.startDate) {
+      toast.error("Start date is required");
+      return false;
+    }
+    if (formData?.requestType === "Leave" && !formData?.endDate) {
+      toast.error("End date is required for full leave");
       return false;
     }
     return true;
   };
 
   useEffect(() => {
-    const loadData = async (id) => {
+    const loadData = async () => {
       try {
         const [usersRes, teamRes] = await Promise.all([
           fetchUser(),
@@ -225,6 +290,7 @@ const AttendanceDrawer = ({
 
     loadData();
   }, []);
+
   useEffect(() => {
     if (!isOpen || !account?.id || activeTab !== "task") return;
 
@@ -243,80 +309,127 @@ const AttendanceDrawer = ({
     loadTasks();
   }, [isOpen, account?.id, activeTab]);
 
-  useEffect(() => {
-    if (!isOpen || !account?.id || activeTab !== "contacts") return;
-
-    const loadContacts = async () => {
-      try {
-        setContactLoading(true);
-        const res = await fetchContactByAccount(account.id);
-        setContacts(res?.list || []);
-      } catch (err) {
-        console.error("Failed to load contacts", err);
-      } finally {
-        setContactLoading(false);
-      }
-    };
-
-    loadContacts();
-  }, [isOpen, account?.id, activeTab]);
-
-  const userOptions = (users || [])?.filter((u) => u?.isActive) // ✅ only active users
+  const userOptions = (users || [])
+    ?.filter((u) => u?.isActive)
     ?.map((u) => ({
-      value: u.email,
+      value: u.id,
       label: u.name || u.userName,
     }));
+
   const teamOptions = (team || [])?.map((t) => ({
     value: t.id,
     label: t.name,
   }));
 
-
-
+  // ✅ FIXED: Proper UPDATE payload with permission checks
   const handleUpdate = async () => {
     if (!validateForm()) return;
 
     try {
-      const payload = { ...formData };
+      setIsSaving(true);
 
-      console.log("UPDATE ACCOUNT PAYLOAD", payload);
-      console.log("UPDATE versionNumber", account?.versionNumber);
+      const payload = {
+        // Always updatable
+        name: formData.name?.trim(),
+        description: formData.description,
+
+        // ✅ Only if user has permission to edit status
+        ...(canEditStatus && { status: formData.status }),
+
+        // Leave details can be updated
+        leaveConsumed: Number(formData.leaveConsumed) || 0,
+        leaveBalance: Number(formData.leaveBalance) || 0,
+        leaveCreditsDeducted: Number(formData.leaveConsumed) || 0,
+
+        // Dates can be updated
+        startDate: formData.startDate,
+        endDate: formData.endDate || formData.startDate,
+        durationInMinutes: Number(formData.durationInMinutes) || null,
+
+        // Assignment can be updated
+        reportingManagerEmail: formData.reportingManagerEmail,
+        teamsIds: Array.isArray(formData.teamsIds) ? formData.teamsIds : [],
+        collaboratorsIds: Array.isArray(formData.collaboratorsIds)
+          ? formData.collaboratorsIds
+          : [],
+      };
+
+      console.log("UPDATE ATTENDANCE PAYLOAD", payload);
 
       await updateAttendance(account.id, payload);
-
-      onSuccess(); // refresh table
-      onClose(); // close drawer
+      toast.success("Attendance request updated successfully");
+      onSuccess();
+      onClose();
     } catch (err) {
-      console.error("Update failed:", err);
-      alert("Failed to update account");
+      toast.error(err?.message || "Failed to update attendance request");
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  // ✅ FIXED: Proper CREATE payload with permission-based status
   const handleCreate = async () => {
+    if (!validateForm()) return;
+
     try {
+      setIsSaving(true);
+
+      // Get current user email
+      const user = JSON.parse(localStorage.getItem("login_object"));
+      const applicantEmail = user?.email || "";
+
+      // ✅ If user cannot edit status, default to "Pending"
+      const statusValue = canEditStatus ? formData.status : "Pending";
+
       const payload = {
-        name: formData.name,
+        // Basic Info (Required)
+        name: formData.name?.trim(),
         department: formData.department,
         employeeCode: formData.employeeCode,
+
+        // Request Details (Required)
         requestType: formData.requestType,
-        status: formData.status,
+        status: statusValue, // ✅ Conditional based on permission
+        date: formData.startDate,
         startDate: formData.startDate,
-        endDate: formData.endDate,
-        leaveBalance: Number(formData.leaveBalance),
-        leaveConsumed: Number(formData.leaveConsumed),
-        description: formData.description,
-        reportingManagerEmail: formData.reportingManagerIds,
-        teamsIds: formData.teamsIds,
-        collaboratorsIds: formData.collaboratorsIds
+        endDate: formData.endDate || formData.startDate,
+
+        // Leave Details
+        leaveBalance: Number(formData.leaveBalance) || 0,
+        leaveConsumed: Number(formData.leaveConsumed) || 0,
+        leaveCreditsDeducted: Number(formData.leaveConsumed) || 0,
+
+        // Duration (optional)
+        durationInMinutes: Number(formData.durationInMinutes) || null,
+
+        // Description & Notes
+        description: formData.description || "",
+        rejectionReason: null,
+
+        // Assignment
+        reportingManagerEmail: formData.reportingManagerEmail,
+        teamsIds: Array.isArray(formData.teamsIds) ? formData.teamsIds : [],
+        collaboratorsIds: Array.isArray(formData.collaboratorsIds)
+          ? formData.collaboratorsIds
+          : [],
+
+        // Meta Fields
+        applicantEmail: applicantEmail,
+        jobDesignation: [],
+        selfRejected: false,
       };
 
       console.log("CREATE ATTENDANCE PAYLOAD", payload);
 
       await createNewAttendance(payload);
-
+      toast.success("Attendance request created successfully");
       onSuccess();
       onClose();
     } catch (err) {
-      console.error(err);
+      console.error("Create failed:", err);
+      toast.error(err?.message || "Failed to create attendance request");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -328,21 +441,8 @@ const AttendanceDrawer = ({
     }
   };
 
-  const handleCancel = () => {
-    setEditData(account);
-    setIsEditing(false);
-  };
-
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    })?.format(parseFloat(value?.replace(/[$,]/g, "")) || 0);
-  };
-
   const formatDate = (dateString) => {
+    if (!dateString) return "—";
     return new Date(dateString)?.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -374,6 +474,12 @@ const AttendanceDrawer = ({
       case "won":
         return "bg-green-100 text-green-800";
       case "lost":
+        return "bg-red-100 text-red-800";
+      case "approved":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "rejected":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -413,8 +519,8 @@ const AttendanceDrawer = ({
     if (item.type === "CreateRelated") return "Activity updated";
     return "Activity updated";
   };
+
   const createStream = async () => {
-    //post activity
     setShowStreamForm(true);
   };
 
@@ -422,7 +528,7 @@ const AttendanceDrawer = ({
     e.preventDefault();
 
     if (!streamText.trim()) {
-      alert("Comment cannot be empty");
+      toast.error("Comment cannot be empty");
       return;
     }
 
@@ -431,8 +537,8 @@ const AttendanceDrawer = ({
 
       const payload = {
         post: streamText,
-        parentId: account.id, // ✅ ACCOUNT ID
-        parentType: "Account", // ✅ IMPORTANT
+        parentId: account.id,
+        parentType: "Account",
         type: "Post",
         isInternal: false,
         attachmentsIds: [],
@@ -440,14 +546,14 @@ const AttendanceDrawer = ({
 
       const newStream = await createAccStream(payload);
 
-      // 🔥 Instantly update UI
       setStreams((prev) => [newStream, ...prev]);
 
       setStreamText("");
       setShowStreamForm(false);
+      toast.success("Comment added successfully");
     } catch (err) {
       console.error("Failed to post stream", err);
-      alert("Failed to post activity");
+      toast.error("Failed to post activity");
     } finally {
       setPostingStream(false);
     }
@@ -456,40 +562,51 @@ const AttendanceDrawer = ({
   const toggleActivity = (id) => {
     setExpandedActivityId((prev) => (prev === id ? null : id));
   };
+
   const toggleMassField = (key) => {
     setMassFields((prev) => ({
       ...prev,
       [key]: !prev[key],
     }));
   };
+
   useEffect(() => {
     if (!isOpen) return;
-
-    if (mode === "mass-update") {
-      setDrawerMode("mass-update");
-      setIsEditing(false);
-      setActiveTab(null); // no tabs in mass update
-
-      // reset form for bulk update
-      setFormData({
-        assignedUserId: "",
-        industry: "",
-        type: "",
-        teamId: "",
-      });
-
-      setMassFields({
-        assignedUserId: false,
-        industry: false,
-        type: false,
-        teamId: false,
-      });
-    }
 
     if (mode === "create") {
       setDrawerMode("create");
       setIsEditing(false);
       setActiveTab("overview");
+
+      // ✅ Initialize with default status based on permission
+      const defaultStatus = canEditStatus ? "Pending" : "Pending";
+
+      setFormData((prev) => ({
+        ...prev,
+        status: defaultStatus,
+        name: "",
+        department: "",
+        employeeCode: "",
+        requestType: "",
+        startDate: "",
+        endDate: "",
+        leaveBalance: 0,
+        leaveConsumed: 0,
+        description: "",
+        reportingManagerEmail: "",
+        teamsIds: [],
+        collaboratorsIds: [],
+      }));
+
+      // ✅ Add current user as collaborator
+      const user = JSON.parse(localStorage.getItem("login_object"));
+      if (user?.id) {
+        setFormData((prev) => ({
+          ...prev,
+          collaboratorsIds: [user.id],
+          applicantEmail: user?.email || "",
+        }));
+      }
     }
 
     if (mode === "edit") {
@@ -503,7 +620,7 @@ const AttendanceDrawer = ({
       setIsEditing(false);
       setActiveTab("overview");
     }
-  }, [isOpen, mode]);
+  }, [isOpen, mode, canEditStatus]);
 
   const handleBulkUpdate = (e) => {
     e.preventDefault();
@@ -512,10 +629,6 @@ const AttendanceDrawer = ({
 
     if (massFields.assignedUserId)
       payload.assignedUserId = formData.assignedUserId;
-
-    if (massFields.industry) payload.industry = formData.industry;
-
-    if (massFields.type) payload.type = formData.type;
 
     if (massFields.teamId) payload.teamId = formData.teamId;
 
@@ -527,40 +640,26 @@ const AttendanceDrawer = ({
     onBulkUpdate(selectedIds, payload);
     onClose();
   };
-  const handleUnlinkContact = async (contact) => {
-    try {
-      await unlinkContactFromAccount(contact.id);
 
-      toast.success("Contact unlinked from account");
-
-      // remove contact from UI list
-      setContacts((prev) => prev.filter((c) => c.id !== contact.id));
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to unlink contact");
-    }
-  };
   const handleDeleteTask = async (task) => {
     try {
       await deleteTasks(task.id);
-
-      toast.success("Task Delete.");
-
-      // remove contact from UI list
-      setContacts((prev) => prev.filter((c) => c.id !== task.id));
+      toast.success("Task deleted successfully");
+      setTasks((prev) => prev.filter((t) => t.id !== task.id));
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete task");
     }
   };
+
   const handleDeleteStream = async (id) => {
     try {
       await deleteAccStream(id);
-      toast.success("Stream Delete.");
+      toast.success("Stream deleted successfully");
       setStreams((prev) => prev.filter((s) => s.id !== id));
     } catch (err) {
       console.error(err);
-      toast.error("Failed to delete Stream");
+      toast.error("Failed to delete stream");
     }
   };
 
@@ -568,38 +667,15 @@ const AttendanceDrawer = ({
     { value: "SLC", label: "Contribution Credit" },
     { value: "Short Leave", label: "Short Leave" },
     { value: "Leave", label: "Leave" },
-    { value: "Half Day", label: "Half Day" }
+    { value: "Half Day", label: "Half Day" },
   ];
-  const handleFieldListChange = (selectedOptions) => {
-    const ids = (selectedOptions || []).map(opt => opt.value);
-
-    setFormData(prev => ({
-      ...prev,
-      collaboratorsIds: ids
-    }));
-  };
-
-  useEffect(() => {
-    if (drawerMode === "create") {
-      const user = JSON.parse(localStorage.getItem("login_object"));
-
-      if (user?.id) {
-        setFormData(prev => ({
-          ...prev,
-
-          collaboratorsIds: [user.id] // ✅ default selected
-        }));
-      }
-    }
-  }, [drawerMode]);
 
   return (
     <>
-      {/* Backdrop */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
       )}
-      {/* Drawer */}
+
       <div
         className={`
           fixed top-0 right-0 h-full w-full max-w-2xl bg-background border-l border-border z-50
@@ -612,7 +688,11 @@ const AttendanceDrawer = ({
           <div className="flex items-center justify-between p-6 border-b border-border">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Icon name="ClipboardList" size={24} className="text-primary" />
+                <Icon
+                  name="ClipboardList"
+                  size={24}
+                  className="text-primary"
+                />
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-foreground">
@@ -620,7 +700,7 @@ const AttendanceDrawer = ({
                     ? "Add Request"
                     : drawerMode === "edit"
                       ? "Edit Request"
-                      : account?.company}
+                      : account?.name || "Request Details"}
                 </h2>
                 <h3 className="text-lg font-semibold text-foreground">
                   {drawerMode === "view" ? "Attendance Request Details" : ""}
@@ -637,8 +717,6 @@ const AttendanceDrawer = ({
 
           {/* Tabs */}
           <div className="flex border-b border-border">
-            {/* Tabs */}
-            {/* Tabs */}
             {drawerMode !== "create" && !isMassUpdate && (
               <div className="flex border-b border-border overflow-x-scroll md:overflow-hidden ">
                 {tabs.map((tab) => (
@@ -647,10 +725,11 @@ const AttendanceDrawer = ({
                     onClick={() => setActiveTab(tab.id)}
                     className={`
           flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors
-          ${activeTab === tab.id
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground"
-                      }
+          ${
+            activeTab === tab.id
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+            }
         `}
                   >
                     <Icon name={tab.icon} size={16} />
@@ -677,25 +756,45 @@ const AttendanceDrawer = ({
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Department
+                      {canEditDep ? (
+                        <span className="text-destructive">*</span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs ml-1">
+                          (Read-only)
+                        </span>
+                      )}
                     </label>
                     <Input
                       name="department"
                       value={formData.department}
                       onChange={handleInputChange}
+                      disabled={!canEditDep}
+                      placeholder={canEditDep ? "Enter department" : "No access"}
                     />
                   </div>
+
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Employee Code
+                      {canEditEmpCode ? (
+                        <span className="text-destructive">*</span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs ml-1">
+                          (Read-only)
+                        </span>
+                      )}
                     </label>
                     <Input
                       name="employeeCode"
                       value={formData.employeeCode}
                       onChange={handleInputChange}
+                      disabled={!canEditEmpCode}
+                      placeholder={canEditEmpCode ? "Enter code" : "No access"}
                     />
                   </div>
                 </div>
@@ -703,7 +802,7 @@ const AttendanceDrawer = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Request Type
+                      Request Type <span className="text-destructive">*</span>
                     </label>
                     <Select
                       value={formData.requestType}
@@ -711,24 +810,35 @@ const AttendanceDrawer = ({
                       onChange={(v) => handleChange("requestType", v)}
                     />
                   </div>
+
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Status
+                      {canEditStatus ? (
+                        <span className="text-destructive">*</span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs ml-1">
+                          (Auto: Pending)
+                        </span>
+                      )}
                     </label>
                     <Select
                       value={formData.status}
                       options={[
                         { value: "Pending", label: "Pending" },
                         { value: "Approved", label: "Approved" },
-                        { value: "Rejected", label: "Rejected" }
+                        { value: "Rejected", label: "Rejected" },
                       ]}
                       onChange={(v) => handleChange("status", v)}
+                      disabled={!canEditStatus}
+                      placeholder={
+                        canEditStatus ? "Select status" : "Pending (Fixed)"
+                      }
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
 
-                  {/* ✅ ALWAYS visible */}
+                <div className="grid grid-cols-2 gap-4">
                   <Input
                     type="date"
                     label="Start Date"
@@ -736,62 +846,57 @@ const AttendanceDrawer = ({
                     onChange={(e) => handleChange("startDate", e.target.value)}
                   />
 
-                  {/* ✅ ONLY for short leave */}
                   {formData.requestType === "Short Leave" && (
                     <Input
                       type="number"
-                      label="Duration (in minutes)"
-                      value={formData.duration || ""}
-                      onChange={(e) => handleChange("duration", e.target.value)}
-                      placeholder="Enter minutes"
+                      label="Duration (Minutes)"
+                      value={formData.durationInMinutes ?? ""}
+                      onChange={(e) =>
+                        handleChange("durationInMinutes", Number(e.target.value))
+                      }
+                    />
+                  )}
+
+                  {formData.requestType === "SLC" && (
+                    <Input
+                      type="number"
+                      label="Duration (Minutes)"
+                      value={formData.durationInMinutes ?? ""}
+                      onChange={(e) =>
+                        handleChange("durationInMinutes", Number(e.target.value))
+                      }
                     />
                   )}
                 </div>
-                {formData.requestType !== "Short Leave" && (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input
-                        type="date"
-                        label="End Date"
-                        value={formData.endDate}
-                        onChange={(e) => handleChange("endDate", e.target.value)}
-                      />
 
-                      <Input
-                        name="leaveConsumed"
-                        label="Leave Duration (Days)"
-                        type="number"
-                        value={formData.leaveConsumed}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-
-                  </>
+                {formData.requestType === "Half Day" && (
+                  <Input
+                    type="number"
+                    label="Leave Duration (Days)"
+                    name="leaveConsumed"
+                    value={formData.leaveConsumed ?? ""}
+                    onChange={handleInputChange}
+                  />
                 )}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Leave Balance
-                    </label>
+
+                {formData.requestType === "Leave" && (
+                  <div className="grid grid-cols-2 gap-4">
                     <Input
-                      name="leaveBalance"
-                      type="number"
-                      value={formData.leaveBalance}
-                      onChange={handleInputChange} disabled
+                      type="date"
+                      label="End Date"
+                      value={formData.endDate}
+                      onChange={(e) => handleChange("endDate", e.target.value)}
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Leave Duration (Total Number of Days)
-                    </label>
+
                     <Input
-                      name="leaveConsumed"
                       type="number"
-                      value={formData.leaveConsumed}
+                      label="Leave Duration (Days)"
+                      name="leaveConsumed"
+                      value={formData.leaveConsumed ?? ""}
                       onChange={handleInputChange}
                     />
                   </div>
-                </div>
+                )}
 
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -805,29 +910,22 @@ const AttendanceDrawer = ({
                   />
                 </div>
 
+                {/* ✅ Assignment Section - Always editable for create */}
                 <div className="grid grid-cols-2 gap-4 rounded-xl p-4 border border-[#7BC47F] shadow-sm hover:shadow-md transition bg-background">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Reporting Manager
                     </label>
-                    <ReactSelect
-                      isMulti
-                      closeMenuOnSelect={false}
-                      components={animatedComponents}
+                    <Select
+                      value={formData.reportingManagerEmail || ""}
                       options={userOptions}
-                      value={userOptions.filter(opt =>
-                        formData.reportingManagerIds?.includes(opt.value)
-                      )}
-                      onChange={(selected) =>
-                        setFormData(prev => ({
-                          ...prev,
-                          reportingManagerIds: (selected || []).map(opt => opt.value)
-                        }))
+                      onChange={(v) =>
+                        handleChange("reportingManagerEmail", v)
                       }
-                      placeholder="Select Managers..."
-                      classNamePrefix="react-select"
+                      placeholder="Select Reporting Manager"
                     />
                   </div>
+
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Teams
@@ -839,6 +937,7 @@ const AttendanceDrawer = ({
                       placeholder="Select Team"
                     />
                   </div>
+
                   <div className="col-span-2">
                     <label className="block text-sm font-medium text-foreground mb-2">
                       CC
@@ -848,13 +947,15 @@ const AttendanceDrawer = ({
                       closeMenuOnSelect={false}
                       components={animatedComponents}
                       options={userOptions}
-                      value={userOptions.filter(opt =>
+                      value={userOptions.filter((opt) =>
                         formData.collaboratorsIds?.includes(opt.value)
                       )}
                       onChange={(selected) =>
-                        setFormData(prev => ({
+                        setFormData((prev) => ({
                           ...prev,
-                          collaboratorsIds: (selected || []).map(opt => opt.value)
+                          collaboratorsIds: (selected || []).map(
+                            (opt) => opt.value
+                          ),
                         }))
                       }
                       placeholder="Select CC users..."
@@ -863,23 +964,18 @@ const AttendanceDrawer = ({
                   </div>
                 </div>
 
-
                 <div className="flex items-center space-x-3 pt-4">
                   <Button
                     onClick={handleSave}
-                    disabled={isLoading}
+                    disabled={isSaving}
                     className="flex-1"
                   >
-                    {isLoading
-                      ? "Saving..."
-                      : drawerMode === "edit"
-                        ? "Update Account"
-                        : "Save Account"}
+                    {isSaving ? "Saving..." : "Save Request"}
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={drawerMode === "edit" ? handleCancelEdit : onClose}
-                    disabled={isLoading}
+                    onClick={onClose}
+                    disabled={isSaving}
                   >
                     Cancel
                   </Button>
@@ -897,7 +993,6 @@ const AttendanceDrawer = ({
                   Updating {selectedIds.length} selected accounts
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Assigned User */}
                   <div className="flex items-center gap-3">
                     <input
                       type="checkbox"
@@ -913,43 +1008,6 @@ const AttendanceDrawer = ({
                     />
                   </div>
 
-                  {/* Industry */}
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={massFields.industry}
-                      onChange={() => toggleMassField("industry")}
-                    />
-                    <Select
-                      label="Industry"
-                      name="industry"
-                      value={formData.industry || ""}
-                      options={IndustryOptions}
-                      onChange={(value) =>
-                        handleSelectChange("industry", value)
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Type */}
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={massFields.type}
-                      onChange={() => toggleMassField("type")}
-                    />
-                    <Select
-                      label="Type"
-                      value={formData.type}
-                      options={accountType}
-                      disabled={!massFields.type}
-                      onChange={(v) => handleChange("type", v)}
-                    />
-                  </div>
-
-                  {/* Team */}
                   <div className="flex items-center gap-3">
                     <input
                       type="checkbox"
@@ -981,311 +1039,366 @@ const AttendanceDrawer = ({
               (drawerMode === "view" || drawerMode === "edit") &&
               account && (
                 <div className="space-y-6">
-                  {/* Key Metrics */}
-
-                  {/* Account Details update*/}
-                  <div className="space-y-4">
-                    {isEditing ? (
-                      <div className="space-y-6">
-
-                        {/* ================= HEADER CARD ================= */}
-                        <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5 flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-muted-foreground">Editing Request</p>
-                            <h2 className="text-lg font-semibold text-foreground">
-                              {formData?.name || "Attendance Request"}
-                            </h2>
-                          </div>
-
-                          <span className="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700">
-                            {formData?.status || "Pending"}
-                          </span>
+                  {isEditing ? (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            Editing Request
+                          </p>
+                          <h2 className="text-lg font-semibold text-foreground">
+                            {formData?.name || "Attendance Request"}
+                          </h2>
                         </div>
 
-                        {/* ================= BASIC INFO ================= */}
-                        <div className="bg-background border border-border rounded-2xl p-5 space-y-4 shadow-sm">
-                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                            Basic Information
-                          </h3>
+                        <span className="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700">
+                          {formData?.status || "Pending"}
+                        </span>
+                      </div>
 
-                          <textarea
-                            name="name"
-                            value={formData?.name}
-                            onChange={handleInputChange}
-                            placeholder="Enter reason..."
-                            className="w-full p-3 border border-border rounded-xl focus:ring-2 focus:ring-primary"
-                          />
+                      <div className="bg-background border border-border rounded-2xl p-5 space-y-4 shadow-sm">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          Basic Information
+                        </h3>
 
+                        <textarea
+                          name="name"
+                          value={formData?.name}
+                          onChange={handleInputChange}
+                          placeholder="Enter reason..."
+                          className="w-full p-3 border border-border rounded-xl focus:ring-2 focus:ring-primary"
+                        />
+
+                        {/* ✅ Department - Disabled if no permission */}
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Department
+                            {!canEditDep && (
+                              <span className="text-xs text-muted-foreground ml-1">
+                                (Read-only)
+                              </span>
+                            )}
+                          </label>
                           <Input
                             name="department"
-                            label="Department"
                             value={formData.department}
                             onChange={handleInputChange}
+                            disabled={!canEditDep}
+                            placeholder={canEditDep ? "" : "No edit access"}
                           />
+                        </div>
 
-                          <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* ✅ Employee Code - Disabled if no permission */}
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">
+                              Employee Code
+                              {!canEditEmpCode && (
+                                <span className="text-xs text-muted-foreground ml-1">
+                                  (Read-only)
+                                </span>
+                              )}
+                            </label>
                             <Input
                               name="employeeCode"
-                              label="Employee Code"
                               value={formData.employeeCode}
                               onChange={handleInputChange}
+                              disabled={!canEditEmpCode}
+                              placeholder={canEditEmpCode ? "" : "No edit access"}
                             />
+                          </div>
 
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">
+                              Request Type
+                            </label>
                             <Select
-                              label="Request Type"
                               value={formData?.requestType}
                               options={requestOption}
+                              disabled={true} // Read-only in edit
                               onChange={(v) => handleChange("requestType", v)}
                             />
                           </div>
+                        </div>
 
+                        {/* ✅ Status - Editable only with permission */}
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Status
+                            {!canEditStatus && (
+                              <span className="text-xs text-muted-foreground ml-1">
+                                (Read-only)
+                              </span>
+                            )}
+                          </label>
                           <Select
-                            label="Status"
                             value={formData.status}
                             options={[
                               { value: "Pending", label: "Pending" },
                               { value: "Approved", label: "Approved" },
-                              { value: "Rejected", label: "Rejected" }
+                              { value: "Rejected", label: "Rejected" },
                             ]}
+                            disabled={!canEditStatus}
                             onChange={(v) => handleChange("status", v)}
                           />
                         </div>
+                      </div>
 
-                        {/* ================= DATE SECTION ================= */}
-                        <div className="bg-background border border-border rounded-2xl p-5 space-y-4 shadow-sm">
-                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                            Leave Duration
-                          </h3>
+                      <div className="bg-background border border-border rounded-2xl p-5 space-y-4 shadow-sm">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          Leave Duration
+                        </h3>
 
-                          <div className="grid grid-cols-3 gap-4">
-                            <Input
-                              type="date"
-                              label="Start Date"
-                              value={formData.startDate}
-                              onChange={(e) => handleChange("startDate", e.target.value)}
-                            />
-
-                            <Input
-                              type="date"
-                              label="End Date"
-                              value={formData.endDate}
-                              onChange={(e) => handleChange("endDate", e.target.value)}
-                            />
-
-                            <Input
-                              name="leaveConsumed"
-                              label="Days"
-                              type="number"
-                              value={formData?.leaveConsumed}
-                              onChange={handleInputChange}
-                            />
-                          </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <Input
+                            type="date"
+                            label="Start Date"
+                            value={formData.startDate}
+                            onChange={(e) =>
+                              handleChange("startDate", e.target.value)
+                            }
+                          />
 
                           <Input
-                            name="leaveBalance"
-                            label="Leave Balance"
+                            type="date"
+                            label="End Date"
+                            value={formData.endDate}
+                            onChange={(e) =>
+                              handleChange("endDate", e.target.value)
+                            }
+                          />
+
+                          <Input
+                            name="leaveConsumed"
+                            label="Days"
                             type="number"
-                            value={formData.leaveBalance}
+                            value={formData?.leaveConsumed}
                             onChange={handleInputChange}
-
                           />
                         </div>
 
-                        {/* ================= DESCRIPTION ================= */}
-                        <div className="bg-background border border-border rounded-2xl p-5 shadow-sm">
-                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                            Description
-                          </h3>
+                        <Input
+                          name="leaveBalance"
+                          label="Leave Balance"
+                          type="number"
+                          value={formData.leaveBalance}
+                          onChange={handleInputChange}
+                        />
+                      </div>
 
-                          <textarea
-                            name="description"
-                            value={formData.description}
-                            onChange={handleInputChange}
-                            rows={4}
-                            className="w-full p-3 border border-border rounded-xl focus:ring-2 focus:ring-primary"
-                          />
-                        </div>
+                      <div className="bg-background border border-border rounded-2xl p-5 shadow-sm">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                          Description
+                        </h3>
 
-                        {/* ================= TEAM & USERS ================= */}
-                        <div className="bg-background border border-border rounded-2xl p-5 space-y-4 shadow-sm">
-                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                            Assignment
-                          </h3>
+                        <textarea
+                          name="description"
+                          value={formData.description}
+                          onChange={handleInputChange}
+                          rows={4}
+                          className="w-full p-3 border border-border rounded-xl focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
 
-                          {/* Reporting Manager */}
-                          <div>
-                            <label className="text-sm font-medium mb-2 block">
-                              Reporting Manager
-                            </label>
+                      <div className="bg-background border border-border rounded-2xl p-5 space-y-4 shadow-sm">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          Assignment
+                        </h3>
 
-                            <ReactSelect
-                              isMulti
-                              options={userOptions}
-                              value={userOptions.filter(opt =>
-                                formData.reportingManagerIds?.includes(opt.value)
-                              )}
-                              onChange={(selected) =>
-                                setFormData(prev => ({
-                                  ...prev,
-                                  reportingManagerIds: (selected || []).map(opt => opt.value)
-                                }))
-                              }
-                              classNamePrefix="react-select"
-                            />
-                          </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Reporting Manager
+                          </label>
 
-                          {/* Team */}
                           <Select
-                            label="Team"
-                            value={formData.teamsIds?.[0] || ""}
+                            value={formData.reportingManagerEmail || ""}
+                            options={userOptions}
+                            onChange={(v) =>
+                              handleChange("reportingManagerEmail", v)
+                            }
+                            placeholder="Select Reporting Manager"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Teams
+                          </label>
+
+                          <Select
+                            value={formData.teamsIds[0] || ""}
                             options={teamOptions}
                             onChange={(v) => handleChange("teamsIds", [v])}
+                            placeholder="Select Team"
                           />
-
-                          {/* CC */}
-                          <div>
-                            <label className="text-sm font-medium mb-2 block">
-                              CC
-                            </label>
-
-                            <ReactSelect
-                              isMulti
-                              options={userOptions}
-                              value={userOptions.filter(opt =>
-                                formData.collaboratorsIds?.includes(opt.value)
-                              )}
-                              onChange={(selected) =>
-                                setFormData(prev => ({
-                                  ...prev,
-                                  collaboratorsIds: (selected || []).map(opt => opt.value)
-                                }))
-                              }
-                              classNamePrefix="react-select"
-                            />
-                          </div>
                         </div>
 
-                        {/* ================= ACTION BUTTONS ================= */}
-                        <div className="flex gap-3 pt-2">
-                          <Button
-                            onClick={handleSave}
-                            className="flex-1 bg-primary hover:bg-primary/90 shadow-md"
-                          >
-                            {isLoading ? "Saving..." : "Update Request"}
-                          </Button>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            CC
+                          </label>
 
-                          <Button variant="outline" onClick={handleCancelEdit}>
-                            Cancel
-                          </Button>
+                          <ReactSelect
+                            isMulti
+                            options={userOptions}
+                            value={userOptions.filter((opt) =>
+                              formData.collaboratorsIds?.includes(opt.value)
+                            )}
+                            onChange={(selected) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                collaboratorsIds: (selected || []).map(
+                                  (opt) => opt.value
+                                ),
+                              }))
+                            }
+                          />
                         </div>
-
                       </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {/* ================= Overview ================= */}
-                        <div className="bg-gradient-to-br from-background to-muted/30 border border-border rounded-2xl p-6 shadow-sm space-y-6">
 
-                          {/* HEADER */}
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-xs text-muted-foreground">Reason</p>
-                              <h2 className="text-xl font-semibold text-foreground">
-                                {account?.name || "N/A"}
-                              </h2>
-                            </div>
+                      <div className="flex gap-3 pt-2">
+                        <Button
+                          onClick={handleSave}
+                          className="flex-1 bg-primary hover:bg-primary/90 shadow-md"
+                          disabled={isSaving}
+                        >
+                          {isSaving ? "Updating..." : "Update Request"}
+                        </Button>
 
-                            {/* STATUS BADGE */}
-                            <span
-                              className={`px-3 py-1 text-xs font-medium rounded-full
-        ${account?.status === "Approved"
-                                  ? "bg-green-100 text-green-700"
-                                  : account?.status === "Rejected"
-                                    ? "bg-red-100 text-red-600"
-                                    : "bg-yellow-100 text-yellow-700"
-                                }`}
-                            >
-                              {account?.status || "Pending"}
-                            </span>
+                        <Button
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                          disabled={isSaving}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="bg-gradient-to-br from-background to-muted/30 border border-border rounded-2xl p-6 shadow-sm space-y-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              Reason
+                            </p>
+                            <h2 className="text-xl font-semibold text-foreground">
+                              {account?.name || "N/A"}
+                            </h2>
                           </div>
 
-                          {/* GRID INFO */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <span
+                            className={`px-3 py-1 text-xs font-medium rounded-full
+        ${getStageColor(account?.status)}`}
+                          >
+                            {account?.status || "Pending"}
+                          </span>
+                        </div>
 
-                            <div className="space-y-1">
-                              <p className="text-xs text-muted-foreground">Department</p>
-                              <p className="font-medium text-foreground">{account?.department || "None"}</p>
-                            </div>
-
-                            <div className="space-y-1">
-                              <p className="text-xs text-muted-foreground">Employee Code</p>
-                              <p className="font-medium text-foreground">{account?.employeeCode || "0"}</p>
-                            </div>
-
-                            <div className="space-y-1">
-                              <p className="text-xs text-muted-foreground">Request Type</p>
-                              <p className="font-medium text-foreground">{account?.requestType || "None"}</p>
-                            </div>
-
-                            <div className="space-y-1">
-                              <p className="text-xs text-muted-foreground">Leave Balance</p>
-                              <p className="font-medium text-foreground" >{account?.leaveBalance || "0"}</p>
-                            </div>
-                          </div>
-
-                          {/* DATE SECTION (HIGHLIGHTED) */}
-                          <div className="grid grid-cols-3 gap-4">
-
-                            <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                              <p className="text-xs text-muted-foreground">Start Date</p>
-                              <p className="font-semibold text-foreground">{account?.startDate || "None"}</p>
-                            </div>
-
-                            <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                              <p className="text-xs text-muted-foreground">End Date</p>
-                              <p className="font-semibold text-foreground">{account?.endDate || "None"}</p>
-                            </div>
-
-                            <div className="p-4 bg-primary/10 rounded-xl border border-primary/20 text-center">
-                              <p className="text-xs text-muted-foreground">Duration</p>
-                              <p className="text-lg font-bold text-primary">
-                                {account?.leaveConsumed || 0} days
-                              </p>
-                            </div>
-
-                          </div>
-
-                          {/* DESCRIPTION (NOTE STYLE) */}
-                          <div className="bg-muted/40 border border-border rounded-xl p-4">
-                            <p className="text-xs text-muted-foreground mb-2">Description</p>
-                            <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
-                              {account?.description || "No description provided"}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">
+                              Department
+                            </p>
+                            <p className="font-medium text-foreground">
+                              {account?.department || "None"}
                             </p>
                           </div>
 
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">
+                              Employee Code
+                            </p>
+                            <p className="font-medium text-foreground">
+                              {account?.employeeCode || "0"}
+                            </p>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">
+                              Request Type
+                            </p>
+                            <p className="font-medium text-foreground">
+                              {account?.requestType || "None"}
+                            </p>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">
+                              Leave Balance
+                            </p>
+                            <p className="font-medium text-foreground">
+                              {account?.leaveBalance || "0"}
+                            </p>
+                          </div>
                         </div>
 
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+                            <p className="text-xs text-muted-foreground">
+                              Start Date
+                            </p>
+                            <p className="font-semibold text-foreground">
+                              {formatDate(account?.startDate)}
+                            </p>
+                          </div>
+
+                          <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+                            <p className="text-xs text-muted-foreground">
+                              End Date
+                            </p>
+                            <p className="font-semibold text-foreground">
+                              {formatDate(account?.endDate)}
+                            </p>
+                          </div>
+
+                          <div className="p-4 bg-primary/10 rounded-xl border border-primary/20 text-center">
+                            <p className="text-xs text-muted-foreground">
+                              Duration
+                            </p>
+                            <p className="text-lg font-bold text-primary">
+                              {account?.leaveConsumed || 0} days
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="bg-muted/40 border border-border rounded-xl p-4">
+                          <p className="text-xs text-muted-foreground mb-2">
+                            Description
+                          </p>
+                          <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
+                            {account?.description || "No description provided"}
+                          </p>
+                        </div>
+
+                        {/* ✅ Edit button only if user has permission */}
+                        {canEdit && (
+                          <div className="flex gap-3 pt-4">
+                            <Button
+                              onClick={() => setIsEditing(true)}
+                              className="flex-1"
+                            >
+                              <Icon name="Edit" size={16} className="mr-2" />
+                              Edit Request
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
 
             {activeTab === "contacts" && (
               <div className="space-y-5">
-
                 <div className="bg-gradient-to-br from-background to-muted/30 border border-border rounded-2xl p-7 shadow-sm space-y-6">
-
-                  {/* 🔹 Header */}
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-semibold tracking-wide text-foreground">
                       Assignment Details
                     </h3>
                   </div>
 
-                  {/* 🔹 Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-                    {/* Reporting Manager */}
                     <div>
                       <p className="text-sm text-muted-foreground mb-2">
                         Reporting Manager
@@ -1301,7 +1414,6 @@ const AttendanceDrawer = ({
                       )}
                     </div>
 
-                    {/* Teams */}
                     <div>
                       <p className="text-sm text-muted-foreground mb-2">
                         Teams
@@ -1323,11 +1435,8 @@ const AttendanceDrawer = ({
                       </div>
                     </div>
 
-                    {/* CC */}
                     <div className="col-span-2">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        CC
-                      </p>
+                      <p className="text-sm text-muted-foreground mb-2">CC</p>
 
                       <div className="flex flex-wrap gap-2">
                         {account?.collaboratorsIds?.length ? (
@@ -1344,15 +1453,11 @@ const AttendanceDrawer = ({
                         )}
                       </div>
                     </div>
-
                   </div>
 
-                  {/* 🔹 Divider */}
                   <div className="border-t border-border my-2" />
 
-                  {/* 🔹 Meta Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">
                         Created
@@ -1361,7 +1466,10 @@ const AttendanceDrawer = ({
                         {formatDateTime(account?.createdAt)}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        by <span className="font-medium text-foreground">{account?.createdByName}</span>
+                        by{" "}
+                        <span className="font-medium text-foreground">
+                          {account?.createdByName}
+                        </span>
                       </p>
                     </div>
 
@@ -1373,11 +1481,8 @@ const AttendanceDrawer = ({
                         {formatDateTime(account?.modifiedAt)}
                       </p>
                     </div>
-
                   </div>
-
                 </div>
-
               </div>
             )}
 
@@ -1385,12 +1490,23 @@ const AttendanceDrawer = ({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-foreground">
-                    Active Task
+                    Active Tasks
                   </h3>
                 </div>
 
                 <div className="space-y-3">
-                  {tasks.lenght === 0 ? (
+                  {tasks.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                      <img
+                        src="/public/assets/images/check.png"
+                        alt="No Tasks"
+                        className="w-40 opacity-80"
+                      />
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        Currently you don't have any tasks
+                      </p>
+                    </div>
+                  ) : (
                     tasks.map((task) => (
                       <div
                         key={task.id}
@@ -1415,13 +1531,12 @@ const AttendanceDrawer = ({
                             {task.status && (
                               <span
                                 className={`px-2 py-1 text-xs rounded-full ${getStageColor(
-                                  task.status,
+                                  task.status
                                 )}`}
                               >
                                 {task.status}
                               </span>
                             )}
-                            {/* Delete */}
                             <Button
                               variant="ghost"
                               size="icon"
@@ -1434,17 +1549,6 @@ const AttendanceDrawer = ({
                         </div>
                       </div>
                     ))
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-10 text-center">
-                      <img
-                        src="/public/assets/images/check.png"
-                        alt="No Activities"
-                        className="w-40 opacity-80"
-                      />
-                      <p className="mt-3 text-sm text-muted-foreground">
-                        Currently you don't have any task
-                      </p>
-                    </div>
                   )}
                 </div>
               </div>
@@ -1452,7 +1556,6 @@ const AttendanceDrawer = ({
 
             {activeTab === "stream" && (
               <div className="space-y-4">
-                {/* Header */}
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium text-foreground">
                     Recent Stream
@@ -1487,21 +1590,23 @@ const AttendanceDrawer = ({
                         Cancel
                       </Button>
 
-                      <Button type="submit" size="sm" disabled={postingStream}>
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={postingStream}
+                      >
                         {postingStream ? "Posting..." : "Post"}
                       </Button>
                     </div>
                   </form>
                 )}
 
-                {/* Stream List */}
-                {streams?.list?.length > 0 ? (
+                {streams?.list && streams.list.length > 0 ? (
                   streams.list.map((item) => (
                     <div
                       key={item.id}
                       className="flex space-x-3 p-4 bg-muted/30 rounded-lg group"
                     >
-                      {/* Avatar */}
                       <Avatar
                         name={item.createdByName || "System"}
                         size="36"
@@ -1509,7 +1614,6 @@ const AttendanceDrawer = ({
                         textSizeRatio={2}
                       />
 
-                      {/* Content */}
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
@@ -1533,7 +1637,6 @@ const AttendanceDrawer = ({
                               {formatDateTime(item.createdAt)}
                             </span>
 
-                            {/* Actions (hover only) */}
                             <div className="opacity-0 group-hover:opacity-100 transition">
                               <Button
                                 variant="ghost"
@@ -1554,16 +1657,14 @@ const AttendanceDrawer = ({
                           </div>
                         </div>
 
-                        {/* Message */}
                         <p className="text-sm text-muted-foreground mt-1">
                           {getStreamMessage(item)}
                         </p>
 
-                        {/* Status Badge */}
                         {item.data?.value && (
                           <span
                             className={`inline-block mt-2 px-2 py-0.5 text-xs rounded-full ${getStageColor(
-                              item.data.value,
+                              item.data.value
                             )}`}
                           >
                             {item.data.value}
@@ -1576,7 +1677,7 @@ const AttendanceDrawer = ({
                   <div className="flex flex-col items-center justify-center py-10 text-center">
                     <img
                       src="/public/assets/images/comment.png"
-                      alt="No Activities"
+                      alt="No Comments"
                       className="w-40 opacity-80"
                     />
                     <p className="mt-3 text-sm text-muted-foreground">
@@ -1589,14 +1690,12 @@ const AttendanceDrawer = ({
 
             {activeTab === "activities" && (
               <div className="space-y-4">
-                {/* Header */}
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-foreground">
                     Activities
                   </h3>
                 </div>
 
-                {/* Activity List */}
                 {activities.length > 0 ? (
                   activities.map((activity) => {
                     const isOpen = expandedActivityId === activity.id;
@@ -1607,7 +1706,6 @@ const AttendanceDrawer = ({
                         onClick={() => toggleActivity(activity.id)}
                         className="cursor-pointer rounded-lg bg-muted/30 p-4 transition hover:bg-muted/50"
                       >
-                        {/* COLLAPSED HEADER */}
                         <div className="flex gap-3">
                           <Avatar
                             name={activity.assignedUserName || "System"}
@@ -1628,7 +1726,7 @@ const AttendanceDrawer = ({
                               {activity.status && (
                                 <span
                                   className={`px-2 py-0.5 text-xs rounded-full ${getStageColor(
-                                    activity.status,
+                                    activity.status
                                   )}`}
                                 >
                                   {activity.status}
@@ -1659,12 +1757,12 @@ const AttendanceDrawer = ({
                           </div>
                         </div>
 
-                        {/* EXPANDED CONTENT */}
                         <div
-                          className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen
-                            ? "max-h-[500px] opacity-100 mt-4"
-                            : "max-h-0 opacity-0"
-                            }`}
+                          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                            isOpen
+                              ? "max-h-[500px] opacity-100 mt-4"
+                              : "max-h-0 opacity-0"
+                          }`}
                         >
                           <div className="border-t pt-4 grid grid-cols-2 gap-4 text-sm">
                             <div>

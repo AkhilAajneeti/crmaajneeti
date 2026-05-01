@@ -44,7 +44,7 @@ const Routes = () => {
           <Route
             path="/settings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute permission="userPermission">
                 <Settings />
               </ProtectedRoute>
             }
@@ -61,7 +61,7 @@ const Routes = () => {
           <Route
             path="/leads"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute entity="Lead">
                 <DealsPage />
               </ProtectedRoute>
             }
@@ -69,7 +69,7 @@ const Routes = () => {
           <Route
             path="/sales-team"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute entity="Contact">
                 <SalesTeam />
               </ProtectedRoute>
             }
@@ -79,7 +79,7 @@ const Routes = () => {
           <Route
             path="/accounts"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute entity="Account">
                 <AccountsPage />
               </ProtectedRoute>
             }
@@ -95,7 +95,7 @@ const Routes = () => {
           <Route
             path="/tasks"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute entity="Task">
                 <TaskPage />
               </ProtectedRoute>
             }
@@ -127,7 +127,7 @@ const Routes = () => {
           <Route
             path="/meeting"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute entity="Meeting">
                 <MeetingPage />
               </ProtectedRoute>
             }
@@ -143,7 +143,7 @@ const Routes = () => {
           <Route
             path="/pipeline"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute entity="Lead">
                 <Pipeline />
               </ProtectedRoute>
             }
@@ -151,7 +151,7 @@ const Routes = () => {
           <Route
             path="/attendance"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute entity="CAttendanceRequest">
                 <Attendance />
               </ProtectedRoute>
             }
@@ -167,7 +167,7 @@ const Routes = () => {
           <Route
             path="/workplace"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute entity="CWorkplaceNotes">
                 <WorkPlace />
               </ProtectedRoute>
             }
@@ -175,7 +175,7 @@ const Routes = () => {
           <Route
             path="/complaints"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute entity="Case">
                 <Complaints />
               </ProtectedRoute>
             }
@@ -183,7 +183,7 @@ const Routes = () => {
           <Route
             path="/knowledge-base"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute entity="KnowledgeBaseArticle">
                 <KnowledgeBase />
               </ProtectedRoute>
             }

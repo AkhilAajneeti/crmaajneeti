@@ -15,6 +15,10 @@ const AccountsTable = ({
   total,
   limit,
   setLimit,
+  canEdit = true,
+  canDelete = true,
+  canExport = true,
+  canMassUpdate = true,
 }) => {
   // do some changes
 
@@ -212,36 +216,42 @@ const AccountsTable = ({
                 <span className="text-sm text-muted-foreground">
                   {selectedRows?.size} selected
                 </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    onBulkAction("delete", Array.from(selectedRows))
-                  }
-                >
-                  <Icon name="Trash2" size={16} className="mr-2" />
-                  Delete
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    onBulkAction("export", Array.from(selectedRows))
-                  }
-                >
-                  <Icon name="Download" size={16} className="mr-2" />
-                  Export
-                </Button>
-                <Button
-                  variant="Action"
-                  size="sm"
-                  onClick={() =>
-                    onBulkAction("mass-update", Array.from(selectedRows))
-                  }
-                >
-                  <Icon name="Edit" size={16} className="mr-2" />
-                  Mass Update
-                </Button>
+                {canDelete && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      onBulkAction("delete", Array.from(selectedRows))
+                    }
+                  >
+                    <Icon name="Trash2" size={16} className="mr-2" />
+                    Delete
+                  </Button>
+                )}
+                {canExport && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      onBulkAction("export", Array.from(selectedRows))
+                    }
+                  >
+                    <Icon name="Download" size={16} className="mr-2" />
+                    Export
+                  </Button>
+                )}
+                {canMassUpdate && (
+                  <Button
+                    variant="Action"
+                    size="sm"
+                    onClick={() =>
+                      onBulkAction("mass-update", Array.from(selectedRows))
+                    }
+                  >
+                    <Icon name="Edit" size={16} className="mr-2" />
+                    Mass Update
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -364,23 +374,27 @@ const AccountsTable = ({
                   {visibleColumns?.actions && (
                     <td className="p-4" onClick={(e) => e?.stopPropagation()}>
                       <div className="flex items-center space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onRowClick(account.id, "edit")}
-                        >
-                          <Icon name="Edit" size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:bg-red-50"
-                          onClick={() =>
-                            onBulkAction("delete", Array.from(selectedRows))
-                          }
-                        >
-                          <Icon name="Trash2" size={16} />
-                        </Button> 
+                        {canEdit && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onRowClick(account.id, "edit")}
+                          >
+                            <Icon name="Edit" size={16} />
+                          </Button>
+                        )}
+                        {canDelete && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:bg-red-50"
+                            onClick={() =>
+                              onBulkAction("delete", [account.id])
+                            }
+                          >
+                            <Icon name="Trash2" size={16} />
+                          </Button>
+                        )} 
                       </div>
                     </td>
                   )}
@@ -424,13 +438,15 @@ const AccountsTable = ({
                 </div>
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onRowClick(account.id, "edit")}
-              >
-                <Icon name="Edit" size={16} />
-              </Button>
+              {canEdit && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRowClick(account.id, "edit")}
+                >
+                  <Icon name="Edit" size={16} />
+                </Button>
+              )}
             </div>
 
             {/* Meta Info */}

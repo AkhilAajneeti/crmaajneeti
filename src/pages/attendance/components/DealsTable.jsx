@@ -8,6 +8,7 @@ const DealsTable = ({
   deals,
   selectedDeals,
   onDealClick,
+  onSelectDeal,
   onSelectAll,
   sortConfig,
   onSort,
@@ -16,6 +17,8 @@ const DealsTable = ({
   isLoading,
   onEdit,      
   onDelete,   
+  canEdit = true,
+  canDelete = true,
 }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
 
@@ -62,6 +65,12 @@ const DealsTable = ({
       <Icon name="ArrowDown" size={16} className="text-primary" />
     );
   };
+
+  const canEditDeal = (deal) =>
+    typeof canEdit === "function" ? canEdit(deal) : canEdit;
+
+  const canDeleteDeal = (deal) =>
+    typeof canDelete === "function" ? canDelete(deal) : canDelete;
 
   const handleQuickAction = (e, action, deal) => {
     e?.stopPropagation();
@@ -155,11 +164,13 @@ const DealsTable = ({
                   {getSortIcon("Project Name")}
                 </button>
               </th>
-              <th className="text-left px-4 py-3">
-                <button className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth">
-                  <span>Action</span>
-                </button>
-              </th>
+              {(canEdit || canDelete) && (
+                <th className="text-left px-4 py-3">
+                  <button className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth">
+                    <span>Action</span>
+                  </button>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -209,30 +220,36 @@ const DealsTable = ({
                     <div className="text-foreground">{formatDate(deal?.startDate)}</div>
                   </td>
 
-                  <td className="p-4" onClick={(e) => e?.stopPropagation()}>
-                    <div className="flex items-center space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit(deal);
-                        }}
-                      >
-                        <Icon name="Edit" size={16} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:bg-red-50"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit(deal);
-                        }}>
-                        <Icon name="Trash2" size={16} />
-                      </Button>
-                    </div>
-                  </td>
+                  {(canEditDeal(deal) || canDeleteDeal(deal)) && (
+                    <td className="p-4" onClick={(e) => e?.stopPropagation()}>
+                      <div className="flex items-center space-x-1">
+                        {canEditDeal(deal) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEdit(deal);
+                            }}
+                          >
+                            <Icon name="Edit" size={16} />
+                          </Button>
+                        )}
+                        {canDeleteDeal(deal) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:bg-red-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete(deal);
+                            }}>
+                            <Icon name="Trash2" size={16} />
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

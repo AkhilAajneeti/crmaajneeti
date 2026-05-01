@@ -277,14 +277,11 @@ export const createNewAttendance = async (payload) => {
         throw err;
     }
 
-
-    return text ? JSON.parse(text) : null;
 };
 
 
 export const updateAttendance = async (id, payload) => {
     const token = localStorage.getItem("auth_token");
-    console.log(id, payload, versionNumber);
     const res = await fetch(
         `https://gateway.aajneetiadvertising.com/CAttendanceRequest/${id}`,
         {
@@ -332,6 +329,6 @@ export const fetchAttendStreamById = async (id) => {
         }
         throw new Error("Failed to fetch User's stream");
     }
-    
+
     return await res.json();
 };

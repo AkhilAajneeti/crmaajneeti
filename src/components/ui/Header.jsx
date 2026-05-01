@@ -42,6 +42,9 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
     localStorage.removeItem("username");
     localStorage.removeItem("rememberMe");
     localStorage.removeItem("auth_token");
+    localStorage.removeItem("login_object");
+    localStorage.removeItem("acl");
+    localStorage.removeItem("isAuthenticated");
 
     // clear cache
     clearLeadsCache();

@@ -19,6 +19,7 @@ import {
 } from "services/tasks.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTasks, useTasksAll, useTasksById } from "hooks/useTasks";
+import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
 const TaskPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
@@ -42,6 +43,11 @@ const TaskPage = () => {
     endDate: "",
     dateType: "",
   });
+  const canCreateTask = canCreate("Task");
+  const canEditTask = canEdit("Task");
+  const canDeleteTask = canDelete("Task");
+  const canExportTask = canGlobal("exportPermission");
+  const canMassUpdateTask = canGlobal("massUpdatePermission") && canEditTask;
   const queryClient = useQueryClient();
   const { data, isLoading } = useTasks();
   const { data: allTasksData } = useTasksAll({ limit, page,filters });
@@ -104,6 +110,7 @@ const TaskPage = () => {
   };
 
   const handleAddLeads = () => {
+    if (!canCreateTask) return;
     setSelectedDeal(null);
     setMode("add");
     setIsDrawerOpen(true);
@@ -116,6 +123,7 @@ const TaskPage = () => {
   };
 
   const handleCreateLead = async (payload) => {
+    if (!canCreateTask) return;
     try {
       await createTasks(payload); // API
       queryClient.invalidateQueries(["tasks"]);
@@ -126,10 +134,12 @@ const TaskPage = () => {
   };
 
   const handleUpdateTasks = async (id, payload) => {
+    if (!canEditTask) return;
     await updateTasks(id, payload);
     queryClient.invalidateQueries(["tasks"]);
   };
   const handleBulkUpdateTasks = async (ids, payload) => {
+    if (!canMassUpdateTask) return;
     try {
       toast.loading("Updating tasks...", { id: "bulk-update" });
 
@@ -145,6 +155,7 @@ const TaskPage = () => {
 
   //deletion delete
   const handleDeleteLead = async (id) => {
+    if (!canDeleteTask) return;
     try {
       toast.loading("Deleting task...", { id: "delete-task" });
       await deleteTasks(id); // API call
@@ -157,6 +168,7 @@ const TaskPage = () => {
     }
   };
   const handleBulkDelete = async () => {
+    if (!canDeleteTask) return;
     if (!selectedDeals.length) {
       toast.error("Please select at least one task");
       return;
@@ -250,6 +262,7 @@ const TaskPage = () => {
       return;
     }
     if (action === "export") {
+      if (!canExportTask) return;
       if (!selectedDeals.length) {
         toast.error("Select at least one lead");
         return;
@@ -264,10 +277,12 @@ const TaskPage = () => {
     }
 
     if (action === "delete") {
+      if (!canDeleteTask) return;
       handleBulkDelete();
     }
 
     if (action === "massupdate") {
+      if (!canMassUpdateTask) return;
       setMode("mass-update");
       setIsDrawerOpen(true);
     }
@@ -316,19 +331,23 @@ const TaskPage = () => {
                 </p>
               </div>
               <div className="flex items-center space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    exportLeadsToCSV(tasks, "all_leads")
-                  }
-                >
-                  <Icon name="Download" size={16} className="mr-2" />
-                  Export All
-                </Button>
-                <Button onClick={handleAddLeads} className="linearbg-1 text-white hover:text-white">
-                  <Icon name="Plus" size={16} className="mr-2" />
-                  New Tasks
-                </Button>
+                {canExportTask && (
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      exportLeadsToCSV(tasks, "all_leads")
+                    }
+                  >
+                    <Icon name="Download" size={16} className="mr-2" />
+                    Export All
+                  </Button>
+                )}
+                {canCreateTask && (
+                  <Button onClick={handleAddLeads} className="linearbg-1 text-white hover:text-white">
+                    <Icon name="Plus" size={16} className="mr-2" />
+                    New Tasks
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -340,6 +359,9 @@ const TaskPage = () => {
               dealCount={total}
               onBulkAction={handleBulkAction}
               selectedCount={selectedDeals?.length}
+              canDelete={canDeleteTask}
+              canExport={canExportTask}
+              canMassUpdate={canMassUpdateTask}
             />
 
             {/* Deals Table */}
@@ -353,6 +375,8 @@ const TaskPage = () => {
               onSort={handleSort}
               onDelete={handleDeleteLead}
               isLoading={isLoading}
+              canEdit={canEditTask}
+              canDelete={canDeleteTask}
             />
 
             {/* Pagination */}

@@ -25,6 +25,7 @@ import MultiLineChart from "pages/dashboard/components/MultiLineChart";
 import { useLeads, useNewLeads } from "hooks/useLeads";
 import { useMetaData } from "hooks/useMetaData";
 import { useLeadDetails } from "hooks/useLeadDetails";
+import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
 
 const DealsPage = () => {
   const queryClient = useQueryClient();
@@ -37,6 +38,11 @@ const DealsPage = () => {
   const [mode, setMode] = useState("view");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const canCreateLead = canCreate("Lead");
+  const canEditLead = canEdit("Lead");
+  const canDeleteLead = canDelete("Lead");
+  const canExportLead = canGlobal("exportPermission");
+  const canMassUpdateLead = canGlobal("massUpdatePermission") && canEditLead;
 
   const { data: metaData } = useMetaData();
   const { data: leadsDetails } = useLeadDetails(selectedDeal?.id, mode);
@@ -139,6 +145,7 @@ const DealsPage = () => {
     setSelectedDeal(null);
   };
   const handleCreateLead = async (payload) => {
+    if (!canCreateLead) return;
     try {
       createLeadMutation.mutate(payload);
     } catch (err) {
@@ -147,10 +154,12 @@ const DealsPage = () => {
   };
 
   const handleUpdateLead = async (id, payload) => {
+    if (!canEditLead) return;
     await updateLead(id, payload);
   };
 
   const handleDeleteLead = async (id) => {
+    if (!canDeleteLead) return;
     try {
       toast.loading("Deleting lead...", { id: "delete-lead" });
       deleteLeadMutation.mutate(id);
@@ -219,6 +228,7 @@ const DealsPage = () => {
   };
   const handleBulkAction = (action) => {
     if (action === "mass-update") {
+      if (!canMassUpdateLead) return;
       if (!selectedDeals.length) {
         toast.error("Select at least one lead");
       }
@@ -230,6 +240,7 @@ const DealsPage = () => {
     }
 
     if (action === "export") {
+      if (!canExportLead) return;
       if (!selectedDeals.length) {
         toast.error("Select at least one lead");
         return;
@@ -244,6 +255,7 @@ const DealsPage = () => {
     }
 
     if (action === "delete") {
+      if (!canDeleteLead) return;
       if (!selectedDeals.length) {
         toast.error("Select at least one lead");
         return;
@@ -296,6 +308,7 @@ const DealsPage = () => {
   };
   const handleBulkUpdateLeads = async (payload) => {
     try {
+      if (!canMassUpdateLead) return;
       toast.loading("Updating leads...", { id: "bulk-update" });
 
       await Promise.all(selectedDeals.map((id) => updateLead(id, payload)));
@@ -342,24 +355,28 @@ const DealsPage = () => {
                 </p>
               </div>
               <div className="flex items-center space-x-3">
-                <Button
-                  className="linearbg-1 text-white hover:text-white"
-                  variant="outline"
-                  onClick={() =>
-                    exportLeadsToCSV(leads, "all_leads")
-                  }
-                >
-                  <Icon name="Download" size={16} className="mr-2" />
-                  Export All
-                </Button>
+                {canExportLead && (
+                  <Button
+                    className="linearbg-1 text-white hover:text-white"
+                    variant="outline"
+                    onClick={() =>
+                      exportLeadsToCSV(leads, "all_leads")
+                    }
+                  >
+                    <Icon name="Download" size={16} className="mr-2" />
+                    Export All
+                  </Button>
+                )}
 
-                <Button
-                  onClick={handleAddLeads}
-                  className="linearbg-1 text-white hover:text-white"
-                >
-                  <Icon name="Plus" size={16} className="mr-2" />
-                  New Lead
-                </Button>
+                {canCreateLead && (
+                  <Button
+                    onClick={handleAddLeads}
+                    className="linearbg-1 text-white hover:text-white"
+                  >
+                    <Icon name="Plus" size={16} className="mr-2" />
+                    New Lead
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -372,6 +389,9 @@ const DealsPage = () => {
               onBulkAction={handleBulkAction}
               selectedCount={selectedDeals?.length}
               toggleAnalytics={() => setShowAnalytics((prev) => !prev)}
+              canDelete={canDeleteLead}
+              canExport={canExportLead}
+              canMassUpdate={canMassUpdateLead}
 
             />
             {/* chartsAnanlysis */}
@@ -412,6 +432,8 @@ const DealsPage = () => {
               isLoading={isLoading}
               page={page}
               setPage={setPage}
+              canEdit={canEditLead}
+              canDelete={canDeleteLead}
             />
 
             {/* Pagination */}

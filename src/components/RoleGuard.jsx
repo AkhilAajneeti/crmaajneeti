@@ -1,4 +1,16 @@
-const RoleGuard = ({ allowedRoles = [], children }) => {
+import { canEntity, canGlobal } from "utils/permissions";
+
+const RoleGuard = ({
+  allowedRoles = [],
+  entity,
+  action = "read",
+  permission,
+  children,
+}) => {
+  if (entity && !canEntity(entity, action)) return null;
+  if (permission && !canGlobal(permission)) return null;
+  if (!allowedRoles.length) return children;
+
   const storedUser = localStorage.getItem("login_object");
 
   if (!storedUser) return null;

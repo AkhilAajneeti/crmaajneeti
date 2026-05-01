@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Icon from "../AppIcon";
 import Button from "./Button";
+import { canGlobal, canRead, hasAcl } from "utils/permissions";
 const Sidebar = ({ isOpen = false, onClose }) => {
   const user = JSON.parse(localStorage.getItem("login_object") || "{}");
   const isAdmin = String(user?.type).toLowerCase() === "admin";
+  const shouldShowAdmin = hasAcl() ? canGlobal("portalPermission") : isAdmin;
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -20,10 +22,10 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     {
       title: "CRM",
       items: [
-        { label: "Accounts", path: "/accounts", icon: "Building2" },
-        { label: "Leads", path: "/leads", icon: "Target" },
-        { label: "Task", path: "/tasks", icon: "ListChecks" },
-        { label: "Meeting", path: "/meeting", icon: "Projector" },
+        { label: "Accounts", path: "/accounts", icon: "Building2", entity: "Account" },
+        { label: "Leads", path: "/leads", icon: "Target", entity: "Lead" },
+        { label: "Task", path: "/tasks", icon: "ListChecks", entity: "Task" },
+        { label: "Meeting", path: "/meeting", icon: "Projector", entity: "Meeting" },
       ],
     },
     {
@@ -36,20 +38,20 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       title: "SYSTEM",
       items: [
         { label: "Integrations", path: "/integrations", icon: "Puzzle" },
-        { label: "Attendance", path: "/attendance", icon: "ClipboardList" },
-        { label: "Profile", path: "/profile", icon: "User" },
+        { label: "Attendance", path: "/attendance", icon: "ClipboardList", entity: "CAttendanceRequest" },
+        { label: "Profile", path: "/profile", icon: "User", entity: "CProfileDetails" },
       ],
     },
     {
       title: "WORKSPACE",
       items: [
-        { label: "Notes", path: "/workplace", icon: "NotebookText" },
-        { label: "Complaints", path: "/complaints", icon: "AlertTriangle" },
-        { label: "Knowledge", path: "/knowledge-base", icon: "LibraryBig" },
+        { label: "Notes", path: "/workplace", icon: "NotebookText", entity: "CWorkplaceNotes" },
+        { label: "Complaints", path: "/complaints", icon: "AlertTriangle", entity: "Case" },
+        { label: "Knowledge", path: "/knowledge-base", icon: "LibraryBig", entity: "KnowledgeBaseArticle" },
       ],
     },
     // ✅ ADMIN ONLY
-    ...(isAdmin
+    ...(shouldShowAdmin
       ? [
         {
           title: "ADMIN",
@@ -62,7 +64,12 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       : []),
   ];
 
-  const navigationItems = navigationGroups;
+  const navigationItems = navigationGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !item.entity || canRead(item.entity)),
+    }))
+    .filter((group) => group.items.length > 0);
 
   const handleNavigation = (path) => {
     navigate(path);
@@ -132,7 +139,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
           <nav className="flex-1 overflow-y-auto py-4">
             <div className="px-3 space-y-6">
 
-              {navigationGroups.map((group) => (
+              {navigationItems.map((group) => (
                 <div key={group.title}>
 
                   {/* SECTION TITLE */}

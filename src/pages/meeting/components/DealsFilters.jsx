@@ -12,6 +12,8 @@ const DealsFilters = ({
   dealCount,
   onBulkAction,
   selectedCount,
+  canDelete = true,
+  canMassUpdate = true,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
@@ -37,7 +39,11 @@ const DealsFilters = ({
   const bulkActions = [
     { value: "mass-update", label: "Mass Update", icon: "User" },
     { value: "delete", label: "Delete Selected", icon: "Trash2" },
-  ];
+  ].filter((action) => {
+    if (action.value === "mass-update") return canMassUpdate;
+    if (action.value === "delete") return canDelete;
+    return true;
+  });
   const showDateInputs = ["between", "after", "before"].includes(filters?.dateType);
   const handleFilterChange = (key, value) => {
     onFiltersChange({
@@ -89,7 +95,7 @@ const DealsFilters = ({
         </div>
 
         <div className="flex items-center space-x-2">
-          {selectedCount > 0 && (
+          {selectedCount > 0 && bulkActions.length > 0 && (
             <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground">
                 {selectedCount} selected
