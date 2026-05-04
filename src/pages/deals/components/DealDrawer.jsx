@@ -12,7 +12,7 @@ import { useUsers } from "hooks/useUsers";
 import { useLeadStream } from "hooks/useLeadStream";
 import { useLeadActivity } from "hooks/useLeadActivity";
 import { useQueryClient } from "@tanstack/react-query";
-import RoleGuard from "components/RoleGuard";
+import { canEdit, canEditRecord } from "utils/permissions";
 
 const DealDrawer = ({
   status,
@@ -63,7 +63,6 @@ const DealDrawer = ({
   const team = teamData?.list || [];
   const streams = streamData?.list || [];
   const activities = activityData?.list || [];
-  console.log("leadDetails", leadsDetails);
   useEffect(() => {
     if (mode === "add") {
       setFormData({
@@ -89,7 +88,11 @@ const DealDrawer = ({
       setIsEditing(false);
     }
   }, [deal, mode]);
+ const currentUserId = JSON.parse(localStorage.getItem("login_object"))?.id;
 
+  const canEditDeal = (deal) =>
+    canEditRecord("Lead", deal) &&
+    deal?.assignedUserId === currentUserId;
   const [massFields, setMassFields] = useState({
     assignedUserId: false,
     status: false,
@@ -475,8 +478,8 @@ const DealDrawer = ({
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <RoleGuard allowedRoles={"admin"}>
-              {mode == "view" && (
+
+              {mode == "view" && canEditDeal(deal) && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -489,7 +492,7 @@ const DealDrawer = ({
                   {isEditing ? "Cancel" : "Edit"}
                 </Button>
               )}
-              </RoleGuard>
+
 
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <Icon name="X" size={20} />
@@ -833,10 +836,10 @@ const DealDrawer = ({
                               OTP Verified
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.cOTPVerified|| "No"}
+                              {deal?.cOTPVerified || "No"}
                             </p>
                           </div>
-                          
+
                           {/* Preference */}
                           <div>
                             <p className="text-sm text-muted-foreground">
@@ -892,7 +895,7 @@ const DealDrawer = ({
                     </div>
                   )}
 
-                  
+
 
                   {activeTab === "AssignedUsers" && (
                     <div className="space-y-6">

@@ -18,6 +18,7 @@ import { useTeams } from "hooks/useTeams";
 import { useLeads } from "hooks/useLeads";
 import { useAccounts } from "hooks/useAccounts";
 import { ParentSelectorModal } from "components/ParentSelectorModal";
+import { canEditRecord } from "utils/permissions";
 
 const DealDrawer = ({
   deal,
@@ -96,7 +97,11 @@ const DealDrawer = ({
       });
     }
   }, [deal, mode]);
+  const currentUserId = JSON.parse(localStorage.getItem("login_object"))?.id;
 
+  const canEditDeal = (deal) =>
+    canEditRecord("Meeting", deal) &&
+    deal?.assignedUserId === currentUserId;
   const { data: streamData } = useQuery({
     queryKey: ["meetingStream", deal?.id],
     queryFn: () => meetingStreamById(deal.id),
@@ -497,7 +502,7 @@ const DealDrawer = ({
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              {!isMassUpdate && (
+              {!isMassUpdate && canEditDeal(deal)&&(
                 <Button
                   variant="outline"
                   size="sm"

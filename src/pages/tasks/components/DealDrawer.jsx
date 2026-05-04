@@ -18,6 +18,7 @@ import { useAccounts } from "hooks/useAccounts";
 import { useNewLeads } from "hooks/useLeads";
 import { ParentSelectorModal } from "../../../components/ParentSelectorModal";
 import RoleGuard from "components/RoleGuard";
+import { canEditRecord } from "utils/permissions";
 
 const DealDrawer = ({
   deal,
@@ -117,7 +118,11 @@ const DealDrawer = ({
   const toggleMassField = (field) => {
     setMassFields((prev) => ({ ...prev, [field]: !prev[field] }));
   };
+ const currentUserId = JSON.parse(localStorage.getItem("login_object"))?.id;
 
+  const canEditDeal = (deal) =>
+    canEditRecord("Task", deal) &&
+    deal?.assignedUserId === currentUserId;
   // mockactivities
 
   const STATUS_OPTIONS = [
@@ -505,7 +510,7 @@ const DealDrawer = ({
             </div>
             <div className="flex items-center space-x-2">
 
-              {!isMassUpdate && (
+              {!isMassUpdate && canEditDeal(deal)&&(
                 <Button
                   variant="outline"
                   size="sm"

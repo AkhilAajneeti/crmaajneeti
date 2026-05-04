@@ -9,6 +9,7 @@ import Avatar from "react-avatar";
 import { createLeadActivity, updateStream } from "services/leads.service";
 import { useProfileById, useUserById, useUsers } from "hooks/useUsers";
 import { useQueryClient } from "@tanstack/react-query";
+import { canEditField, canEditRecord, canReadField } from "utils/permissions";
 
 const DealDrawer = ({
   deal,
@@ -52,7 +53,7 @@ const DealDrawer = ({
     accountNumber: "",
     ifsc: "",
   });
-
+  const ENTITY = "CProfileDetails";
   const { data: user, isLoading } = useProfileById(deal?.id, isOpen);
 
   // const user = UserData|| [];
@@ -440,6 +441,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, name: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -460,6 +462,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, gender: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -479,6 +482,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, designation: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -497,7 +501,9 @@ IFSC: ${bankData.ifsc}`;
                                 value={formData.empCode || user?.empCode}
                                 onChange={(e) =>
                                   setFormData({ ...formData, empCode: e.target.value })
+                                  
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -517,6 +523,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, department: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -537,6 +544,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, subDepartment: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -555,6 +563,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, branch: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -573,6 +582,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, mode: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -601,6 +611,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, email: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="inline-flex px-3 py-1 rounded-full text-medium font-medium bg-success/10 text-success">
@@ -672,38 +683,50 @@ IFSC: ${bankData.ifsc}`;
                               Last Appraisal Date
                             </p>
 
-                            {isEditing ? (
-                              <Input
-                                value={formData.lastAppraisalDate || user?.lastAppraisalDate}
-                                onChange={(e) =>
-                                  setFormData({ ...formData, lastAppraisalDate: e.target.value })
-                                }
-                              />
-                            ) : (
-                              <p className=" text-medium font-medium">
-                                {user?.lastAppraisalDate || "None"}</p>
-
-                            )}
+                            {canReadField("CProfileDetails", "lastAppraisalDate") &&
+                              (isEditing &&
+                                canEditField("CProfileDetails", "lastAppraisalDate") &&
+                                canEditRecord("User", user) ? (
+                                <Input
+                                  value={formData.lastAppraisalDate || user?.lastAppraisalDate}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      lastAppraisalDate: e.target.value,
+                                    })
+                                  }
+                                />
+                              ) : (
+                                <p className="text-medium font-medium pt-2">
+                                  {user?.lastAppraisalDate || "None"}
+                                </p>
+                              ))}
                           </div>
 
                           {/* Description */}
-                          <div className="">
+                          <div>
                             <p className="text-sm text-muted-foreground">
                               Next Appraisal Date
                             </p>
 
-                            {isEditing ? (
-                              <Input
-                                value={formData.nextAppraisalDate || user?.nextAppraisalDate}
-                                onChange={(e) =>
-                                  setFormData({ ...formData, nextAppraisalDate: e.target.value })
-                                }
-                              />
-                            ) : (
-                              <p className=" text-medium font-medium">
-                                {user?.nextAppraisalDate || "None"}</p>
-
-                            )}
+                            {canReadField("CProfileDetails", "nextAppraisalDate") &&
+                              (isEditing &&
+                                canEditField("CProfileDetails", "nextAppraisalDate") &&
+                                canEditRecord("User", user) ? (
+                                <Input
+                                  value={formData.nextAppraisalDate || user?.nextAppraisalDate}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      nextAppraisalDate: e.target.value,
+                                    })
+                                  }
+                                />
+                              ) : (
+                                <p className="text-medium font-medium pt-2">
+                                  {user?.nextAppraisalDate || "None"}
+                                </p>
+                              ))}
                           </div>
                           {/* Description */}
                           <div className="">
@@ -717,6 +740,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, joiningDate: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className=" text-medium font-medium">
@@ -725,22 +749,29 @@ IFSC: ${bankData.ifsc}`;
                             )}
                           </div>
                           {/* Description */}
-                          <div className="">
+                          <div>
                             <p className="text-sm text-muted-foreground">
                               Shift Timings
                             </p>
-                            {isEditing ? (
-                              <Input
-                                value={formData.shiftTimings || user?.shiftTimings}
-                                onChange={(e) =>
-                                  setFormData({ ...formData, shiftTimings: e.target.value })
-                                }
-                              />
-                            ) : (
-                              <p className=" text-medium font-medium">
-                                {user?.shiftTimings || "None"}</p>
 
-                            )}
+                            {canReadField("CProfileDetails", "shiftTimings") &&
+                              (isEditing &&
+                                canEditField("CProfileDetails", "shiftTimings") &&
+                                canEditRecord("User", user) ? (
+                                <Input
+                                  value={formData.shiftTimings || user?.shiftTimings}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      shiftTimings: e.target.value,
+                                    })
+                                  }
+                                />
+                              ) : (
+                                <p className="text-medium font-medium pt-2">
+                                  {user?.shiftTimings || "None"}
+                                </p>
+                              ))}
                           </div>
                           {/* Description */}
                           <div className="">
@@ -874,6 +905,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, upiId: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -891,6 +923,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, uanNo: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -908,6 +941,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, name: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -925,6 +959,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, bankName: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -936,21 +971,26 @@ IFSC: ${bankData.ifsc}`;
                           {/* Account Number */}
                           <div>
                             <p className="text-sm text-muted-foreground">Account Number</p>
-                            {isEditing ? (
-                              <Input
-                                value={bankData.accountNumber}
-                                onChange={(e) =>
-                                  setBankData({
-                                    ...bankData,
-                                    accountNumber: e.target.value,
-                                  })
-                                }
-                              />
-                            ) : (
-                              <p className="text-foreground font-medium">
-                                {getValue(bankData.accountNumber)}
-                              </p>
-                            )}
+
+                            {canReadField(ENTITY, "accountNumber") &&
+                              (isEditing &&
+                                canEditField(ENTITY, "accountNumber") &&
+                                canEditRecord("User", user) ? (
+                                <Input
+                                  value={bankData.accountNumber}
+                                  onChange={(e) =>
+                                    setBankData({
+                                      ...bankData,
+                                      accountNumber: e.target.value,
+                                    })
+                                  }
+                                  disabled
+                                />
+                              ) : (
+                                <p className="text-foreground font-medium">
+                                  {getValue(bankData.accountNumber)}
+                                </p>
+                              ))}
                           </div>
 
                           {/* IFSC */}
@@ -962,6 +1002,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, ifsc: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">

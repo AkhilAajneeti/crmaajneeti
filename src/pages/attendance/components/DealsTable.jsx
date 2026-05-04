@@ -3,6 +3,7 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { Checkbox } from "../../../components/ui/Checkbox";
 import { deleteLead } from "services/leads.service";
+import { canDeleteRecord, canEditRecord } from "utils/permissions";
 
 const DealsTable = ({
   deals,
@@ -22,6 +23,15 @@ const DealsTable = ({
 }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
 
+  const currentUserId = JSON.parse(localStorage.getItem("login_object"))?.id;
+
+  const canEditDeal = (deal) =>
+    canEditRecord("CAttendanceRequest", deal) &&
+    deal?.assignedUserId === currentUserId;
+
+  const canDeleteDeal = (deal) =>
+    canDeleteRecord("CAttendanceRequest", deal) &&
+    deal?.assignedUserId === currentUserId;
   const formatDate = (date) => {
     if (!date) return "—"; // null / undefined / empty
 
@@ -66,11 +76,11 @@ const DealsTable = ({
     );
   };
 
-  const canEditDeal = (deal) =>
-    typeof canEdit === "function" ? canEdit(deal) : canEdit;
+  // const canEditDeal = (deal) =>
+  //   typeof canEdit === "function" ? canEdit(deal) : canEdit;
 
-  const canDeleteDeal = (deal) =>
-    typeof canDelete === "function" ? canDelete(deal) : canDelete;
+  // const canDeleteDeal = (deal) =>
+  //   typeof canDelete === "function" ? canDelete(deal) : canDelete;
 
   const handleQuickAction = (e, action, deal) => {
     e?.stopPropagation();
@@ -222,7 +232,7 @@ const DealsTable = ({
                     <div className="text-foreground">{formatDate(deal?.startDate)}</div>
                   </td>
 
-                  {(canEditDeal(deal) || canDeleteDeal(deal)) && (
+                  {(canEditDeal(deal) || canDeleteDeal(deal)) ? (
                     <td className="p-4" onClick={(e) => e?.stopPropagation()}>
                       <div className="flex items-center space-x-1">
                         {canEditDeal(deal) && (
@@ -249,6 +259,22 @@ const DealsTable = ({
                             <Icon name="Trash2" size={16} />
                           </Button>
                         )}
+                      </div>
+                    </td>
+                  ) : (
+                    <td className="p-4" onClick={(e) => e?.stopPropagation()}>
+                      <div className="flex items-center space-x-1">
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:bg-red-50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDealClick(deal);
+                          }}>
+                          <Icon name="ArrowUpRight" size={20} />
+                        </Button>
                       </div>
                     </td>
                   )}
