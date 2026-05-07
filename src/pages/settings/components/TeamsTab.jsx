@@ -22,6 +22,50 @@ import {
 } from "services/team.service";
 import { createUser, fetchRoles } from "services/setting.service";
 import toast from "react-hot-toast";
+import {
+  canCreate,
+  canDeleteRecord,
+  canEditRecord,
+  getStoredAcl,
+} from "utils/permissions";
+
+const isCurrentUserAdmin = () => {
+  try {
+    const user = JSON.parse(localStorage.getItem("login_object") || "{}");
+    return String(user?.type).toLowerCase() === "admin";
+  } catch {
+    return false;
+  }
+};
+
+const getAclActionValue = (entity, action) => {
+  const entityAcl = getStoredAcl()?.table?.[entity];
+  if (entityAcl === true) return "all";
+
+  return entityAcl?.[action];
+};
+
+const canCreateSettingRecord = (entity) => {
+  const actionValue = getAclActionValue(entity, "create");
+  if (String(actionValue).toLowerCase() === "own") return isCurrentUserAdmin();
+
+  return canCreate(entity);
+};
+
+const canEditSettingRecord = (entity, record) => {
+  const actionValue = getAclActionValue(entity, "edit");
+  if (String(actionValue).toLowerCase() === "own") return isCurrentUserAdmin();
+
+  return canEditRecord(entity, record);
+};
+
+const canDeleteSettingRecord = (entity, record) => {
+  const actionValue = getAclActionValue(entity, "delete");
+  if (String(actionValue).toLowerCase() === "own") return isCurrentUserAdmin();
+
+  return canDeleteRecord(entity, record);
+};
+
 const TeamsTab = () => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,6 +113,17 @@ const TeamsTab = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isEdit && !canEditSettingRecord("Team", inviteData)) {
+      toast.error("Permission denied");
+      return;
+    }
+
+    if (!isEdit && !canCreateSettingRecord("Team")) {
+      toast.error("Permission denied");
+      return;
+    }
+
     const payload = {
       name: inviteData.name || "",
       positionList: inviteData.positionList || [],
@@ -88,8 +143,6 @@ const TeamsTab = () => {
         await createTeam(payload);
         toast.success("User created successfully ✅");
       }
-
-      toast.success("User created successfully ✅");
 
       const data = await fetchTeam();
       setTeamMembers(data.list || []);
@@ -180,6 +233,13 @@ const TeamsTab = () => {
 
   const handleRemoveTeam = async () => {
     if (!selectedUserId) return;
+
+    const member = teamMembers.find((m) => m.id === selectedUserId);
+
+    if (!canDeleteSettingRecord("Team", member)) {
+      toast.error("Permission denied");
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -287,14 +347,16 @@ const TeamsTab = () => {
               </p>
             </div>
           </div>
-          <Button
-            variant="default"
-            onClick={() => setIsInviteModalOpen(true)}
-            iconName="UserPlus"
-            iconPosition="left"
-          >
-            Create Team
-          </Button>
+          {canCreateSettingRecord("Team") && (
+            <Button
+              variant="default"
+              onClick={() => setIsInviteModalOpen(true)}
+              iconName="UserPlus"
+              iconPosition="left"
+            >
+              Create Team
+            </Button>
+          )}
         </div>
 
         {/* Team Stats */}
@@ -379,25 +441,38 @@ const TeamsTab = () => {
                     </td>
                     <td className="py-4 px-4 text-center">
                       <div className="flex items-center justify-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(member)}
-                          aria-label="Edit member"
-                        >
-                          <Icon name="Edit" size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setSelectedUserId(member?.id);
-                            setIsDeleteModalOpen(true);
-                          }}
-                          aria-label="Remove member"
-                        >
-                          <Icon name="Trash2" size={16} />
-                        </Button>
+                        {canEditSettingRecord("Team", member) ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(member)}
+                            aria-label="Edit member"
+                          >
+                            <Icon name="Edit" size={16} />
+                          </Button>
+                        ):(
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleTeamClick(member)}
+                            aria-label="View member"
+                          >
+                            <Icon name="Edit" size={16} />
+                          </Button>
+                        )}
+                        {canDeleteSettingRecord("Team", member) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedUserId(member?.id);
+                              setIsDeleteModalOpen(true);
+                            }}
+                            aria-label="Remove member"
+                          >
+                            <Icon name="Trash2" size={16} />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>

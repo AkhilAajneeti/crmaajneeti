@@ -59,10 +59,10 @@ const AccountDrawer = ({
   });
 
   const isMassUpdate = drawerMode === "mass-update";
-  console.log("entering inside fetc");
+ 
 
   const { data: account, isLoading } = useAccountById(accounts);
-  console.log(account?.id);
+
 
   // Form state for create/edit mode
   const [formData, setFormData] = useState({

@@ -62,6 +62,7 @@ const isOwnRecord = (record, user) => {
   if (!record || !user?.id) return false;
 
   return [
+    record.id,
     record.assignedUserId,
     record.createdById,
     record.ownerId,

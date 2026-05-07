@@ -50,18 +50,13 @@ const Sidebar = ({ isOpen = false, onClose }) => {
         { label: "Knowledge", path: "/knowledge-base", icon: "LibraryBig", entity: "KnowledgeBaseArticle" },
       ],
     },
-    // ✅ ADMIN ONLY
-    ...(shouldShowAdmin
-      ? [
-        {
-          title: "ADMIN",
-          items: [
-            { label: "Settings", path: "/settings", icon: "Settings" },
+    {
+      title: "ADMIN",
+      items: [
+        { label: "Settings", path: "/settings", icon: "Settings" },
 
-          ],
-        },
-      ]
-      : []),
+      ],
+    },
   ];
 
   const navigationItems = navigationGroups

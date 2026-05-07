@@ -11,8 +11,7 @@ const DealsTable = ({
   onDealClick,
   sortConfig,
   onSort,
-  page,
-  setPage,
+
   onDelete,
   isLoading,
   canEdit = true,
