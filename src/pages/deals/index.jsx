@@ -150,12 +150,30 @@ const DealsPage = () => {
       createLeadMutation.mutate(payload);
     } catch (err) {
       console.error("Lead creationd failed", err);
+      throw err;
     }
   };
 
+  // const handleUpdateLead = async (id, payload) => {
+  //   if (!canEditLead) return;
+  //   await updateLead(id, payload);
+  // };
   const handleUpdateLead = async (id, payload) => {
     if (!canEditLead) return;
-    await updateLead(id, payload);
+
+    try {
+      await updateLead(id, payload);
+
+      toast.success("Lead updated successfully");
+
+      queryClient.invalidateQueries({ queryKey: ["leads"], exact: false });
+    } catch (err) {
+      console.error("Lead update failed", err);
+
+      toast.error("Lead update failed");
+
+      throw err;
+    }
   };
 
   const handleDeleteLead = async (id) => {

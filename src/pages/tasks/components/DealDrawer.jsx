@@ -118,7 +118,7 @@ const DealDrawer = ({
   const toggleMassField = (field) => {
     setMassFields((prev) => ({ ...prev, [field]: !prev[field] }));
   };
- const currentUserId = JSON.parse(localStorage.getItem("login_object"))?.id;
+  const currentUserId = JSON.parse(localStorage.getItem("login_object"))?.id;
 
   const canEditDeal = (deal) =>
     canEditRecord("Task", deal) &&
@@ -303,11 +303,13 @@ const DealDrawer = ({
       if (mode === "add") {
         // ✅ CREATE
         await onCreate(payload);
+        toast.success("Task created successfully");
       } else {
         // ✅ UPDATE (id MUST be passed)
         await onUpdate(deal.id, payload);
+        toast.success("Task is Updated");
       }
-
+      setIsEditing(false);
       onClose();
     } catch (err) {
       console.error("Task creation failed", err);
@@ -430,7 +432,11 @@ const DealDrawer = ({
   useEffect(() => {
     setParentPage(1);
   }, [formData.parentName]);
-
+  useEffect(() => {
+    if (!isOpen) {
+      setIsEditing(false);
+    }
+  }, [isOpen]);
   const getParentTypeOptions = () => {
     let options = [];
 
@@ -510,7 +516,7 @@ const DealDrawer = ({
             </div>
             <div className="flex items-center space-x-2">
 
-              {!isMassUpdate && canEditDeal(deal)&&(
+              {!isMassUpdate && canEditDeal(deal) && (
                 <Button
                   variant="outline"
                   size="sm"

@@ -274,7 +274,9 @@ const DealDrawer = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     const fullName =
-      `${formData.firstName || ""} ${formData.lastName || ""}`.trim();
+      `${formData.firstName || ""} ${formData.lastName || ""}`.trim() ||
+      formData.name ||
+      "";
 
     // 🚨 VALIDATION FIX
     if (!fullName) {

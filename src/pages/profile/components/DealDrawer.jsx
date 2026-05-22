@@ -421,6 +421,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, leaveBalance: e.target.value })
                                 }
+                                disabled
                               />
                             ) : (
                               <p className="text-foreground font-medium">

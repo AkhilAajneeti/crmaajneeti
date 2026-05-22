@@ -352,7 +352,7 @@ export const createLead = async (payload) => {
 
 export const updateLead = async (id, payload) => {
   const token = localStorage.getItem("auth_token");
-  console.log(id, payload);
+  
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Lead/${id}`,
     {
@@ -366,9 +366,10 @@ export const updateLead = async (id, payload) => {
     }
   );
 
-  const text = await res.text();
+  
   console.log("response from contact.service.js", res);
   if (!res.ok) {
+    const text = await res.text();
     throw new Error(text || "Lead update failed");
   }
 
