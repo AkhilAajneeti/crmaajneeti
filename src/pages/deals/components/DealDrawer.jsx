@@ -44,7 +44,7 @@ const DealDrawer = ({
     whatsapp: "",
     addressCity: "",
 
-    cNextContactAt: "",
+    cNextContact: "",
     cQuestion: "",
     assignedUserId: "",
     teamId: "",
@@ -73,7 +73,7 @@ const DealDrawer = ({
         whatsapp: "",
         addressCity: "",
 
-        cNextContactAt: "",
+        cNextContact: "",
         cQuestion: "",
         assignedUserId: "",
         teamId: "",
@@ -98,7 +98,7 @@ const DealDrawer = ({
     status: false,
     source: false,
     teamId: false,
-    cNextContactAt: false,
+    cNextContact: false,
   });
   // Source
   const sourceOptions = [
@@ -286,7 +286,7 @@ const DealDrawer = ({
     const payload = {
       ...formData,
       name: fullName,
-      cNextContactAt: toEspoDateTime(formData.cNextContactAt),
+      cNextContact: toEspoDateTime(formData.cNextContact),
     };
     try {
       if (mode === "add") {
@@ -311,8 +311,8 @@ const DealDrawer = ({
 
     if (massFields.teamId) payload.teamId = formData.teamId;
 
-    if (massFields.cNextContactAt)
-      payload.cNextContactAt = toEspoDateTime(formData.cNextContactAt);
+    if (massFields.cNextContact)
+      payload.cNextContact = toEspoDateTime(formData.cNextContact);
 
     if (massFields.status) payload.status = formData.status;
 
@@ -570,9 +570,9 @@ const DealDrawer = ({
                       <Input
                         type="datetime-local"
                         label="Next Contact"
-                        value={formData.cNextContactAt || ""}
+                        value={formData.cNextContact || ""}
                         onChange={(e) =>
-                          handleChange("cNextContactAt", e.target.value)
+                          handleChange("cNextContact", e.target.value)
                         }
                       />
                       <Select
@@ -754,17 +754,17 @@ const DealDrawer = ({
                   <div className="flex items-center gap-3">
                     <input
                       type="checkbox"
-                      checked={massFields.cNextContactAt}
-                      onChange={() => toggleMassField("cNextContactAt")}
+                      checked={massFields.cNextContact}
+                      onChange={() => toggleMassField("cNextContact")}
                     />
                     <div className="flex-1">
                       <Input
                         type="datetime-local"
                         label="Next Contact"
-                        value={formData.cNextContactAt || ""}
-                        disabled={!massFields.cNextContactAt}
+                        value={formData.cNextContact || ""}
+                        disabled={!massFields.cNextContact}
                         onChange={(e) =>
-                          handleChange("cNextContactAt", e.target.value)
+                          handleChange("cNextContact", e.target.value)
                         }
                       />
                     </div>
@@ -890,8 +890,8 @@ const DealDrawer = ({
                               Next Contact
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.cNextContactAt
-                                ? formatDateTime(deal.cNextContactAt)
+                              {deal?.cNextContact
+                                ? formatDateTime(deal.cNextContact)
                                 : "None"}
                             </p>
                           </div>

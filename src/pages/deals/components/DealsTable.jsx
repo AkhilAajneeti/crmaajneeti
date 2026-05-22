@@ -19,17 +19,125 @@ const DealsTable = ({
 }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
 
-  const formatDate = (date) => {
-    if (!date) return "—"; // null / undefined / empty
+  // plain date — used for "Created At" (no status coloring)
+  const formatDate = (value) => {
+    if (!value) return "—";
 
-    const parsedDate = new Date(date);
+    const parsed = new Date(value.replace(" ", "T"));
+    if (isNaN(parsed.getTime())) return "—";
 
-    if (isNaN(parsedDate.getTime())) return "—"; // invalid date
-    return new Intl.DateTimeFormat("en-US", {
+    return parsed.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
-    })?.format(new Date(date));
+    });
+  };
+
+  // next-contact date with status color:
+  // 🔴 red = past (missed), 🟡 amber = today, 🟢 green = future
+  const formatNextContact = (value) => {
+    if (!value) {
+      return {
+        text: "—",
+        color: "text-gray-500",
+        bg: "bg-gray-100",
+      };
+    }
+
+    const safe = value.replace(" ", "T");
+    const date = new Date(safe);
+
+    if (isNaN(date.getTime())) {
+      return {
+        text: "—",
+        color: "text-gray-500",
+        bg: "bg-gray-100",
+      };
+    }
+
+    const now = new Date();
+
+    const today = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+    const target = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+
+    const diffDays = Math.round(
+      (target - today) / (1000 * 60 * 60 * 24)
+    );
+
+    const time = date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    // 🔴 OVERDUE
+    if (diffDays < 0) {
+      return {
+        text:
+          diffDays === -1
+            ? `Yesterday ${time}`
+            : `${Math.abs(diffDays)} days overdue`,
+        color: "text-red-600",
+        bg: "bg-red-100",
+      };
+    }
+
+    // 🟡 TODAY
+    if (diffDays === 0) {
+      return {
+        text: `Today ${time}`,
+        color: "text-green-500",
+        bg: "bg-amber-100",
+      };
+    }
+
+    // 🟢 TOMORROW
+    if (diffDays === 1) {
+      return {
+        text: `Tomorrow ${time}`,
+        color: "text-blue-600",
+        bg: "bg-green-100",
+      };
+    }
+
+    // 🟢 UPCOMING
+    if (diffDays <= 7) {
+      return {
+        text: `In ${diffDays} days`,
+        color: "text-green-700",
+        bg: "bg-green-100",
+      };
+    }
+
+    // 🟢 FUTURE (more than a week away)
+    return {
+      text: date.toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }),
+      color: "text-green-700",
+      bg: "bg-green-100",
+    };
+  };
+
+  const NextContactCell = ({ value }) => {
+    const { text, color, bg } = formatNextContact(value);
+    return (
+      <span
+        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${color}`}
+      >
+        {text}
+      </span>
+    );
   };
 
   const getStageColor = (stage) => {
@@ -274,11 +382,9 @@ const DealsTable = ({
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <span
-                      className={`inline-flex px-1 py-1 text-xs font-medium rounded-full`}
-                    >
-                      {formatDate(deal?.cNextContact)}
-                    </span>
+                    <NextContactCell
+                      value={deal?.cNextContactAt || deal?.cNextContact}
+                    />
                   </td>
                   <td className="px-4 py-4">
                     <div className="text-sm text-foreground">
