@@ -382,9 +382,7 @@ const DealsTable = ({
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <NextContactCell
-                      value={deal?.cNextContactAt || deal?.cNextContact}
-                    />
+                    <NextContactCell value={deal?.cNextContact} />
                   </td>
                   <td className="px-4 py-4">
                     <div className="text-sm text-foreground">

@@ -44,7 +44,7 @@ const DealDrawer = ({
     whatsapp: "",
     addressCity: "",
 
-    cNextContactAt: "",
+    cNextContact: "",
     cQuestion: "",
     assignedUserId: "",
     teamId: "",
@@ -73,7 +73,7 @@ const DealDrawer = ({
         whatsapp: "",
         addressCity: "",
 
-        cNextContactAt: "",
+        cNextContact: "",
         cQuestion: "",
         assignedUserId: "",
         teamId: "",
@@ -98,7 +98,7 @@ const DealDrawer = ({
     status: false,
     source: false,
     teamId: false,
-    cNextContactAt: false,
+    cNextContact: false,
   });
   // Source
   const sourceOptions = [
@@ -284,7 +284,7 @@ const DealDrawer = ({
     const payload = {
       ...formData,
       name: fullName,
-      cNextContactAt: toEspoDateTime(formData.cNextContactAt),
+      cNextContact: toEspoDateTime(formData.cNextContact),
     };
     try {
       if (mode === "add") {
@@ -307,8 +307,8 @@ const DealDrawer = ({
     if (massFields.assignedUserId)
       payload.assignedUserId = formData.assignedUserId;
 
-    if (massFields.cNextContactAt)
-      payload.cNextContactAt = toEspoDateTime(formData.cNextContactAt);
+    if (massFields.cNextContact)
+      payload.cNextContact = toEspoDateTime(formData.cNextContact);
 
     if (massFields.status) payload.status = formData.status;
 
@@ -405,16 +405,20 @@ const DealDrawer = ({
       [name]: value,
     }));
   };
+  // EspoCRM expects datetime as exactly "YYYY-MM-DD HH:MM:SS".
+  // Accepts datetime-local ("YYYY-MM-DDTHH:MM"), Espo ("YYYY-MM-DD HH:MM:SS")
+  // and ISO strings — and always rebuilds them in Espo's exact format.
   const toEspoDateTime = (value) => {
     if (!value) return null;
 
-    // already Espo format → do nothing
-    if (value.includes(" ")) {
-      return value;
-    }
+    const match = String(value)
+      .trim()
+      .replace("T", " ")
+      .match(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
 
-    // from datetime-local input
-    return value.replace("T", " ") + ":00";
+    if (!match) return null;
+
+    return `${match[1]} ${match[2]}:00`;
   };
 
   // fetching lead stream from id
@@ -566,9 +570,9 @@ const DealDrawer = ({
                       <Input
                         type="datetime-local"
                         label="Next Contact"
-                        value={formData.cNextContactAt || ""}
+                        value={formData.cNextContact || ""}
                         onChange={(e) =>
-                          handleChange("cNextContactAt", e.target.value)
+                          handleChange("cNextContact", e.target.value)
                         }
                       />
                       <Select
@@ -826,8 +830,8 @@ const DealDrawer = ({
                               Next Contact
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.cNextContactAt
-                                ? formatDateTime(deal.cNextContactAt)
+                              {deal?.cNextContact
+                                ? formatDateTime(deal.cNextContact)
                                 : "None"}
                             </p>
                           </div>
