@@ -359,6 +359,7 @@ const Attendance = () => {
           data={selectedDeal}   // ✅ single record
           onSuccess={() => {
             setIsDrawerOpen(false);
+            refetch();
           }}
           isLoading={isLoading}
           canCreate={canCreateAttendance}

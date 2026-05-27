@@ -438,7 +438,8 @@ const AttendanceDrawer = ({
   };
 
   const handleSave = () => {
-    if (drawerMode === "edit") {
+    // Route on record identity, not on UI mode flags that can drift out of sync.
+    if (account?.id) {
       handleUpdate();
     } else {
       handleCreate();
@@ -1392,18 +1393,23 @@ const AttendanceDrawer = ({
                           </p>
                         </div>
 
-                        {/* ✅ Edit button only if user has permission */}
-                        {canEdit && (
+                        {/* ✅ Edit button: permitted users OR the reporting manager (assignee) */}
+                        {/* {(canEdit ||
+                          account?.assignedUserId ===
+                            JSON.parse(localStorage.getItem("login_object"))?.id) && (
                           <div className="flex gap-3 pt-4">
                             <Button
-                              onClick={() => setIsEditing(true)}
+                              onClick={() => {
+                                setIsEditing(true);
+                                setDrawerMode("edit");
+                              }}
                               className="flex-1"
                             >
                               <Icon name="Edit" size={16} className="mr-2" />
                               Edit Request
                             </Button>
                           </div>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   )}

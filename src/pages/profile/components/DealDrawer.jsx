@@ -55,6 +55,9 @@ const DealDrawer = ({
   });
   const ENTITY = "CProfileDetails";
   const { data: user, isLoading } = useProfileById(deal?.id, isOpen);
+  const isAdmin =
+    String(JSON.parse(localStorage.getItem("login_object"))?.type).toLowerCase() ===
+    "admin";
 
   // const user = UserData|| [];
   const [massFields, setMassFields] = useState({
@@ -421,7 +424,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, leaveBalance: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -442,7 +445,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, name: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -463,7 +466,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, gender: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -483,7 +486,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, designation: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -504,7 +507,7 @@ IFSC: ${bankData.ifsc}`;
                                   setFormData({ ...formData, empCode: e.target.value })
                                   
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -524,7 +527,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, department: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -545,7 +548,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, subDepartment: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -564,7 +567,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, branch: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -583,7 +586,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, mode: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -612,7 +615,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, email: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="inline-flex px-3 py-1 rounded-full text-medium font-medium bg-success/10 text-success">
@@ -741,7 +744,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, joiningDate: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className=" text-medium font-medium">
@@ -906,7 +909,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, upiId: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -924,7 +927,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, uanNo: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -942,7 +945,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, name: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -960,7 +963,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, bankName: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -985,7 +988,7 @@ IFSC: ${bankData.ifsc}`;
                                       accountNumber: e.target.value,
                                     })
                                   }
-                                  disabled
+                                  disabled={!isAdmin}
                                 />
                               ) : (
                                 <p className="text-foreground font-medium">
@@ -1003,7 +1006,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, ifsc: e.target.value })
                                 }
-                                disabled
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
