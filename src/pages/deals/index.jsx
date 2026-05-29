@@ -28,6 +28,18 @@ import { useMetaData } from "hooks/useMetaData";
 import { useLeadDetails } from "hooks/useLeadDetails";
 import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
 
+// List view-state (filters/page/limit/sort) is persisted per browser-tab session
+// so it survives the remount that happens when the drawer route opens/closes.
+// Cleared only when the user explicitly clears filters.
+const LEADS_VIEW_KEY = "leads_view_state";
+const loadLeadsView = () => {
+  try {
+    return JSON.parse(sessionStorage.getItem(LEADS_VIEW_KEY)) || {};
+  } catch {
+    return {};
+  }
+};
+
 const DealsPage = () => {
   const navigate = useNavigate();
   // EspoCRM-style URL params: /Lead/<action>/<id?>
@@ -38,8 +50,8 @@ const DealsPage = () => {
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedDeals, setSelectedDeals] = useState([]);
-  const [limit, setLimit] = useState(20);
-  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(() => loadLeadsView().limit ?? 20);
+  const [page, setPage] = useState(() => loadLeadsView().page ?? 1);
   const [mode, setMode] = useState("view");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -92,22 +104,33 @@ const DealsPage = () => {
     });
   }, [leadsDetails, urlId]);
 
-  const [sortConfig, setSortConfig] = useState({
-    key: "createdAt",
-    direction: "desc",
-  });
-  const [filters, setFilters] = useState({
-    search: "",
-    status: "",
-    sector: "",
-    projectName: "",
-    source: "",
-    assignUser: "",
-    dateType: "",
-    closeDateFrom: "",
-    closeDateTo: "",
-    xDays: ""
-  });
+  const [sortConfig, setSortConfig] = useState(
+    () => loadLeadsView().sortConfig || { key: "createdAt", direction: "desc" }
+  );
+  const [filters, setFilters] = useState(
+    () =>
+      loadLeadsView().filters || {
+        search: "",
+        status: "",
+        sector: "",
+        projectName: "",
+        source: "",
+        assignUser: "",
+        dateType: "",
+        closeDateFrom: "",
+        closeDateTo: "",
+        xDays: "",
+      }
+  );
+
+  // Persist the list view-state so it survives the drawer-route remount.
+  useEffect(() => {
+    sessionStorage.setItem(
+      LEADS_VIEW_KEY,
+      JSON.stringify({ filters, page, limit, sortConfig })
+    );
+  }, [filters, page, limit, sortConfig]);
+
   const { data: leadsData, isLoading } = useNewLeads({ limit, page, filters });
   const createLeadMutation = useMutation({
     mutationFn: createLead,

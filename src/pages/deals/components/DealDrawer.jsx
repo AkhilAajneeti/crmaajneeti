@@ -796,38 +796,31 @@ const DealDrawer = ({
                             )}
                           </div>
 
-                          {/* WhatsApp */}
+                          {/* WhatsApp — Quick Reply */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
-                              Whatsapp
-                            </p>
+                            <div className="flex items-center gap-2 mb-1">
+                             
+                            </div>
                             {deal?.phoneNumber ? (
-                              <a
+                              <a 
                                 href={`https://api.whatsapp.com/send/?phone=${deal.phoneNumber.replace(
                                   /\D/g,
                                   ""
-                                )}&text=${encodeURIComponent(
-                                  `Hello *${deal?.name || "Customer"}*,
-
-Thank you for contacting us for your lead generation requirements.
-
-I'm *${deal?.assignedUserName || "Team Member"}* from *AAJneeti Advertising*.
-
-Let me know when you're available so that we can discuss this in more detail.
-
-*aajneeti.social*`
                                 )}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 hover:underline transition-colors"
+                                title="Opens WhatsApp with a short intro message"
+                                className="inline-flex items-center gap-2 text-green-600 hover:text-green-700  transition-colors"
                               >
-                                <img
+                                {/* <img
                                   src="/assets/whatsapp-logo.png"
                                   alt="WhatsApp"
                                   className="w-4 h-4 object-contain"
-                                />
-
-                                <span>{deal.phoneNumber}</span>
+                                /> */}
+                              <span className="inline-flex items-center gap-1 p-2 text-[12px] font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                                <Icon name="Zap" size={10} />
+                                Quick Reply on WhatsApp
+                              </span>
                               </a>
                             ) : (
                               <p className="text-foreground">None</p>
@@ -872,6 +865,45 @@ Let me know when you're available so that we can discuss this in more detail.
                             <p className="text-foreground font-medium">
                               {deal?.cQuestion || "None"}
                             </p>
+                          </div>
+
+                          {/* WhatsApp — Full Branded Template */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              {/* <p className="text-sm text-muted-foreground">
+                                WhatsApp
+                              </p> */}
+
+                            </div>
+                            {deal?.phoneNumber ? (
+                              <a
+                                href={`https://api.whatsapp.com/send/?phone=${deal.phoneNumber.replace(
+                                  /\D/g,
+                                  ""
+                                )}&text=${encodeURIComponent(
+                                  `Hello *${deal?.name || "Customer"}*,
+
+Thank you for contacting us for your lead generation requirements.
+
+I'm *${deal?.assignedUserName || "Team Member"}* from *AAJneeti Advertising*.
+
+Let me know when you're available so that we can discuss this in more detail.
+
+*aajneeti.social*`
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Opens WhatsApp with the full branded company template"
+                                className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors"
+                              >
+                                <span className="inline-flex items-center gap-1 p-2  text-[12px] font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <Icon name="BadgeCheck" size={10} />
+                                  WhatsApp Template
+                                </span>
+                              </a>
+                            ) : (
+                              <p className="text-foreground">None</p>
+                            )}
                           </div>
                         </div>
                       </div>
