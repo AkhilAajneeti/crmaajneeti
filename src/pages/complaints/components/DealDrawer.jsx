@@ -191,11 +191,13 @@ const DealDrawer = ({
     const { type, post, data, createdByName } = activity;
 
     if (type === "Post") {
-      return post;
+      // post can be a non-string (e.g. empty object {}) for some legacy stream
+      // entries — coerce to string so it never crashes the <p> render.
+      return typeof post === "string" ? post : "";
     }
 
     if (type === "Assign") {
-      return `Assigned to ${data?.assignedUserName}`;
+      return `Assigned to ${data?.assignedUserName ?? ""}`;
     }
 
     if (type === "Create") {
@@ -203,8 +205,9 @@ const DealDrawer = ({
     }
 
     if (type === "Update") {
-      if (data?.value) {
-        return `Status updated to ${data.value}`;
+      const value = data?.value;
+      if (value != null && typeof value !== "object") {
+        return `Status updated to ${value}`;
       }
       return "Lead updated";
     }
@@ -717,7 +720,10 @@ const DealDrawer = ({
                               Contact
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.contactName || deal?.contactsNames || "None"}
+                              {deal?.contactName ||
+                                (deal?.contactsNames &&
+                                  Object.values(deal.contactsNames).join(", ")) ||
+                                "None"}
                             </p>
                           </div>
 
@@ -904,8 +910,8 @@ const DealDrawer = ({
                                 {getActivityMessage(activity)}
                               </p>
 
-                              {/* STATUS BADGE */}
-                              {activity?.data?.value && (
+                              {/* STATUS BADGE — only show when value is a primitive */}
+                              {typeof activity?.data?.value === "string" && (
                                 <span
                                   className={`inline-block mt-2 px-2 py-0.5 text-xs rounded-full ${getStageColor(
                                     activity.data.value,
@@ -915,7 +921,7 @@ const DealDrawer = ({
                                 </span>
                               )}
 
-                              {activity?.data?.statusValue && (
+                              {typeof activity?.data?.statusValue === "string" && (
                                 <span
                                   className={`inline-block mt-2 px-2 py-0.5 text-xs rounded-full ${getStageColor(
                                     activity.data.statusValue,

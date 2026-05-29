@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Papa from "papaparse";
 import Header from "../../components/ui/Header";
 import Sidebar from "../../components/ui/Sidebar";
@@ -20,6 +21,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
 
 const AccountsPage = () => {
+  const navigate = useNavigate();
+  // EspoCRM-style URL params: /Account/<action>/<id?>
+  const { action: urlAction, id: urlId } = useParams();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [drawerMode, setDrawerMode] = useState("view");
@@ -28,6 +33,32 @@ const AccountsPage = () => {
   const [activities, setActivities] = useState([]);
   const [limit, setLimit] = useState(20);
   const [page, setPage] = useState(1);
+
+  // Drawer state is derived from the URL — single source of truth.
+  // /accounts                → drawer closed
+  // /Account/view/:id        → drawer open, view mode, record :id
+  // /Account/edit/:id        → drawer open, edit mode, record :id
+  // /Account/create          → drawer open, create mode (no id)
+  // /Account/mass-update     → drawer open, mass-update mode (uses selectedAccountIds)
+  useEffect(() => {
+    if (urlAction === "create") {
+      setSelectedAccount(null);
+      setDrawerMode("create");
+      setIsDrawerOpen(true);
+    } else if (urlAction === "mass-update") {
+      setSelectedAccount(null);
+      setDrawerMode("mass-update");
+      setIsDrawerOpen(true);
+    } else if (urlId) {
+      setSelectedAccount(urlId);
+      setDrawerMode(urlAction === "edit" ? "edit" : "view");
+      setIsDrawerOpen(true);
+    } else {
+      setIsDrawerOpen(false);
+      setSelectedAccount(null);
+      setDrawerMode("view");
+    }
+  }, [urlAction, urlId]);
 
   const [selectedAccountIds, setSelectedAccountIds] = useState([]);
   const canCreateAccount = canCreate("Account");
@@ -67,16 +98,13 @@ const AccountsPage = () => {
   };
 
   const handleRowClick = (id, mode = "view") => {
-    console.log("On row click", id);
-    setSelectedAccount(id);
-    setIsDrawerOpen(true);
-    setDrawerMode(mode);
+    // Drive the drawer via the URL so the link is shareable.
+    navigate(`/Account/${mode}/${id}`);
   };
 
   const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-    setSelectedAccount(null);
-    setDrawerMode("view");
+    // Replace so browser-back doesn't re-open the drawer.
+    navigate("/accounts", { replace: true });
   };
 
   const handleBulkAction = async (action, ids) => {
@@ -129,10 +157,8 @@ const AccountsPage = () => {
         return;
       }
 
-      setSelectedAccount(null);
-      setDrawerMode("mass-update");
-      setIsDrawerOpen(true);
       setSelectedAccountIds(ids);
+      navigate("/Account/mass-update");
       return;
     }
 
@@ -158,10 +184,7 @@ const AccountsPage = () => {
 
   const handleAccountButton = () => {
     if (!canCreateAccount) return;
-    setSelectedAccount(null);
-    setDrawerMode("create");
-
-    setIsDrawerOpen(true);
+    navigate("/Account/create");
   };
   // handle exports (bulk and indivisual)
   const handleExportAccount = (account) => {

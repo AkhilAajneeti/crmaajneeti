@@ -749,7 +749,9 @@ const DealDrawer = ({
                             <p className="text-sm text-muted-foreground">
                               Categories
                             </p>
-                            {deal?.categoriesNames || "None"}
+                            {(deal?.categoriesNames &&
+                              Object.values(deal.categoriesNames).join(", ")) ||
+                              "None"}
                           </div>
 
                           {/* City */}
@@ -768,7 +770,9 @@ const DealDrawer = ({
                               Portals
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.portalsNames || "None"}
+                              {(deal?.portalsNames &&
+                                Object.values(deal.portalsNames).join(", ")) ||
+                                "None"}
                             </p>
                           </div>
 
@@ -798,12 +802,12 @@ const DealDrawer = ({
                             <p className="text-sm text-muted-foreground">
                               Body
                             </p>
-                            <p className="inline-flex px-3 py-1 rounded-full text-sm font-medium bg-success/10 text-success" >
+                            <div className="inline-flex px-3 py-1 rounded-full text-sm font-medium bg-success/10 text-success" >
                               <div
                                 className="prose max-w-none"
                                 dangerouslySetInnerHTML={{ __html: deal?.body || "" }}
                               />
-                            </p>
+                            </div>
                           </div>
 
                           {/* Source */}
@@ -812,7 +816,9 @@ const DealDrawer = ({
                               Attachments
                             </p>
                             <p className="text-foreground font-medium">
-                              {deal?.attachmentsNames || "None"}
+                              {(deal?.attachmentsNames &&
+                                Object.values(deal.attachmentsNames).join(", ")) ||
+                                "None"}
                             </p>
                           </div>
                         </div>
@@ -844,7 +850,7 @@ const DealDrawer = ({
                               {deal?.teamsNames ? (
                                 <div className="flex flex-wrap gap-2">
                                   {Object.entries(
-                                    deal.teams,
+                                    deal.teamsNames,
                                   ).map(([id, name]) => (
                                     <span
                                       key={id}

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import Header from "../../components/ui/Header";
@@ -28,6 +29,10 @@ import { useWorkPlace } from "hooks/useWorkplace";
 import { createWorkplace, updateWorkplace } from "services/workplace.service";
 
 const WorkPlace = () => {
+  const navigate = useNavigate();
+  // EspoCRM-style URL params: /CWorkplaceNotes/<action>/<id?>
+  const { action: urlAction, id: urlId } = useParams();
+
   const queryClient = useQueryClient();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
@@ -56,6 +61,48 @@ const WorkPlace = () => {
   });
   const { data: WorkPlace, isLoading } = useWorkPlace({ limit, page, filters });
   const { data: workDetails } = useLeadDetails(selectedDeal?.id, mode);
+
+  // Drawer state derived from URL — single source of truth.
+  // /workplace                       → drawer closed
+  // /CWorkplaceNotes/view/:id        → drawer open, view mode, record :id
+  // /CWorkplaceNotes/edit/:id        → drawer open, edit mode, record :id
+  // /CWorkplaceNotes/create          → drawer open, add mode (drawer's create flow uses "add")
+  // /CWorkplaceNotes/mass-update     → drawer open, mass-update mode (uses selectedDeals)
+  useEffect(() => {
+    if (urlAction === "create") {
+      setSelectedDeal(null);
+      setMode("add");
+      setIsDrawerOpen(true);
+    } else if (urlAction === "mass-update") {
+      setSelectedDeal(null);
+      setMode("mass-update");
+      setIsDrawerOpen(true);
+    } else if (urlId) {
+      // Minimal placeholder; the promote effect below upgrades it once the
+      // full record arrives — needed because the drawer's setFormData(deal)
+      // reads field values directly from this object.
+      setSelectedDeal((current) =>
+        current?.id === urlId ? current : { id: urlId }
+      );
+      setMode(urlAction === "edit" ? "edit" : "view");
+      setIsDrawerOpen(true);
+    } else {
+      setIsDrawerOpen(false);
+      setSelectedDeal(null);
+      setMode("view");
+    }
+  }, [urlAction, urlId]);
+
+  // When arriving via a deep link, promote the {id} placeholder to the full
+  // record once useLeadDetails resolves — so the drawer's edit-form init
+  // sees real values instead of just {id}.
+  useEffect(() => {
+    if (!urlId || !workDetails || workDetails.id !== urlId) return;
+    setSelectedDeal((current) => {
+      if (current?.id === urlId && !current.name) return workDetails;
+      return current;
+    });
+  }, [workDetails, urlId]);
   const createLeadMutation = useMutation({
     mutationFn: createWorkplace,
     onSuccess: () => {
@@ -120,20 +167,19 @@ const WorkPlace = () => {
   };
 
   const handleAddwork = () => {
-    setSelectedDeal(null);
-    setMode("add");
-    setIsDrawerOpen(true);
+    navigate("/CWorkplaceNotes/create");
   };
 
   const handleDealClick = (deal) => {
+    // Set the full record first so the drawer has data immediately;
+    // the URL effect sees the matching id and won't overwrite with a placeholder.
     setSelectedDeal(deal);
-    setMode("view");
-    setIsDrawerOpen(true);
+    navigate(`/CWorkplaceNotes/view/${deal.id}`);
   };
 
   const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-    setSelectedDeal(null);
+    // Replace so browser-back doesn't re-open the drawer you just closed.
+    navigate("/workplace", { replace: true });
   };
   const handleCreateLead = async (payload) => {
     try {
@@ -216,12 +262,9 @@ const WorkPlace = () => {
     if (action === "mass-update") {
       if (!selectedDeals.length) {
         toast.error("Select at least one lead");
-        n;
+        return;
       }
-      setSelectedDeal(null);
-      setMode("mass-update");
-      setIsDrawerOpen(true);
-
+      navigate("/CWorkplaceNotes/mass-update");
       return;
     }
 

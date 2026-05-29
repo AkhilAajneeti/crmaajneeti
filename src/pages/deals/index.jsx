@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import Header from "../../components/ui/Header";
@@ -28,6 +29,10 @@ import { useLeadDetails } from "hooks/useLeadDetails";
 import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
 
 const DealsPage = () => {
+  const navigate = useNavigate();
+  // EspoCRM-style URL params: /Lead/<action>/<id?>
+  const { action: urlAction, id: urlId } = useParams();
+
   const queryClient = useQueryClient();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
@@ -46,6 +51,46 @@ const DealsPage = () => {
 
   const { data: metaData } = useMetaData();
   const { data: leadsDetails } = useLeadDetails(selectedDeal?.id, mode);
+
+  // Drawer state derived from URL — single source of truth.
+  // /leads                  → drawer closed
+  // /Lead/view/:id          → drawer open, view mode, record :id
+  // /Lead/edit/:id          → drawer open, edit mode, record :id
+  // /Lead/create            → drawer open, add mode (drawer's create flow uses "add")
+  // /Lead/mass-update       → drawer open, mass-update mode (uses selectedDeals)
+  useEffect(() => {
+    if (urlAction === "create") {
+      setSelectedDeal(null);
+      setMode("add");
+      setIsDrawerOpen(true);
+    } else if (urlAction === "mass-update") {
+      setSelectedDeal(null);
+      setMode("mass-update");
+      setIsDrawerOpen(true);
+    } else if (urlId) {
+      // Minimal placeholder so useLeadDetails fires; promoted to full record below.
+      setSelectedDeal((current) =>
+        current?.id === urlId ? current : { id: urlId }
+      );
+      setMode(urlAction === "edit" ? "edit" : "view");
+      setIsDrawerOpen(true);
+    } else {
+      setIsDrawerOpen(false);
+      setSelectedDeal(null);
+      setMode("view");
+    }
+  }, [urlAction, urlId]);
+
+  // When arriving via a deep link, promote the minimal {id} placeholder
+  // into the full record once useLeadDetails resolves — so the drawer's
+  // form-init (setFormData(deal)) sees real values instead of just {id}.
+  useEffect(() => {
+    if (!urlId || !leadsDetails || leadsDetails.id !== urlId) return;
+    setSelectedDeal((current) => {
+      if (current?.id === urlId && !current.name) return leadsDetails;
+      return current;
+    });
+  }, [leadsDetails, urlId]);
 
   const [sortConfig, setSortConfig] = useState({
     key: "createdAt",
@@ -129,20 +174,20 @@ const DealsPage = () => {
   };
 
   const handleAddLeads = () => {
-    setSelectedDeal(null);
-    setMode("add");
-    setIsDrawerOpen(true);
+    if (!canCreateLead) return;
+    navigate("/Lead/create");
   };
 
   const handleDealClick = (deal) => {
+    // Set the full record first so the drawer has data immediately;
+    // the URL effect sees the matching id and won't overwrite with a placeholder.
     setSelectedDeal(deal);
-    setMode("view");
-    setIsDrawerOpen(true);
+    navigate(`/Lead/view/${deal.id}`);
   };
 
   const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-    setSelectedDeal(null);
+    // Replace so browser-back doesn't re-open the drawer you just closed.
+    navigate("/leads", { replace: true });
   };
   const handleCreateLead = async (payload) => {
     if (!canCreateLead) return;
@@ -249,11 +294,9 @@ const DealsPage = () => {
       if (!canMassUpdateLead) return;
       if (!selectedDeals.length) {
         toast.error("Select at least one lead");
+        return;
       }
-      setSelectedDeal(null);
-      setMode("mass-update");
-      setIsDrawerOpen(true);
-
+      navigate("/Lead/mass-update");
       return;
     }
 

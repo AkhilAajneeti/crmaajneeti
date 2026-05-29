@@ -20,6 +20,41 @@ import { useAccounts } from "hooks/useAccounts";
 import { ParentSelectorModal } from "components/ParentSelectorModal";
 import { canEditRecord } from "utils/permissions";
 
+// "15m" / "1h" / "1d" → seconds
+const durationLabelToSeconds = (label) => {
+  if (!label) return 0;
+  const m = String(label).match(/^(\d+)([mhd])$/);
+  if (!m) return 0;
+  const n = Number(m[1]);
+  if (m[2] === "m") return n * 60;
+  if (m[2] === "h") return n * 3600;
+  if (m[2] === "d") return n * 86400;
+  return 0;
+};
+
+// Seconds → matching DURATION_OPTIONS label, or "" if none matches.
+const secondsToDurationLabel = (seconds) => {
+  const map = {
+    900: "15m",
+    1800: "30m",
+    3600: "1h",
+    7200: "2h",
+    10800: "3h",
+    86400: "1d",
+  };
+  return map[Number(seconds)] || "";
+};
+
+// "YYYY-MM-DDTHH:MM" + seconds → new "YYYY-MM-DDTHH:MM" (datetime-local format)
+const addSecondsToDateTimeLocal = (startDateTimeLocal, seconds) => {
+  if (!startDateTimeLocal || !seconds) return "";
+  const start = new Date(startDateTimeLocal);
+  if (isNaN(start.getTime())) return "";
+  const end = new Date(start.getTime() + seconds * 1000);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}T${pad(end.getHours())}:${pad(end.getMinutes())}`;
+};
+
 const DealDrawer = ({
   deal,
   selectedIds = [],
@@ -45,6 +80,7 @@ const DealDrawer = ({
     teamId: "",
     status: "",
     priority: "",
+    duration: "",
     startDate: "",
     dueDate: "",
     description: "",
@@ -63,6 +99,7 @@ const DealDrawer = ({
         teamId: "",
         status: "",
         priority: "",
+        duration: "",
         startDate: "",
         dueDate: "",
         joinUrl: "",
@@ -79,6 +116,9 @@ const DealDrawer = ({
         teamId: deal.teamId || "",
         status: deal.status || "",
         priority: deal.priority || "",
+        // Map the stored duration (seconds) back to a preset label if it
+        // matches one — otherwise leave empty and let the user pick.
+        duration: secondsToDurationLabel(deal.duration),
         startDate: deal.dateStart
           ? deal.dateStart.replace(" ", "T").slice(0, 16)
           : "",
@@ -578,9 +618,24 @@ const DealDrawer = ({
 
                       <Select
                         label="Duration"
-                        value={formData.priority || ""}
+                        value={formData.duration || ""}
                         options={DURATION_OPTIONS}
-                        onChange={(value) => handleChange("priority", value)}
+                        onChange={(value) =>
+                          setFormData((prev) => {
+                            const seconds = durationLabelToSeconds(value);
+                            const newDueDate = addSecondsToDateTimeLocal(
+                              prev.startDate,
+                              seconds
+                            );
+                            return {
+                              ...prev,
+                              duration: value,
+                              // Only overwrite dueDate when we have something
+                              // valid to compute (start date + a known duration).
+                              dueDate: newDueDate || prev.dueDate,
+                            };
+                          })
+                        }
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -590,7 +645,18 @@ const DealDrawer = ({
                           label="Start Date"
                           value={formData.startDate || ""}
                           onChange={(e) =>
-                            handleChange("startDate", e.target.value)
+                            setFormData((prev) => {
+                              const newStart = e.target.value;
+                              // If a duration is set, keep dueDate in sync.
+                              const seconds = durationLabelToSeconds(prev.duration);
+                              return {
+                                ...prev,
+                                startDate: newStart,
+                                dueDate: seconds
+                                  ? addSecondsToDateTimeLocal(newStart, seconds)
+                                  : prev.dueDate,
+                              };
+                            })
                           }
                         />
                       </div>

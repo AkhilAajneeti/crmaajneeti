@@ -15,6 +15,7 @@ import Activities from "./pages/activities";
 import Profile from "pages/profile";
 import Login from "./pages/login";
 import ProtectedRoute from "routes/ProtectedRoute";
+import EntityRouter from "routes/EntityRouter";
 import TaskPage from "pages/tasks";
 import MeetingPage from "pages/meeting";
 import CallPage from "./pages/call";
@@ -185,6 +186,23 @@ const Routes = () => {
             element={
               <ProtectedRoute entity="KnowledgeBaseArticle">
                 <KnowledgeBase />
+              </ProtectedRoute>
+            }
+          />
+          {/* EspoCRM-style deep links: /<EntityName>/<action>[/:id] */}
+          <Route
+            path="/:entity/:action/:id"
+            element={
+              <ProtectedRoute>
+                <EntityRouter />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/:entity/:action"
+            element={
+              <ProtectedRoute>
+                <EntityRouter />
               </ProtectedRoute>
             }
           />

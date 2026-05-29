@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import Header from "../../components/ui/Header";
@@ -18,6 +19,10 @@ import { useKnowledge, useKnowledgeById } from "hooks/useKnowledge";
 import { createArticle, deleteArticle, updateArticle } from "services/knowledge.service";
 
 const KnowledgeBase = () => {
+  const navigate = useNavigate();
+  // EspoCRM-style URL params: /KnowledgeBaseArticle/<action>/<id?>
+  const { action: urlAction, id: urlId } = useParams();
+
   const queryClient = useQueryClient();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
@@ -31,6 +36,48 @@ const KnowledgeBase = () => {
 
   const { data: metaData } = useMetaData();
   const { data: leadsDetails } = useKnowledgeById(selectedDeal?.id, mode);
+
+  // Drawer state derived from URL — single source of truth.
+  // /knowledge-base                          → drawer closed
+  // /KnowledgeBaseArticle/view/:id           → drawer open, view mode, record :id
+  // /KnowledgeBaseArticle/edit/:id           → drawer open, edit mode, record :id
+  // /KnowledgeBaseArticle/create             → drawer open, add mode (drawer's create flow uses "add")
+  // /KnowledgeBaseArticle/mass-update        → drawer open, mass-update mode (uses selectedDeals)
+  useEffect(() => {
+    if (urlAction === "create") {
+      setSelectedDeal(null);
+      setMode("add");
+      setIsDrawerOpen(true);
+    } else if (urlAction === "mass-update") {
+      setSelectedDeal(null);
+      setMode("mass-update");
+      setIsDrawerOpen(true);
+    } else if (urlId) {
+      // Minimal placeholder; the promote effect below upgrades it once the
+      // full record arrives — needed because the drawer's setFormData(deal)
+      // reads field values directly from this object.
+      setSelectedDeal((current) =>
+        current?.id === urlId ? current : { id: urlId }
+      );
+      setMode(urlAction === "edit" ? "edit" : "view");
+      setIsDrawerOpen(true);
+    } else {
+      setIsDrawerOpen(false);
+      setSelectedDeal(null);
+      setMode("view");
+    }
+  }, [urlAction, urlId]);
+
+  // When arriving via a deep link, promote the {id} placeholder to the full
+  // record once useKnowledgeById resolves — so the drawer's edit-form init
+  // sees real values instead of just {id}.
+  useEffect(() => {
+    if (!urlId || !leadsDetails || leadsDetails.id !== urlId) return;
+    setSelectedDeal((current) => {
+      if (current?.id === urlId && !current.name) return leadsDetails;
+      return current;
+    });
+  }, [leadsDetails, urlId]);
 
   const [sortConfig, setSortConfig] = useState({
     key: "createdAt",
@@ -107,20 +154,19 @@ const KnowledgeBase = () => {
   };
 
   const handleAddArticle = () => {
-    setSelectedDeal(null);
-    setMode("add");
-    setIsDrawerOpen(true);
+    navigate("/KnowledgeBaseArticle/create");
   };
 
   const handleDealClick = (deal) => {
+    // Set the full record first so the drawer has data immediately;
+    // the URL effect sees the matching id and won't overwrite with a placeholder.
     setSelectedDeal(deal);
-    setMode("view");
-    setIsDrawerOpen(true);
+    navigate(`/KnowledgeBaseArticle/view/${deal.id}`);
   };
 
   const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-    setSelectedDeal(null);
+    // Replace so browser-back doesn't re-open the drawer you just closed.
+    navigate("/knowledge-base", { replace: true });
   };
   const handleCreateArticle = async (payload) => {
     try {
@@ -209,11 +255,9 @@ const KnowledgeBase = () => {
     if (action === "mass-update") {
       if (!selectedDeals.length) {
         toast.error("Select at least one Article");
+        return;
       }
-      setSelectedDeal(null);
-      setMode("mass-update");
-      setIsDrawerOpen(true);
-
+      navigate("/KnowledgeBaseArticle/mass-update");
       return;
     }
 

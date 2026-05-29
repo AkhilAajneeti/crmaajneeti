@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import Header from "../../components/ui/Header";
@@ -21,6 +22,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTasks, useTasksAll, useTasksById } from "hooks/useTasks";
 import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
 const TaskPage = () => {
+  const navigate = useNavigate();
+  // EspoCRM-style URL params: /Task/<action>/<id?>
+  const { action: urlAction, id: urlId } = useParams();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -55,12 +60,39 @@ const TaskPage = () => {
   const total = allTasksData?.total || 0;
   const totalPages = Math.ceil(total / limit);
 
+  // Drawer state derived from URL — single source of truth.
+  // /tasks                  → drawer closed
+  // /Task/view/:id          → drawer open, view mode, record :id
+  // /Task/edit/:id          → drawer open, edit mode, record :id
+  // /Task/create            → drawer open, add mode (drawer's create flow uses "add")
+  // /Task/mass-update       → drawer open, mass-update mode (uses selectedDeals)
+  useEffect(() => {
+    if (urlAction === "create") {
+      setSelectedDeal(null);
+      setMode("add");
+      setIsDrawerOpen(true);
+    } else if (urlAction === "mass-update") {
+      setSelectedDeal(null);
+      setMode("mass-update");
+      setIsDrawerOpen(true);
+    } else if (urlId) {
+      // Minimal placeholder so useTasksById fires; drawer renders from
+      // selectedDealData (the fetched record), so no promote step is needed.
+      setSelectedDeal((current) =>
+        current?.id === urlId ? current : { id: urlId }
+      );
+      setMode(urlAction === "edit" ? "edit" : "view");
+      setIsDrawerOpen(true);
+    } else {
+      setIsDrawerOpen(false);
+      setSelectedDeal(null);
+      setMode("view");
+    }
+  }, [urlAction, urlId]);
 
-  // Mock deals data
-  const handleDealClick = async (deal) => {
-    setSelectedDeal(deal);
-    setMode("view");
-    setIsDrawerOpen(true);
+
+  const handleDealClick = (deal) => {
+    navigate(`/Task/view/${deal.id}`);
   };
   const { data: selectedDealData } = useTasksById(
     selectedDeal?.id,
@@ -111,15 +143,12 @@ const TaskPage = () => {
 
   const handleAddLeads = () => {
     if (!canCreateTask) return;
-    setSelectedDeal(null);
-    setMode("add");
-    setIsDrawerOpen(true);
+    navigate("/Task/create");
   };
 
   const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-    setSelectedDeal(null);
-    setMode("view");
+    // Replace so browser-back doesn't re-open the drawer you just closed.
+    navigate("/tasks", { replace: true });
   };
 
   const handleCreateLead = async (payload) => {
@@ -283,8 +312,7 @@ const TaskPage = () => {
 
     if (action === "massupdate") {
       if (!canMassUpdateTask) return;
-      setMode("mass-update");
-      setIsDrawerOpen(true);
+      navigate("/Task/mass-update");
     }
   };
 

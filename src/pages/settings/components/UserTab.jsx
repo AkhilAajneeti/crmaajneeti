@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
@@ -60,7 +61,8 @@ const canDeleteSettingRecord = (entity, record) => {
   return canDeleteRecord(entity, record);
 };
 
-const UserTab = () => {
+const UserTab = ({ deepLink }) => {
+  const navigate = useNavigate();
   const [teamMembers, setTeamMembers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -182,6 +184,7 @@ const UserTab = () => {
       setTeamMembers(data.list || []);
 
       setIsInviteModalOpen(false);
+      clearDeepLinkUrl();
     } catch (err) {
       toast.error("Failed to create user ❌");
     } finally {
@@ -233,6 +236,61 @@ const UserTab = () => {
     };
     loadData();
   }, []);
+
+  // Deep-link handling: open the matching modal when arriving from
+  // /User/<action>/<id?>. The Settings page passes the URL params down here.
+  useEffect(() => {
+    if (!deepLink?.action) return;
+
+    if (deepLink.action === "create") {
+      setIsEdit(false);
+      setInviteData({
+        userName: "",
+        title: "",
+        firstName: "",
+        lastName: "",
+        phoneNumber: "",
+        emailAddress: "",
+        gender: "",
+        teamId: "",
+        type: "",
+        isActive: "",
+        role: "",
+        password: "",
+        confirmPassword: "",
+      });
+      setIsInviteModalOpen(true);
+      return;
+    }
+
+    if (!deepLink.id) return;
+
+    const openFromDeepLink = async () => {
+      try {
+        const user = await fetchUserById(deepLink.id);
+        if (deepLink.action === "edit") {
+          handleEdit(user);
+        } else {
+          // default → view
+          setSelectedUser(user);
+          setIsShowDetails(true);
+        }
+      } catch (err) {
+        console.error("Failed to load user from deep link", err);
+        toast.error("Could not load user");
+        navigate("/settings", { replace: true });
+      }
+    };
+    openFromDeepLink();
+    // We intentionally only react to the deep-link signature, not modal state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLink?.action, deepLink?.id]);
+
+  // When any deep-link-triggered modal closes, clear the URL so the modal
+  // doesn't reopen on refresh / back-button.
+  const clearDeepLinkUrl = () => {
+    if (deepLink) navigate("/settings", { replace: true });
+  };
 
   const teamOptions = team?.map((t) => ({
     value: t.id,
@@ -670,7 +728,10 @@ const UserTab = () => {
           {/* Overlay */}
           <div
             className="fixed inset-0 bg-black/50 z-50"
-            onClick={() => setIsInviteModalOpen(false)}
+            onClick={() => {
+              setIsInviteModalOpen(false);
+              clearDeepLinkUrl();
+            }}
           />
 
           {/* Modal Wrapper */}
@@ -687,7 +748,10 @@ const UserTab = () => {
                 </h3>
 
                 <button
-                  onClick={() => setIsInviteModalOpen(false)}
+                  onClick={() => {
+              setIsInviteModalOpen(false);
+              clearDeepLinkUrl();
+            }}
                   className="p-2 rounded-lg hover:bg-muted transition"
                 >
                   <Icon name="X" size={20} />
@@ -891,7 +955,10 @@ const UserTab = () => {
                     <div className="flex space-x-3 pt-4">
                       <Button
                         variant="outline"
-                        onClick={() => setIsInviteModalOpen(false)}
+                        onClick={() => {
+              setIsInviteModalOpen(false);
+              clearDeepLinkUrl();
+            }}
                         fullWidth
                       >
                         Cancel
@@ -917,7 +984,10 @@ const UserTab = () => {
       {isShowDetails && selectedUser && (
         <UserDetailsModal
           user={selectedUser}
-          onClose={() => setIsShowDetails(false)}
+          onClose={() => {
+            setIsShowDetails(false);
+            clearDeepLinkUrl();
+          }}
           getStatusBadge={getStatusBadge}
         />
       )}

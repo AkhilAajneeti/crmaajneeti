@@ -3,18 +3,33 @@ import { useNotification } from "NotificationContext";
 import { useState, useRef, useEffect } from "react";
 import Button from "./ui/Button";
 
+const PAGE_SIZE = 5;
+
 const NotificationDropdown = () => {
   const audioRef = useRef(null);
   const prevCountRef = useRef(0);
+  const dropdownRef = useRef(null);
   const [activeTab, setActiveTab] = useState("all");
-  const [visible, setVisible] = useState(5);
-  const { open, notifications } = useNotification();
+  const [currentPage, setCurrentPage] = useState(1);
+  const { open, notifications, setNotifications, setOpen } = useNotification();
   useEffect(() => {
     if (notifications.length > prevCountRef.current) {
       audioRef.current?.play();
     }
     prevCountRef.current = notifications.length;
   }, [notifications]);
+
+  // Close on outside click — listener attaches only while open, removes on cleanup.
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e) => {
+      if (!dropdownRef.current?.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open, setOpen]);
 
   if (!open) return null;
 
@@ -95,13 +110,26 @@ const NotificationDropdown = () => {
     activeTab == "unread"
       ? notifications.filter((n) => !n.read)
       : notifications;
-  // visible notification
-  const visibleNotification = filterNotification.slice(0, visible);
+
+  // pagination
+  const totalItems = filterNotification.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  // Clamp current page to valid range (in case the filtered list shrinks).
+  const safePage = Math.min(currentPage, totalPages);
+  const pageItems = filterNotification.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
+
+  const handleMarkAll = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
 
   return (
     <AnimatePresence>
       {open && (
         <motion.div
+          ref={dropdownRef}
           initial={{ opacity: 0, y: -10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -113,11 +141,11 @@ const NotificationDropdown = () => {
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <h3 className="font-semibold text-gray-800">Notifications</h3>
 
-            <div className="flex gap-2 text-xs">
+            <div className="flex items-center gap-2 text-xs">
               <button
                 onClick={() => {
                   setActiveTab("all");
-                  setVisible(5);
+                  setCurrentPage(1);
                 }}
                 className={`px-2 py-1 rounded-full ${activeTab === "all" ? "bg-gray-100" : "text-gray-500"}`}
               >
@@ -126,11 +154,18 @@ const NotificationDropdown = () => {
               <button
                 onClick={() => {
                   setActiveTab("unread");
-                  setVisible(5);
+                  setCurrentPage(1);
                 }}
                 className={`px-2 py-1 rounded-full ${activeTab === "unread" ? "bg-gray-100" : "text-gray-500"}`}
               >
                 Unread
+              </button>
+              <button
+                onClick={handleMarkAll}
+                disabled={notifications.every((n) => n.read)}
+                className="px-2 py-1 rounded-full text-blue-600 hover:bg-blue-50 disabled:text-gray-300 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+              >
+                Mark all
               </button>
             </div>
           </div>
@@ -146,7 +181,7 @@ const NotificationDropdown = () => {
                 </p>
               </div>
             ) : (
-              visibleNotification.map((n) => {
+              pageItems.map((n) => {
                 const item = parseNotification(n);
                 const isUnread = !item.read;
 
@@ -208,17 +243,37 @@ const NotificationDropdown = () => {
                 );
               })
             )}
-            {visible < filterNotification.length && (
-              <div className="p-3 text-center">
-                <Button
-                  onClick={() => setVisible((prev) => prev + 5)}
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  Show More
-                </Button>
-              </div>
-            )}
           </div>
+
+          {/* Pagination footer — always shown when there are notifications */}
+          {totalItems > 0 && (
+            <div className="flex items-center justify-between px-3 py-2 border-t bg-white text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={safePage === 1}
+                className="text-xs px-3"
+              >
+                ‹ Prev
+              </Button>
+              <span className="text-gray-600">
+                Page <b className="text-gray-900">{safePage}</b> / {totalPages}
+                <span className="text-gray-400"> · {totalItems} total</span>
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={safePage === totalPages}
+                className="text-xs px-3"
+              >
+                Next ›
+              </Button>
+            </div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import Header from "../../components/ui/Header";
@@ -29,6 +30,10 @@ import { useComplaint, useComplaintById } from "hooks/useComplaint";
 import { createComplaint, deleteComplaint, updateComplaint } from "services/complaint.service";
 
 const Complaints = () => {
+  const navigate = useNavigate();
+  // EspoCRM-style URL params: /Case/<action>/<id?>
+  const { action: urlAction, id: urlId } = useParams();
+
   const queryClient = useQueryClient();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
@@ -42,6 +47,48 @@ const Complaints = () => {
 
   const { data: metaData } = useMetaData();
   const { data: leadsDetails } = useComplaintById(selectedDeal?.id, mode);
+
+  // Drawer state derived from URL — single source of truth.
+  // /complaints                  → drawer closed
+  // /Case/view/:id               → drawer open, view mode, record :id
+  // /Case/edit/:id               → drawer open, edit mode, record :id
+  // /Case/create                 → drawer open, add mode (drawer's create flow uses "add")
+  // /Case/mass-update            → drawer open, mass-update mode (uses selectedDeals)
+  useEffect(() => {
+    if (urlAction === "create") {
+      setSelectedDeal(null);
+      setMode("add");
+      setIsDrawerOpen(true);
+    } else if (urlAction === "mass-update") {
+      setSelectedDeal(null);
+      setMode("mass-update");
+      setIsDrawerOpen(true);
+    } else if (urlId) {
+      // Minimal placeholder; the promote effect below upgrades it once the
+      // full record arrives — needed because the drawer's setFormData(deal)
+      // reads field values directly from this object.
+      setSelectedDeal((current) =>
+        current?.id === urlId ? current : { id: urlId }
+      );
+      setMode(urlAction === "edit" ? "edit" : "view");
+      setIsDrawerOpen(true);
+    } else {
+      setIsDrawerOpen(false);
+      setSelectedDeal(null);
+      setMode("view");
+    }
+  }, [urlAction, urlId]);
+
+  // When arriving via a deep link, promote the {id} placeholder to the full
+  // record once useComplaintById resolves — so the drawer's edit-form init
+  // sees real values instead of just {id}.
+  useEffect(() => {
+    if (!urlId || !leadsDetails || leadsDetails.id !== urlId) return;
+    setSelectedDeal((current) => {
+      if (current?.id === urlId && !current.name) return leadsDetails;
+      return current;
+    });
+  }, [leadsDetails, urlId]);
 
   const [sortConfig, setSortConfig] = useState({
     key: "createdAt",
@@ -114,20 +161,19 @@ const Complaints = () => {
   };
 
   const handleAddLeads = () => {
-    setSelectedDeal(null);
-    setMode("add");
-    setIsDrawerOpen(true);
+    navigate("/Case/create");
   };
 
   const handleDealClick = (deal) => {
+    // Set the full record first so the drawer has data immediately;
+    // the URL effect sees the matching id and won't overwrite with a placeholder.
     setSelectedDeal(deal);
-    setMode("view");
-    setIsDrawerOpen(true);
+    navigate(`/Case/view/${deal.id}`);
   };
 
   const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-    setSelectedDeal(null);
+    // Replace so browser-back doesn't re-open the drawer you just closed.
+    navigate("/complaints", { replace: true });
   };
   const handleCreateComplaint = async (payload) => {
     try {
@@ -226,12 +272,9 @@ const Complaints = () => {
     if (action === "mass-update") {
       if (!selectedDeals.length) {
         toast.error("Select at least one lead");
-        n;
+        return;
       }
-      setSelectedDeal(null);
-      setMode("mass-update");
-      setIsDrawerOpen(true);
-
+      navigate("/Case/mass-update");
       return;
     }
 

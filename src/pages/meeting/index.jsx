@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import Header from "../../components/ui/Header";
@@ -24,6 +25,10 @@ import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
 
 const MeetingPage = () => {
+  const navigate = useNavigate();
+  // EspoCRM-style URL params: /Meeting/<action>/<id?>
+  const { action: urlAction, id: urlId } = useParams();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -62,11 +67,39 @@ const MeetingPage = () => {
     selectedDeal?.id,
     isDrawerOpen && !!selectedDeal?.id,
   );
-  // Mock deals data
+
+  // Drawer state derived from URL — single source of truth.
+  // /meeting                  → drawer closed
+  // /Meeting/view/:id         → drawer open, view mode, record :id
+  // /Meeting/edit/:id         → drawer open, edit mode, record :id
+  // /Meeting/create           → drawer open, add mode (drawer's create flow uses "add")
+  // /Meeting/mass-update      → drawer open, mass-update mode (uses selectedDeals)
+  useEffect(() => {
+    if (urlAction === "create") {
+      setSelectedDeal(null);
+      setMode("add");
+      setIsDrawerOpen(true);
+    } else if (urlAction === "mass-update") {
+      setSelectedDeal(null);
+      setMode("mass-update");
+      setIsDrawerOpen(true);
+    } else if (urlId) {
+      // Minimal placeholder so useMeeting fires; drawer renders from
+      // selectedDealData (the fetched record), so no promote step is needed.
+      setSelectedDeal((current) =>
+        current?.id === urlId ? current : { id: urlId }
+      );
+      setMode(urlAction === "edit" ? "edit" : "view");
+      setIsDrawerOpen(true);
+    } else {
+      setIsDrawerOpen(false);
+      setSelectedDeal(null);
+      setMode("view");
+    }
+  }, [urlAction, urlId]);
+
   const handleDealClick = (deal) => {
-    setSelectedDeal(deal);
-    setMode("view");
-    setIsDrawerOpen(true);
+    navigate(`/Meeting/view/${deal.id}`);
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -81,15 +114,12 @@ const MeetingPage = () => {
 
   const handleAddMeeting = () => {
     if (!canCreateMeeting) return;
-    setSelectedDeal(null);
-    setMode("add");
-    setIsDrawerOpen(true);
+    navigate("/Meeting/create");
   };
 
   const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-    setSelectedDeal(null);
-    // setIsEditing(false);
+    // Replace so browser-back doesn't re-open the drawer you just closed.
+    navigate("/meeting", { replace: true });
   };
 
   const handleCreateMeeting = async (payload) => {
@@ -192,11 +222,7 @@ const MeetingPage = () => {
         toast.error("Select at least one lead");
         return;
       }
-      setSelectedDeal(null);
-
-      setMode("mass-update");
-      setIsDrawerOpen(true);
-
+      navigate("/Meeting/mass-update");
       return;
     }
 

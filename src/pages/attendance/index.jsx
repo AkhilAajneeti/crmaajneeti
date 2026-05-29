@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Helmet } from "react-helmet";
 import Header from "../../components/ui/Header";
@@ -22,6 +23,10 @@ import {
 import { deleteAttendance } from "services/calender.service";
 
 const Attendance = () => {
+  const navigate = useNavigate();
+  // EspoCRM-style URL params: /CAttendanceRequest/<action>/<id?>
+  const { action: urlAction, id: urlId } = useParams();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [selectedDeals, setSelectedDeals] = useState([]);
@@ -72,6 +77,48 @@ const Attendance = () => {
   const mockcalender = data?.list || [];
   const total = data?.total || 0;
 
+  // Drawer state derived from URL — single source of truth.
+  // /attendance                          → drawer closed
+  // /CAttendanceRequest/view/:id         → drawer open, view mode, record :id
+  // /CAttendanceRequest/edit/:id         → drawer open, edit mode, record :id
+  // /CAttendanceRequest/create           → drawer open, create mode
+  // /CAttendanceRequest/mass-update      → drawer open, mass-update mode
+  useEffect(() => {
+    if (urlAction === "create") {
+      setSelectedDeal(null);
+      setDrawerMode("create");
+      setIsDrawerOpen(true);
+    } else if (urlAction === "mass-update") {
+      setSelectedDeal(null);
+      setDrawerMode("mass-update");
+      setIsDrawerOpen(true);
+    } else if (urlId) {
+      // If we don't already have the full record (deep-link cold start),
+      // start with a minimal placeholder; the promote effect below will
+      // upgrade it once the list query resolves with the matching record.
+      setSelectedDeal((current) =>
+        current?.id === urlId ? current : { id: urlId }
+      );
+      setDrawerMode(urlAction === "edit" ? "edit" : "view");
+      setIsDrawerOpen(true);
+    } else {
+      setIsDrawerOpen(false);
+      setSelectedDeal(null);
+    }
+  }, [urlAction, urlId]);
+
+  // Promote the {id} placeholder into the full record once the list resolves —
+  // so parent-level permission props (canEditStatus, canEditDep, etc.) evaluate
+  // against the real assignedUserId / createdById instead of just the id.
+  useEffect(() => {
+    if (!urlId || !mockcalender.length) return;
+    const fullDeal = mockcalender.find((d) => d.id === urlId);
+    if (!fullDeal) return;
+    setSelectedDeal((current) => {
+      if (current?.id === urlId && !current.assignedUserId) return fullDeal;
+      return current;
+    });
+  }, [mockcalender, urlId]);
 
   const STATUS = ["Approved", "Pending"];
 
@@ -173,24 +220,21 @@ const Attendance = () => {
   // ✅ CREATE
   const handleCreate = () => {
     if (!canCreateAttendance) return;
-    setDrawerMode("create");
-    setSelectedDeal(null);
-    setIsDrawerOpen(true);
+    navigate("/CAttendanceRequest/create");
   };
 
-  // ✅ VIEW (row click)
+  // ✅ VIEW (row click) — set full deal first so permission props are correct
+  // immediately; the URL effect sees the matching id and won't overwrite.
   const handleView = (deal) => {
-    setDrawerMode("view");
     setSelectedDeal(deal);
-    setIsDrawerOpen(true);
+    navigate(`/CAttendanceRequest/view/${deal.id}`);
   };
 
-  // ✅ EDIT
+  // ✅ EDIT — same pattern: keep the full deal in state for permissions.
   const handleEdit = (deal) => {
     if (!canEditRecord("CAttendanceRequest", deal)) return;
-    setDrawerMode("edit");
     setSelectedDeal(deal);
-    setIsDrawerOpen(true);
+    navigate(`/CAttendanceRequest/edit/${deal.id}`);
   };
   const handleDelete = async (deal) => {
     try {
@@ -206,10 +250,9 @@ const Attendance = () => {
     }
   };
 
-  // ✅ CLOSE
+  // ✅ CLOSE — replace so browser-back doesn't re-open the drawer.
   const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-    setSelectedDeal(null);
+    navigate("/attendance", { replace: true });
   };
   return (
     <>
@@ -358,7 +401,7 @@ const Attendance = () => {
           mode={drawerMode}
           data={selectedDeal}   // ✅ single record
           onSuccess={() => {
-            setIsDrawerOpen(false);
+            navigate("/attendance", { replace: true });
             refetch();
           }}
           isLoading={isLoading}

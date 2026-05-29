@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
@@ -66,7 +67,8 @@ const canDeleteSettingRecord = (entity, record) => {
   return canDeleteRecord(entity, record);
 };
 
-const TeamsTab = () => {
+const TeamsTab = ({ deepLink }) => {
+  const navigate = useNavigate();
   const [teamMembers, setTeamMembers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -148,6 +150,7 @@ const TeamsTab = () => {
       setTeamMembers(data.list || []);
 
       setIsInviteModalOpen(false);
+      clearDeepLinkUrl();
     } catch (err) {
       toast.error("Failed to create team ❌");
     } finally {
@@ -212,6 +215,61 @@ const TeamsTab = () => {
     };
     loadData();
   }, []);
+
+  // Deep-link handling: open the matching modal when arriving from
+  // /Team/<action>/<id?>. The Settings page passes the URL params down here.
+  useEffect(() => {
+    if (!deepLink?.action) return;
+
+    if (deepLink.action === "create") {
+      setIsEdit(false);
+      setInviteData({
+        id: null,
+        name: "",
+        positionList: [],
+        description: "",
+        rolesIds: [],
+        rolesNames: {},
+      });
+      setIsInviteModalOpen(true);
+      return;
+    }
+
+    if (!deepLink.id) return;
+
+    const openFromDeepLink = async () => {
+      try {
+        // The list is the cheapest way to get a full Team record here —
+        // fetchTeam returns all teams, and there's no dedicated by-id fetch.
+        const res = await fetchTeam();
+        const list = res.list || [];
+        setTeamMembers(list);
+        const team = list.find((t) => t.id === deepLink.id);
+        if (!team) {
+          toast.error("Team not found");
+          navigate("/settings", { replace: true });
+          return;
+        }
+        if (deepLink.action === "edit") {
+          handleEdit(team);
+        } else {
+          // default → view (open team details with its users)
+          await handleTeamClick(team);
+        }
+      } catch (err) {
+        console.error("Failed to load team from deep link", err);
+        toast.error("Could not load team");
+        navigate("/settings", { replace: true });
+      }
+    };
+    openFromDeepLink();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLink?.action, deepLink?.id]);
+
+  // When any deep-link-triggered modal closes, clear the URL.
+  const clearDeepLinkUrl = () => {
+    if (deepLink) navigate("/settings", { replace: true });
+  };
   const roleOptions = role?.map((t) => ({
     value: t.id,
     label: t.name,
@@ -499,7 +557,10 @@ const TeamsTab = () => {
           {/* Overlay */}
           <div
             className="fixed inset-0 bg-black/50 z-50"
-            onClick={() => setIsInviteModalOpen(false)}
+            onClick={() => {
+              setIsInviteModalOpen(false);
+              clearDeepLinkUrl();
+            }}
           />
 
           {/* Modal Wrapper */}
@@ -516,7 +577,10 @@ const TeamsTab = () => {
                 </h3>
 
                 <button
-                  onClick={() => setIsInviteModalOpen(false)}
+                  onClick={() => {
+              setIsInviteModalOpen(false);
+              clearDeepLinkUrl();
+            }}
                   className="p-2 rounded-lg hover:bg-muted transition"
                 >
                   <Icon name="X" size={20} />
@@ -646,7 +710,10 @@ const TeamsTab = () => {
                     <div className="flex space-x-3 pt-4">
                       <Button
                         variant="outline"
-                        onClick={() => setIsInviteModalOpen(false)}
+                        onClick={() => {
+              setIsInviteModalOpen(false);
+              clearDeepLinkUrl();
+            }}
                         fullWidth
                       >
                         Cancel
@@ -675,7 +742,10 @@ const TeamsTab = () => {
           {/* Overlay */}
           <div
             className="fixed inset-0 bg-black/50 z-50"
-            onClick={() => setIsTeamModalOpen(false)}
+            onClick={() => {
+              setIsTeamModalOpen(false);
+              clearDeepLinkUrl();
+            }}
           />
 
           {/* Modal */}
@@ -686,7 +756,10 @@ const TeamsTab = () => {
                 <h3 className="text-lg font-semibold">
                   {selectedTeam?.name} - Team Members
                 </h3>
-                <button onClick={() => setIsTeamModalOpen(false)}>
+                <button onClick={() => {
+              setIsTeamModalOpen(false);
+              clearDeepLinkUrl();
+            }}>
                   <Icon name="X" />
                 </button>
               </div>

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Header from "../../components/ui/Header";
 import Sidebar from "../../components/ui/Sidebar";
 import Icon from "../../components/AppIcon";
@@ -9,6 +10,10 @@ import DealDrawer from "./components/DealDrawer";
 import { updateprofile } from "services/user.service";
 
 const Profile = () => {
+  const navigate = useNavigate();
+  // EspoCRM-style URL params: /CProfileDetails/<action>/<id?>
+  const { action: urlAction, id: urlId } = useParams();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [hoveredRow, setHoveredRow] = useState(null);
@@ -20,6 +25,35 @@ const Profile = () => {
   const [drawerMode, setDrawerMode] = useState("view");
   const { data: profiles, isLoading } = useProfiles();
   const profilesData = profiles?.list || [];
+
+  // Drawer state derived from URL — single source of truth.
+  // /profile                          → drawer closed
+  // /CProfileDetails/view/:id         → drawer open, view mode
+  // /CProfileDetails/edit/:id         → drawer open, edit mode
+  useEffect(() => {
+    if (urlId) {
+      setSelectedId((current) =>
+        current?.id === urlId ? current : { id: urlId }
+      );
+      setDrawerMode(urlAction === "edit" ? "edit" : "view");
+      setIsDrawerOpen(true);
+    } else {
+      setIsDrawerOpen(false);
+      setSelectedId(null);
+    }
+  }, [urlAction, urlId]);
+
+  // Promote the {id} placeholder into the full record once the list resolves,
+  // so the drawer header (which reads deal?.name) populates instantly.
+  useEffect(() => {
+    if (!urlId || !profilesData.length) return;
+    const fullDeal = profilesData.find((d) => d.id === urlId);
+    if (!fullDeal) return;
+    setSelectedId((current) => {
+      if (current?.id === urlId && !current.name) return fullDeal;
+      return current;
+    });
+  }, [profilesData, urlId]);
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -41,9 +75,10 @@ const Profile = () => {
   };
 
   const onDealClick = (deal) => {
-    setSelectedId(deal);   // ✅ pass full object
-    setDrawerMode("view");
-    setIsDrawerOpen(true);
+    // Set the full record first so the drawer header has data immediately;
+    // the URL effect sees the matching id and won't overwrite with a placeholder.
+    setSelectedId(deal);
+    navigate(`/CProfileDetails/view/${deal.id}`);
   };
   return (
     <div className="min-h-screen bg-background">
@@ -183,7 +218,7 @@ const Profile = () => {
           <DealDrawer
             deal={selectedId}
             isOpen={isDrawerOpen}
-            onClose={() => setIsDrawerOpen(false)}
+            onClose={() => navigate("/profile", { replace: true })}
             mode={drawerMode}
             onUpdate={(id, data) => updateprofile(id, data)}
           />

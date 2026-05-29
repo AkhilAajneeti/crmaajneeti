@@ -15,8 +15,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { canEdit, canEditRecord } from "utils/permissions";
 
 const DealDrawer = ({
-  status,
-  source,
 
   deal,
   isOpen,
@@ -88,7 +86,7 @@ const DealDrawer = ({
       setIsEditing(false);
     }
   }, [deal, mode]);
- const currentUserId = JSON.parse(localStorage.getItem("login_object"))?.id;
+  const currentUserId = JSON.parse(localStorage.getItem("login_object"))?.id;
 
   const canEditDeal = (deal) =>
     canEditRecord("Lead", deal) &&
@@ -239,11 +237,13 @@ const DealDrawer = ({
     const { type, post, data, createdByName } = activity;
 
     if (type === "Post") {
-      return post;
+      // post can be a non-string (e.g. empty object {}) for some legacy stream
+      // entries — coerce to string so it never crashes the <p> render.
+      return typeof post === "string" ? post : "";
     }
 
     if (type === "Assign") {
-      return `Assigned to ${data?.assignedUserName}`;
+      return `Assigned to ${data?.assignedUserName ?? ""}`;
     }
 
     if (type === "Create") {
@@ -251,8 +251,9 @@ const DealDrawer = ({
     }
 
     if (type === "Update") {
-      if (data?.value) {
-        return `Status updated to ${data.value}`;
+      const value = data?.value;
+      if (value != null && typeof value !== "object") {
+        return `Status updated to ${value}`;
       }
       return "Lead updated";
     }
@@ -629,13 +630,10 @@ const DealDrawer = ({
 
                   {/* ================= Details ================= */}
                   <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                    <h3 className="font-medium text-foreground">Details</h3>
-
-
+                    <h3 className="font-medium text-foreground">Question</h3>
                     <div className="col-span-2">
                       <textarea
                         className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                        label="Question"
                         rows={4}
                         value={formData.cQuestion || ""}
                         placeholder="Question"
@@ -644,6 +642,9 @@ const DealDrawer = ({
                         }
                       />
                     </div>
+                    <h3 className="font-medium text-foreground">Details</h3>
+
+
                     <div className="col-span-2">
                       <textarea
                         className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -802,12 +803,31 @@ const DealDrawer = ({
                             </p>
                             {deal?.phoneNumber ? (
                               <a
-                                href={`https://wa.me/${deal.phoneNumber.replace(/\D/g, "")}`}
+                                href={`https://api.whatsapp.com/send/?phone=${deal.phoneNumber.replace(
+                                  /\D/g,
+                                  ""
+                                )}&text=${encodeURIComponent(
+                                  `Hello *${deal?.name || "Customer"}*,
+
+Thank you for contacting us for your lead generation requirements.
+
+I'm *${deal?.assignedUserName || "Team Member"}* from *AAJneeti Advertising*.
+
+Let me know when you're available so that we can discuss this in more detail.
+
+*aajneeti.social*`
+                                )}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-primary hover:underline"
+                                className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 hover:underline transition-colors"
                               >
-                                wa.me/{deal.phoneNumber.replace(/\D/g, "")}
+                                <img
+                                  src="/assets/whatsapp-logo.png"
+                                  alt="WhatsApp"
+                                  className="w-4 h-4 object-contain"
+                                />
+
+                                <span>{deal.phoneNumber}</span>
                               </a>
                             ) : (
                               <p className="text-foreground">None</p>
@@ -844,10 +864,10 @@ const DealDrawer = ({
                             </p>
                           </div>
 
-                          {/* Preference */}
+                          {/* Question */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              Preference
+                              Question
                             </p>
                             <p className="text-foreground font-medium">
                               {deal?.cQuestion || "None"}
@@ -1131,8 +1151,8 @@ const DealDrawer = ({
                                 {getActivityMessage(activity)}
                               </p>
 
-                              {/* STATUS BADGE */}
-                              {activity?.data?.value && (
+                              {/* STATUS BADGE — only show when value is a primitive */}
+                              {typeof activity?.data?.value === "string" && (
                                 <span
                                   className={`inline-block mt-2 px-2 py-0.5 text-xs rounded-full ${getStageColor(
                                     activity.data.value,
@@ -1142,7 +1162,7 @@ const DealDrawer = ({
                                 </span>
                               )}
 
-                              {activity?.data?.statusValue && (
+                              {typeof activity?.data?.statusValue === "string" && (
                                 <span
                                   className={`inline-block mt-2 px-2 py-0.5 text-xs rounded-full ${getStageColor(
                                     activity.data.statusValue,

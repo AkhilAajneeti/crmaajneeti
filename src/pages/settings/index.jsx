@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Header from "../../components/ui/Header";
 import Sidebar from "../../components/ui/Sidebar";
 import Icon from "../../components/AppIcon";
@@ -7,10 +8,44 @@ import TeamsTab from "./components/TeamsTab";
 import PipelineTab from "./components/PipelineTab";
 import UserTab from "./components/UserTab";
 
+// EspoCRM entity name → which Settings tab to activate
+const ENTITY_TO_TAB = {
+  User: "user",
+  Team: "team",
+};
+
 const Settings = () => {
+  const navigate = useNavigate();
+  // EspoCRM-style URL params:
+  // /User/<action>/<id?>   → User tab, deep-link target = {action, id}
+  // /Team/<action>/<id?>   → Team tab, deep-link target = {action, id}
+  // /settings              → tabs visible normally, no deep-link target
+  const { entity: urlEntity, action: urlAction, id: urlId } = useParams();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("user");
+  const [activeTab, setActiveTab] = useState(
+    ENTITY_TO_TAB[urlEntity] || "user"
+  );
   const [isLoading, setIsLoading] = useState(true);
+
+  // Keep the active tab in sync if the URL entity changes (e.g. user
+  // navigates from /User/... to /Team/... without unmounting Settings).
+  useEffect(() => {
+    const tab = ENTITY_TO_TAB[urlEntity];
+    if (tab) setActiveTab(tab);
+  }, [urlEntity]);
+
+  // Manual tab switch → clear any deep-link URL so the modal doesn't reopen.
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    if (urlEntity) navigate("/settings", { replace: true });
+  };
+
+  // Deep-link target per entity (only set when the URL actually targets that tab).
+  const userDeepLink =
+    urlEntity === "User" ? { action: urlAction, id: urlId } : null;
+  const teamDeepLink =
+    urlEntity === "Team" ? { action: urlAction, id: urlId } : null;
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -40,9 +75,9 @@ const Settings = () => {
       // case "company":
         // return <CompanyTab />;
       case "user":
-        return <UserTab />;
+        return <UserTab deepLink={userDeepLink} />;
       case "team":
-        return <TeamsTab />;
+        return <TeamsTab deepLink={teamDeepLink} />;
       case "pipeline":
         return <PipelineTab />;
       default:
@@ -84,7 +119,7 @@ const Settings = () => {
                 {tabs?.map((tab) => (
                   <button
                     key={tab?.id}
-                    onClick={() => setActiveTab(tab?.id)}
+                    onClick={() => handleTabChange(tab?.id)}
                     className={`
                       flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-smooth
                       ${
@@ -106,7 +141,7 @@ const Settings = () => {
               <div className="relative">
                 <select
                   value={activeTab}
-                  onChange={(e) => setActiveTab(e?.target?.value)}
+                  onChange={(e) => handleTabChange(e?.target?.value)}
                   className="w-full appearance-none bg-background border border-border rounded-lg px-4 py-3 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 >
                   {tabs?.map((tab) => (

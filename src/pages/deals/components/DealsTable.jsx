@@ -413,6 +413,36 @@ const DealsTable = ({
                           <Icon name="Edit" size={14} />
                         </Button>
                       )}
+                      {/* whats app button */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+
+                          const message = `Hello *${deal?.name || "Customer"}*,
+
+Thank you for contacting us for your lead generation requirements.
+
+I'm *${deal?.assignedUserName || "Team Member"}* from *AAJneeti Advertising*.
+
+Let me know when you're available so that we can discuss this in more detail.
+
+*aajneeti.social*`;
+
+                          const whatsappUrl = `https://api.whatsapp.com/send/?phone=${deal?.phoneNumber
+                            }&text=${encodeURIComponent(message)}`;
+
+                          window.open(whatsappUrl, "_blank");
+                        }}
+                        className="h-8 w-8 rounded-full hover:bg-green-100 transition-all duration-200"
+                      >
+                        <img
+                          src="/assets/whatsapp-logo.png"
+                          alt="WhatsApp"
+                          className="w-5 h-5 object-contain"
+                        />
+                      </Button>
 
                       {canDelete && (
                         <Button
