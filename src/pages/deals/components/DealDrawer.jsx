@@ -14,6 +14,29 @@ import { useLeadActivity } from "hooks/useLeadActivity";
 import { useQueryClient } from "@tanstack/react-query";
 import { canEdit, canEditRecord } from "utils/permissions";
 
+// Turn plain text into React nodes where any http(s) URL becomes a clickable
+// link. Safe (no dangerouslySetInnerHTML) — splits on URLs and renders the rest
+// as text, preserving newlines when used inside a `whitespace-pre-line` element.
+const linkifyText = (text) => {
+  if (!text) return "—";
+  const parts = String(text).split(/(https?:\/\/[^\s]+)/g);
+  return parts.map((part, i) =>
+    /^https?:\/\//.test(part) ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary underline break-all hover:text-primary/80"
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    )
+  );
+};
+
 const DealDrawer = ({
 
   deal,
@@ -712,6 +735,24 @@ const DealDrawer = ({
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Status */}
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={massFields.status}
+                      onChange={() => toggleMassField("status")}
+                    />
+                    <Select
+                      label="Status"
+                      value={formData.status}
+                      options={statusOptions}
+                      disabled={!massFields.status}
+                      onChange={(v) => handleChange("status", v)}
+                    />
+                  </div>
+                </div>
+
                 <div className="flex justify-end gap-3 pt-4">
                   <Button variant="ghost" onClick={onClose}>
                     Cancel
@@ -938,12 +979,12 @@ Let me know when you're available so that we can discuss this in more detail.
 
 
                           {/* Description */}
-                          <div className="md:col-span-2">
+                          <div className="md:col-span-2 ">
                             <p className="text-sm text-muted-foreground">
                               Description
                             </p>
-                            <p className="text-foreground leading-relaxed mt-1">
-                              {deal?.description || "—"}
+                            <p className="text-foreground leading-relaxed mt-1 whitespace-pre-line break-words">
+                              {linkifyText(deal?.description)}
                             </p>
                           </div>
                         </div>
