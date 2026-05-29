@@ -95,10 +95,9 @@ const DealsTable = ({
     await onDelete(deal.id); // 👈 parent ko bol rahe ho
   };
 
-  const paginatedDeals = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return deals?.slice(startIndex, startIndex + itemsPerPage);
-  }, [deals, currentPage, itemsPerPage]);
+  // `deals` is already the current page from the server (maxSize + offset),
+  // so render it as-is — slicing again would blank out every page past the first.
+  const paginatedDeals = deals || [];
 
   const isAllSelected =
     selectedDeals?.length === paginatedDeals?.length &&
