@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
-import { fetchUser } from "services/user.service";
+import { useUsers } from "hooks/useUsers";
 import RoleGuard from "components/RoleGuard";
-import { fetchSources, fetchStatus } from "services/others.service";
 
 const DealsFilters = ({
   filters,
@@ -18,9 +17,11 @@ const DealsFilters = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
-  const [assignUser, setAssignUser] = useState([]);
-  const [status, setStatus] = useState([]);
-  const [source, setSource] = useState([]);
+  // Shared cached fetch — same queryKey ["users"] as the drawer's useUsers(),
+  // so React Query dedupes them into one network request and reuses the
+  // result for 5 minutes (staleTime in the hook).
+  const { data: usersData } = useUsers();
+  const assignUser = usersData?.list || [];
 
   const bulkActions = [
     { value: "mass-update", label: "Mass Update", icon: "GitBranch" },
@@ -39,41 +40,19 @@ const DealsFilters = ({
     { label: "This Month", value: "currentMonth" },
     { label: "Last Month", value: "lastMonth" },
   ];
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [statusRes, sourceRes] = await Promise.all([
-          fetchStatus(),
-          fetchSources(),
-        ]);
 
-        setStatus(statusRes.options || []);
-        setSource(sourceRes.options || []);
-      } catch (err) {
-        console.error("Failed to load data", err);
-      }
-    };
-
-    loadData();
-  }, []);
   const showDateInputs = [
     "between",
     "after",
     "before",
     "on"
   ].includes(filters?.dateType);
-  const sourceOptions = source
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
-  const statusOptions = status
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+
+
+  const statusOptions = [
+    { value: "Approved", label: "Approved" },
+    { value: "UnderReview", label: "Under Review" }
+  ];
   const noteTypeOptions = [
     { value: "Positive", label: "Positive" },
     { value: "Negative", label: "Negative" },
@@ -85,12 +64,6 @@ const DealsFilters = ({
       [key]: value,
     });
   };
-
-  useEffect(() => {
-    fetchUser()
-      .then((res) => setAssignUser(res.list || []))
-      .catch((err) => console.error("User fetch failed", err));
-  }, []);
 
   const handleBulkActionSelect = (action) => {
     onBulkAction(action);

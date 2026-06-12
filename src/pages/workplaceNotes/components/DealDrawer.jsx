@@ -10,15 +10,10 @@ import makeAnimated from "react-select/animated";
 import { createLeadActivity, updateStream } from "services/leads.service";
 import { useTeams } from "hooks/useTeams";
 import { useUsers } from "hooks/useUsers";
-import { useLeadStream } from "hooks/useLeadStream";
-import { useLeadActivity } from "hooks/useLeadActivity";
 import { useQueryClient } from "@tanstack/react-query";
-import { useWorkPlaceById, useworkplaceStream, useWorkPlaceSubs } from "hooks/useWorkplace";
+import { useworkplaceActivity, useWorkPlaceById, useworkplaceStream, useWorkPlaceSubs } from "hooks/useWorkplace";
 
 const DealDrawer = ({
-  status,
-  source,
-  industry,
   deal,
   isOpen,
   onClose,
@@ -26,7 +21,6 @@ const DealDrawer = ({
   onCreate,
   onUpdate,
   onDelete,
-  leadsDetails,
   onBulkUpdate,
   selectedIds = [],
 }) => {
@@ -55,7 +49,7 @@ const DealDrawer = ({
   const { data: usersData } = useUsers();
   const { data: teamData } = useTeams();
   const { data: streamData } = useworkplaceStream(deal?.id, isOpen);
-  const { data: activityData } = useLeadActivity(deal?.id, isOpen);
+  const { data: activityData } = useworkplaceActivity(deal?.id, isOpen);
   const { data: workplaceById } = useWorkPlaceById(deal?.id, isOpen);
 
   const users = usersData?.list || [];
@@ -63,6 +57,41 @@ const DealDrawer = ({
   const streams = streamData?.list || [];
   const activities = activityData?.list || [];
   const [isFollowedLocal, setIsFollowedLocal] = useState(workplaceById?.isFollowed);
+  // Translate backend shape → form shape so dropdowns / inputs show the right
+  // values AND handlers don't blow up:
+  //   teamsIds[]                            → teamId (singular)
+  //   collaboratorsIds + collaboratorsNames → fieldList: [{value, label}]
+  //   incidentDate "YYYY-MM-DD HH:MM:SS"    → "YYYY-MM-DD" (date input)
+  //   supportingDocument: any               → array (default [""])
+  const dealToFormData = (d) => {
+    if (!d) return {};
+    const collabIds = Array.isArray(d.collaboratorsIds) ? d.collaboratorsIds : [];
+    const collabNames = d.collaboratorsNames || {};
+    const fieldList = collabIds.map((id) => ({
+      value: id,
+      label: collabNames[id] || id,
+    }));
+
+    const supportingDocument = Array.isArray(d.supportingDocument)
+      ? d.supportingDocument.length
+        ? d.supportingDocument
+        : [""]
+      : [""];
+
+    const incidentDate =
+      typeof d.incidentDate === "string"
+        ? d.incidentDate.slice(0, 10) // strip any time component
+        : "";
+
+    return {
+      ...d,
+      teamId: d.teamsIds?.[0] || d.teamId || "",
+      fieldList,
+      supportingDocument,
+      incidentDate,
+    };
+  };
+
   useEffect(() => {
     if (mode === "add") {
       setFormData({
@@ -80,48 +109,34 @@ const DealDrawer = ({
       });
       setIsEditing(true); // form open
     } else if (deal && mode === "view") {
-      // Translate backend shape → form shape so the dropdowns / inputs show the
-      // right values AND `handleSubmit` doesn't blow up:
-      //   teamsIds[]      → teamId (singular)
-      //   collaboratorsIds + collaboratorsNames → fieldList: [{value,label}]
-      //   incidentDate "YYYY-MM-DD HH:MM:SS"    → "YYYY-MM-DD" (date input)
-      //   supportingDocument: any               → array (default [""])
-      const collabIds = Array.isArray(deal.collaboratorsIds)
-        ? deal.collaboratorsIds
-        : [];
-      const collabNames = deal.collaboratorsNames || {};
-      const fieldList = collabIds.map((id) => ({
-        value: id,
-        label: collabNames[id] || id,
-      }));
-
-      const supportingDocument = Array.isArray(deal.supportingDocument)
-        ? deal.supportingDocument.length
-          ? deal.supportingDocument
-          : [""]
-        : [""];
-
-      const incidentDate =
-        typeof deal.incidentDate === "string"
-          ? deal.incidentDate.slice(0, 10) // strip any time component
-          : "";
-
-      setFormData({
-        ...deal,
-        teamId: deal.teamsIds?.[0] || deal.teamId || "",
-        fieldList,
-        supportingDocument,
-        incidentDate,
-      });
+      setFormData(dealToFormData(deal));
       setIsEditing(false);
     }
   }, [deal, mode]);
+
+  // Promote formData to the full record whenever useWorkPlaceById resolves
+  // and we're not actively editing. This handles BOTH cases:
+  //
+  //   1. Cold-start deep link (`/CWorkplaceNotes/view/<id>`): `deal` is a
+  //      {id} placeholder → formData starts empty → workplaceById arrives →
+  //      formData populated.
+  //   2. Row click from the table: `deal` from the list endpoint only has a
+  //      subset of fields (no category / impactLevel / noteType / etc.) →
+  //      formData starts sparse → workplaceById arrives with the full record
+  //      → formData upgraded so the edit form shows ALL pre-filled values.
+  //
+  // The `isEditing` guard prevents clobbering an active edit session — once
+  // the user opens the edit form, the effect stops touching formData.
+  useEffect(() => {
+    if (!workplaceById || workplaceById.id !== deal?.id) return;
+    if (isEditing) return;
+    setFormData(dealToFormData(workplaceById));
+  }, [workplaceById, deal?.id, isEditing]);
 
   const animatedComponents = makeAnimated();
   const [massFields, setMassFields] = useState({
     assignedUserId: false,
     status: false,
-    source: false,
     teamId: false,
     cNextContactAt: false,
   });
@@ -177,14 +192,8 @@ const DealDrawer = ({
 
   const getStageColor = (stage) => {
     const colors = {
-      New: "bg-blue-100 text-blue-800",
-      Interested: "bg-sky-100 text-sky-800",
-      "Follow up": "bg-indigo-100 text-indigo-800",
-      Converted: "bg-green-100 text-green-800",
-      "Not interested": "bg-orange-100 text-orange-800",
-      Broker: "bg-purple-100 text-purple-800",
-      "Call Not Picked": "bg-red-100 text-red-800",
-      Invalid: "bg-gray-100 text-gray-700",
+      Approved: "bg-blue-100 text-blue-800",
+      "Under Review": "bg-purple-100 text-purple-800",
     };
     return colors?.[stage] || "bg-gray-100 text-gray-800";
   };
@@ -323,7 +332,7 @@ const DealDrawer = ({
 
     if (massFields.status) payload.status = formData.status;
 
-    if (massFields.source) payload.source = formData.source;
+
 
     if (!Object.keys(payload).length) {
       toast.error("Select at least one field");
@@ -339,7 +348,7 @@ const DealDrawer = ({
     const ok = window.confirm(`Delete Stream ${activity?.createdByName}?`);
     if (!ok) return;
     await onDelete(activity.id); // 👈 parent ko bol rahe ho
-    queryClient.invalidateQueries(["lead-stream", deal.id]);
+    queryClient.invalidateQueries(["workplace-stream", deal.id]);
   };
   const createActivity = async () => {
     //post activity
@@ -361,7 +370,7 @@ const DealDrawer = ({
         const updated = await updateStream(editingActivityId, {
           post: activityText,
         });
-        queryClient.invalidateQueries(["lead-stream", deal.id]);
+        queryClient.invalidateQueries(["workplace-stream", deal.id]);
 
 
         toast.success("Activity updated");
@@ -404,12 +413,7 @@ const DealDrawer = ({
     value: t.id,
     label: t.name,
   }));
-  const sourceOptions = source
-    .filter((item) => item !== "")
-    .map((item) => ({
-      value: item,
-      label: item,
-    }));
+
   const statusOptions = [
     { value: "Approved", label: "Approved" },
     { value: "UnderReview", label: "Under Review" }
@@ -552,7 +556,11 @@ const DealDrawer = ({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    if (isEditing) setFormData(deal);
+                    // Always rebuild from the most complete source available.
+                    // `workplaceById` (full record) wins over `deal` (which is
+                    // often just the partial list-row shape). Covers both
+                    // Edit → fresh values, and Cancel → revert to backend truth.
+                    setFormData(dealToFormData(workplaceById || deal));
                     setIsEditing(!isEditing);
                   }}
                 >
@@ -965,7 +973,7 @@ const DealDrawer = ({
                             </span>
                           </div>
 
-                          {/* Source */}
+                          {/* Modified */}
                           <div>
                             <p className="text-sm text-muted-foreground">
                               Modified

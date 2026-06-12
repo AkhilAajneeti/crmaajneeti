@@ -430,6 +430,34 @@ export const createLeadActivity = async (payload) => {
     // EspoCRM returns array
     return text ? JSON.parse(text) : null;
 };
+
+//create activity
+export const workplaceActivitesById = async (id) => {
+
+    const token = localStorage.getItem("auth_token");
+
+    const res = await fetch(
+        `https://gateway.aajneetiadvertising.com/Activities/CWorkplaceNotes/${id}/activities`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                token: token,
+            },
+        }
+    );
+
+    if (!res.ok) {
+  
+        if (res.status === 401 || res.status === 403) {
+            localStorage.clear();
+            window.location.href = "/login";
+        }
+        throw new Error("Failed to fetch User's Activties");
+    }
+    return await res.json();
+};
 //delete activity with notes api
 export const deleteActivity = async (id) => {
     const token = localStorage.getItem("auth_token");

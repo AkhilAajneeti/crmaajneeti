@@ -19,12 +19,7 @@ import {
   updateLead,
 } from "services/leads.service";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
-import StatusChart from "./components/charts/StatusChart";
-import IndustryChart from "./components/charts/IndustryChart";
-import AssignedUserChart from "./components/charts/AssignedUserChart";
-import MultiLineChart from "pages/dashboard/components/MultiLineChart";
 import { useMetaData } from "hooks/useMetaData";
-import { useLeadDetails } from "hooks/useLeadDetails";
 import { useWorkPlace } from "hooks/useWorkplace";
 import { createWorkplace, updateWorkplace } from "services/workplace.service";
 
@@ -43,7 +38,7 @@ const WorkPlace = () => {
   const [mode, setMode] = useState("view");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
-  const { data: metaData } = useMetaData();
+ 
 
   const [sortConfig, setSortConfig] = useState({
     key: "createdAt",
@@ -60,14 +55,7 @@ const WorkPlace = () => {
     closeDateTo: "",
   });
   const { data: WorkPlace, isLoading } = useWorkPlace({ limit, page, filters });
-  const { data: workDetails } = useLeadDetails(selectedDeal?.id, mode);
 
-  // Drawer state derived from URL — single source of truth.
-  // /workplace                       → drawer closed
-  // /CWorkplaceNotes/view/:id        → drawer open, view mode, record :id
-  // /CWorkplaceNotes/edit/:id        → drawer open, edit mode, record :id
-  // /CWorkplaceNotes/create          → drawer open, add mode (drawer's create flow uses "add")
-  // /CWorkplaceNotes/mass-update     → drawer open, mass-update mode (uses selectedDeals)
   useEffect(() => {
     if (urlAction === "create") {
       setSelectedDeal(null);
@@ -93,16 +81,10 @@ const WorkPlace = () => {
     }
   }, [urlAction, urlId]);
 
-  // When arriving via a deep link, promote the {id} placeholder to the full
-  // record once useLeadDetails resolves — so the drawer's edit-form init
-  // sees real values instead of just {id}.
-  useEffect(() => {
-    if (!urlId || !workDetails || workDetails.id !== urlId) return;
-    setSelectedDeal((current) => {
-      if (current?.id === urlId && !current.name) return workDetails;
-      return current;
-    });
-  }, [workDetails, urlId]);
+  // Deep-link promotion happens inside the drawer itself now — when
+  // useWorkPlaceById resolves, the drawer's effect rebuilds formData from the
+  // fetched record. The page no longer needs its own redundant by-id fetch.
+
   const createLeadMutation = useMutation({
     mutationFn: createWorkplace,
     onSuccess: () => {
@@ -119,9 +101,7 @@ const WorkPlace = () => {
   });
   // fetch work
   const work = WorkPlace?.list || [];
-  const source = metaData?.sources || [];
-  const status = metaData?.status || [];
-  const industry = metaData?.industries || [];
+
   const total = WorkPlace?.total || 0;
   const exportworkToCSV = (rows, fileName = "work_export") => {
     if (!rows || rows.length === 0) {
@@ -185,7 +165,7 @@ const WorkPlace = () => {
     try {
       createLeadMutation.mutate(payload);
     } catch (err) {
-      console.error("Lead creationd failed", err);
+      console.error("Workplace creationd failed", err);
     }
   };
 
@@ -195,7 +175,7 @@ const WorkPlace = () => {
 
   const handleDeleteLead = async (id) => {
     try {
-      toast.loading("Deleting lead...", { id: "delete-lead" });
+      toast.loading("Deleting workplace...", { id: "delete-workplace" });
       deleteLeadMutation.mutate(id);
     } catch (err) {
       console.error("Delete failed", err);
@@ -261,7 +241,7 @@ const WorkPlace = () => {
   const handleBulkAction = (action) => {
     if (action === "mass-update") {
       if (!selectedDeals.length) {
-        toast.error("Select at least one lead");
+        toast.error("Select at least one workplace");
         return;
       }
       navigate("/CWorkplaceNotes/mass-update");
@@ -270,7 +250,7 @@ const WorkPlace = () => {
 
     if (action === "export") {
       if (!selectedDeals.length) {
-        toast.error("Select at least one lead");
+        toast.error("Select at least one workplace");
         return;
       }
 
@@ -284,7 +264,7 @@ const WorkPlace = () => {
 
     if (action === "delete") {
       if (!selectedDeals.length) {
-        toast.error("Select at least one lead");
+        toast.error("Select at least one workplace");
         return;
       }
 
@@ -337,7 +317,7 @@ const WorkPlace = () => {
     try {
       toast.loading("Updating work...", { id: "bulk-update" });
 
-      await Promise.all(selectedDeals.map((id) => updateLead(id, payload)));
+      await Promise.all(selectedDeals.map((id) => updateWorkplace(id, payload)));
 
       toast.success(`${selectedDeals.length} work updated`, {
         id: "bulk-update",
@@ -362,10 +342,10 @@ const WorkPlace = () => {
   return (
     <>
       <Helmet>
-        <title>work - Aajneeti Connect ltd</title>
+        <title>WorkPlace Notes - Aajneeti Connect ltd</title>
         <meta
           name="description"
-          content="Manage and track your sales deals with comprehensive filtering and pipeline management tools."
+          content="Manage and track your workplace notes with comprehensive filtering and pipeline management tools."
         />
       </Helmet>
       <div className="min-h-screen bg-background">
@@ -385,16 +365,7 @@ const WorkPlace = () => {
                 </p>
               </div>
               <div className="flex items-center space-x-3">
-                <Button
-                  className="linearbg-1 text-white hover:text-white"
-                  variant="outline"
-                  onClick={() =>
-                    exportworkToCSV(work, "all_work")
-                  }
-                >
-                  <Icon name="Download" size={16} className="mr-2" />
-                  Export All
-                </Button>
+         
 
                 <Button
                   onClick={handleAddwork}
@@ -432,15 +403,7 @@ const WorkPlace = () => {
                     <Icon name="X" size={20} />
                   </Button>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  <IndustryChart work={work} />
 
-                  <MultiLineChart work={work} />
-
-                  <StatusChart work={work} />
-
-                  <AssignedUserChart work={work} />
-                </div>
               </div>
             )}
 
@@ -474,10 +437,6 @@ const WorkPlace = () => {
 
             {/* Deal Drawer */}
             <DealDrawer
-              status={status}
-              industry={industry}
-              source={source}
-              workDetails={workDetails}
               deal={selectedDeal}
               mode={mode}
               isOpen={isDrawerOpen}

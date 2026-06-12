@@ -1,10 +1,10 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { fetchWorkPlace, fetchWorkPlaceById, workplaceStreamById, workPlaceSubscription, workPlaceUnsubscribe } from "services/workplace.service"
+import { fetchWorkPlace, fetchWorkPlaceById, workplaceActivitesById, workplaceStreamById, workPlaceSubscription, workPlaceUnsubscribe } from "services/workplace.service"
 
-export const useWorkPlace = ({ limit, page, filters}) => {
+export const useWorkPlace = ({ limit, page, filters }) => {
     return useQuery({
-        queryKey: ["workplace", page, limit,filters],
-        queryFn: () => fetchWorkPlace({ limit, page,filters }),
+        queryKey: ["workplace", page, limit, filters],
+        queryFn: () => fetchWorkPlace({ limit, page, filters }),
         placeholderData: keepPreviousData,
     })
 }
@@ -18,11 +18,11 @@ export const useWorkPlaceById = (id, isOpen) => {
     })
 }
 export const useworkplaceStream = (leadId, isOpen) => {
-  return useQuery({
-    queryKey: ["lead-stream", leadId],
-    queryFn: () => workplaceStreamById(leadId),
-    enabled: !!leadId && isOpen,
-  });
+    return useQuery({
+        queryKey: ["lead-stream", leadId],
+        queryFn: () => workplaceStreamById(leadId),
+        enabled: !!leadId && isOpen,
+    });
 };
 // use mutation for post
 
@@ -65,5 +65,14 @@ export const useWorkPlaceSubs = () => {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries(["workplaceById", variables.id]);
         },
+    });
+};
+
+//activity
+export const useworkplaceActivity = (leadId, isOpen) => {
+    return useQuery({
+        queryKey: ["workplace-activity", leadId],
+        queryFn: () => workplaceActivitesById(leadId),
+        enabled: !!leadId && isOpen,
     });
 };

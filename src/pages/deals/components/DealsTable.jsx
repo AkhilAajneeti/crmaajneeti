@@ -140,19 +140,70 @@ const DealsTable = ({
     );
   };
 
-  const getStageColor = (stage) => {
-    const colors = {
-      New: "bg-blue-100 text-blue-800",
-      Interested: "bg-sky-100 text-sky-800",
-      "Follow up": "bg-indigo-100 text-indigo-800",
-      Converted: "bg-green-100 text-green-800",
-      "Not interested": "bg-orange-100 text-orange-800",
-      Broker: "bg-purple-100 text-purple-800",
-      "Call Not Picked": "bg-red-100 text-red-800",
-      Invalid: "bg-gray-100 text-gray-700",
-    };
+  // Status → color. Keys are lowercased and the lookup normalizes the input,
+  // so "Follow Up" / "follow up" / "FOLLOW UP" all hit the same entry.
+  // Covers every status in the project's statusOptions list.
+  const STATUS_COLORS = {
+    // ─── Positive / forward motion ────────────────────────────────
+    "new": "bg-blue-100 text-blue-800",
+    "interested": "bg-sky-100 text-sky-800",
+    "qualified": "bg-emerald-100 text-emerald-800",
+    "converted": "bg-green-100 text-green-800",
+    "follow up": "bg-indigo-100 text-indigo-800",
+    "in process": "bg-violet-100 text-violet-800",
+    "proposal shared": "bg-cyan-100 text-cyan-800",
+    "future prospect": "bg-teal-100 text-teal-800",
+    "webinar": "bg-fuchsia-100 text-fuchsia-800",
 
-    return colors?.[stage] || "bg-gray-100 text-gray-800";
+    // ─── Pending / waiting ────────────────────────────────────────
+    "call later": "bg-amber-100 text-amber-800",
+    "call not connecting": "bg-yellow-100 text-yellow-800",
+    "call not picked": "bg-rose-100 text-rose-800",
+
+    // ─── Negative / blocked ───────────────────────────────────────
+    "not interested": "bg-orange-100 text-orange-800",
+    "low budget | low intent": "bg-purple-100 text-purple-800",
+    "dead": "bg-red-100 text-red-800",
+
+    // ─── Archived / discarded ─────────────────────────────────────
+    "invalid": "bg-gray-100 text-gray-700",
+    "duplicate": "bg-slate-100 text-slate-700",
+    "z old leads": "bg-stone-100 text-stone-700",
+
+    // Legacy fallbacks (older records that used these labels)
+    "broker": "bg-purple-100 text-purple-800",
+  };
+
+  const getStageColor = (stage) => {
+    if (!stage) return "bg-gray-100 text-gray-800";
+    return (
+      STATUS_COLORS[String(stage).trim().toLowerCase()] ||
+      "bg-gray-100 text-gray-800"
+    );
+  };
+
+  // Source → color. Same case-insensitive lookup pattern as STATUS_COLORS.
+  // Each source uses a tone distinct from the statuses (and from each other)
+  // so source pills don't look like dim copies of status pills.
+  const SOURCE_COLORS = {
+    "call": "bg-sky-100 text-sky-800",
+    "email": "bg-indigo-100 text-indigo-800",
+    "existing customer": "bg-emerald-100 text-emerald-800",
+    "partner": "bg-violet-100 text-violet-800",
+    "public relations": "bg-amber-100 text-amber-800",
+    "web site": "bg-orange-100 text-orange-800",
+    "campaign": "bg-fuchsia-100 text-fuchsia-800",
+    "facebook": "bg-blue-100 text-blue-800",
+    "ivr": "bg-rose-100 text-rose-800",
+    "other": "bg-slate-100 text-slate-700",
+  };
+
+  const getSourceColor = (source) => {
+    if (!source) return "bg-gray-100 text-gray-700";
+    return (
+      SOURCE_COLORS[String(source).trim().toLowerCase()] ||
+      "bg-gray-100 text-gray-700"
+    );
   };
 
   const getProbabilityColor = (probability) => {
@@ -366,9 +417,17 @@ const DealsTable = ({
                     <div className="text-foreground">{deal?.cSector}</div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="font-medium text-foreground">
-                      {deal?.source}
-                    </div>
+                    {deal?.source ? (
+                      <span
+                        className={`inline-flex items-center px-2 py-1  font-medium rounded-full ${getSourceColor(
+                          deal.source
+                        )}`}
+                      >
+                        {deal.source}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">None</span>
+                    )}
                   </td>
                   <td className="px-4 py-4">
                     <div
