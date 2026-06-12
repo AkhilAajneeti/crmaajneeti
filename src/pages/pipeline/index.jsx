@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import Header from "../../components/ui/Header";
 import Sidebar from "../../components/ui/Sidebar";
@@ -8,11 +8,14 @@ import PipelineColumn from "./components/PipelineColumn";
 import PipelineFilters from "./components/PipelineFilters";
 import AddDealModal from "./components/AddDealModal";
 import PipelineStats from "./components/PipelineStats";
-import { deleteActivity, deleteLead, fetchLeads, fetchLeadsCount, fetchNewLeads } from "services/leads.service";
+import PipelineSummaryAlert from "./components/PipelineSummaryAlert";
 import VersionHistoryModal from "./components/VersionHistoryModal";
 import toast from "react-hot-toast";
 import { Droppable, Draggable, DragDropContext } from "@hello-pangea/dnd";
 import { Helmet } from "react-helmet";
+import { usePipelineData } from "./hooks/usePipelineData";
+import { usePipelineFilters } from "./hooks/usePipelineFilters";
+import { COLUMN_IDS, DEFAULT_FILTERS } from "./utils/pipelineConstants";
 
 const Pipeline = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -20,129 +23,50 @@ const Pipeline = () => {
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
   const [selectedDealForHistory, setSelectedDealForHistory] = useState(null);
   const [selectedStage, setSelectedStage] = useState(null);
-  const [deals, setDeals] = useState([]);
-  const [filters, setFilters] = useState({
-    status: "",
-    assignedUser: "",
-    source: "",
-    dateType: "",
-    closeDateFrom: "",
-    closeDateTo: "",
-  });
-  const [kpiStats, setKpiStats] = useState({
-    active: 0,
-    future: 0,
-    inProcess: 0,
-    lowBudget: 0,
-    oldLeads: 0,
-  });
 
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const [active, future, inProcess, lowBudget, oldLeads] =
-          await Promise.all([
-            fetchLeadsCount([
-              { type: "equals", attribute: "status", value: "New" },
-              { type: "currentMonth", attribute: "createdAt" },
-            ]),
-            fetchLeadsCount([
-              { type: "equals", attribute: "status", value: "Future Prospect" },
-              { type: "currentMonth", attribute: "createdAt" },
-            ]),
-            fetchLeadsCount([
-              { type: "equals", attribute: "status", value: "In Process" },
-              { type: "currentMonth", attribute: "createdAt" },
-            ]),
-            fetchLeadsCount([
-              { type: "equals", attribute: "status", value: "Low Budget | Low Intent" },
-              { type: "currentMonth", attribute: "createdAt" },
-            ]),
-            fetchLeadsCount([
-              { type: "equals", attribute: "status", value: "Z Old Leads" },
-              { type: "currentMonth", attribute: "createdAt" },
-            ]),
-          ]);
+  // Pipeline data + filters — single source of truth lives in the store and
+  // React Query; this hook owns the cNextContact fetch, classification, and
+  // optimistic mutations.
+  const { deals, dealsByColumn, refetch, deleteDeal } = usePipelineData();
+  const { filters, setFilter, clearFilters } = usePipelineFilters();
 
-        setKpiStats({ active, future, inProcess, lowBudget, oldLeads });
-      } catch (err) {
-        console.error("KPI error", err);
-      }
-    };
+  // Count of filter values that differ from their default — feeds the
+  // PipelineFilters header badge + "Clear All" button visibility.
+  const activeFilterCount = useMemo(
+    () =>
+      Object.keys(DEFAULT_FILTERS).reduce((count, key) => {
+        const cur = filters?.[key];
+        if (cur && cur !== DEFAULT_FILTERS[key]) return count + 1;
+        return count;
+      }, 0),
+    [filters]
+  );
 
-    loadStats();
-  }, []);
+  // Derive the six KPI counts directly from dealsByColumn. No extra network
+  // round-trips — the classifier has already bucketed every lead, and the
+  // summary alert + stat cards just want the column lengths.
+  const stats = useMemo(
+    () => ({
+      overdue: dealsByColumn?.[COLUMN_IDS.OVERDUE]?.length || 0,
+      dueToday: dealsByColumn?.[COLUMN_IDS.DUE_TODAY]?.length || 0,
+      upcoming: dealsByColumn?.[COLUMN_IDS.UPCOMING]?.length || 0,
+      active: dealsByColumn?.[COLUMN_IDS.ACTIVE]?.length || 0,
+      stale: dealsByColumn?.[COLUMN_IDS.STALE]?.length || 0,
+      budgetIssue: dealsByColumn?.[COLUMN_IDS.BUDGET_ISSUE]?.length || 0,
+    }),
+    [dealsByColumn]
+  );
 
-  useEffect(() => {
-    const loadDeals = async () => {
-      try {
-        const filtersArr = [];
-
-        if (filters.status) {
-          filtersArr.push({
-            type: "equals",
-            attribute: "status",
-            value: filters.status,
-          });
-        }
-
-        if (filters.source) {
-          filtersArr.push({
-            type: "equals",
-            attribute: "source",
-            value: filters.source,
-          });
-        }
-
-        if (filters.assignedUser) {
-          filtersArr.push({
-            type: "equals",
-            attribute: "assignedUserId",
-            value: filters.assignedUser,
-          });
-        }
-
-        if (filters.dateType === "currentMonth") {
-          filtersArr.push({
-            type: "currentMonth",
-            attribute: "createdAt",
-          });
-        }
-
-        const data = await fetchNewLeads({
-          filters: filtersArr,
-          limit: 100,
-        });
-
-        setDeals(data?.list || []);
-      } catch (err) {
-        console.error("Deals fetch error", err);
-      }
-    };
-
-    loadDeals();
-  }, [filters]);
-
-  // PipeLine Deals
-  // return if deal is won or lose or inactive
-  const pipeLineDeals = useMemo(() => {
-    return deals.filter((deal) => {
-      // remove closed/lost
-      if (["won", "lost"].includes(deal?.stage)) return false;
-
-      // if you add soft delete later
-      if (deal?.isActive === false) return false;
-
-      return true;
-    });
-  }, [deals]);
-  // Mock data for pipeline stages
+  // Pipeline columns — IDs come from COLUMN_IDS so they match what
+  // dealsByColumn returns from the classifier. name/color are kept in the
+  // shape PipelineColumn already consumes.
   const pipelineSections = [
-    { id: "active_daily", name: "Active - This Week", color: "red" },
-    { id: "active_monthly", name: "Active - Monthly", color: "green" },
-    { id: "scheduled", name: "Scheduled", color: "blue" },
-    { id: "budget_issue", name: "Budget Issue", color: "orange" },
-    { id: "stale", name: "Stale (30+ Days)", color: "gray" },
+    { id: COLUMN_IDS.OVERDUE, name: "Overdue", color: "red" },
+    { id: COLUMN_IDS.DUE_TODAY, name: "Due Today", color: "amber" },
+    { id: COLUMN_IDS.UPCOMING, name: "Upcoming", color: "blue" },
+    { id: COLUMN_IDS.ACTIVE, name: "Active", color: "green" },
+    { id: COLUMN_IDS.BUDGET_ISSUE, name: "Budget Issue", color: "orange" },
+    { id: COLUMN_IDS.STALE, name: "Stale", color: "gray" },
   ];
 
 
@@ -163,181 +87,59 @@ const Pipeline = () => {
     setSelectedDealForHistory(null); // board level history
   };
 
-  const handleSaveDeal = (newDeal) => {
-    setDeals((prevDeals) => [...prevDeals, newDeal]);
+  // After AddDealModal saves a new lead, just refetch — the new record will
+  // come back through the classifier and land in the right column.
+  const handleSaveDeal = () => {
+    refetch();
   };
 
-  const handleDragEnd = (result) => {
-    const { source, destination } = result;
-
-    if (!destination) return;
-
-    setDeals((prevDeals) => {
-      const updated = Array.from(prevDeals);
-
-      // find items in source column
-      const sourceItems = updated.filter((d) => d.stage === source.droppableId);
-
-      const movedItem = sourceItems[source.index];
-
-      if (!movedItem) return prevDeals;
-
-      // remove from old position
-      const newDeals = updated.filter((d) => d.id !== movedItem.id);
-
-      // insert into new position
-      const destinationItems = newDeals.filter(
-        (d) => d.stage === destination.droppableId,
-      );
-
-      destinationItems.splice(destination.index, 0, {
-        ...movedItem,
-        stage: destination.droppableId,
-      });
-
-      // merge back
-      const others = newDeals.filter(
-        (d) => d.stage !== destination.droppableId,
-      );
-
-      return [...others, ...destinationItems];
-    });
-  };
+  // Columns are derived from cNextContact / status, so dragging a card
+  // between columns shouldn't quietly mutate local state (we don't keep any).
+  // To "move" a deal, the user should reschedule its follow-up date —
+  // wire that to `reschedule(id, newDateTime)` from usePipelineData when the
+  // UI surface for it exists. For now, no-op.
+  const handleDragEnd = () => {};
 
   const handleEditDeal = (deal) => {
     console.log("Edit deal:", deal);
     // Implement edit functionality
   };
 
-  const handleDeleteDeal = (dealId) => {
-    if (window.confirm("Are you sure you want to delete this deal?")) {
-      const deleteLeads = async () => {
-        try {
-          await deleteLead(dealId);
-          toast.success("Deal deleted successfully ✅");
-        } catch (err) {
-          toast.error("Failed to delete deal ❌");
-        }
-      };
-
-      deleteLeads();
+  const handleDeleteDeal = async (dealId) => {
+    if (!window.confirm("Are you sure you want to delete this deal?")) return;
+    // deleteDeal is the optimistic mutation — store hides the row first,
+    // toast + RQ invalidation are handled inside the hook.
+    try {
+      await deleteDeal(dealId);
+    } catch {
+      /* toast already fired in the mutation's onError */
     }
   };
 
-  const handleCloneDeal = (deal) => {
-    const clonedDeal = {
-      ...deal,
-      id: `deal-${Date.now()}`,
-      title: `${deal?.title} (Copy)`,
-      createdAt: new Date()?.toISOString(),
-      updatedAt: new Date()?.toISOString(),
-    };
-    setDeals((prevDeals) => [...prevDeals, clonedDeal]);
+  // Clone is a real API create. The UI for it lives elsewhere; refetch on
+  // success so the new record appears.
+  const handleCloneDeal = () => {
+    refetch();
   };
 
-  const handleFiltersChange = (newFilters) => {
-    setFilters(newFilters);
+  // PipelineFilters writes one field at a time — pass through to the store's
+  // atomic setter.
+  const handleFilterChange = (key, value) => {
+    setFilter(key, value);
   };
 
   const handleResetFilters = () => {
-    setFilters({
-      status: "",
-      assignedUser: "",
-      source: "",
-      dateType: "",
-      closeDateFrom: "",
-      closeDateTo: "",
-    });
+    clearFilters();
   };
+
   const handleOpenVersionHistory = (dealId) => {
     setSelectedDealForHistory(dealId);
     setIsVersionModalOpen(true);
   };
 
-  // const filteredDeals = getFilteredDeals();
-  const filteredDeals = useMemo(() => {
-    return pipeLineDeals.filter((deal) => {
-
-      // 🔍 Search
-      if (
-        filters?.search &&
-        !deal?.name?.toLowerCase().includes(filters.search.toLowerCase())
-      ) return false;
-
-      // 👤 Assigned User
-      if (
-        filters?.assignedUser &&
-        filters?.assignedUser !== "all" &&
-        deal?.assignedUserId !== filters.assignedUser
-      ) return false;
-
-      // 📊 Status
-      if (filters?.status && deal?.status !== filters.status) return false;
-
-      // 🌐 Source
-      if (
-        filters?.source &&
-        filters?.source !== "all" &&
-        deal?.source !== filters.source
-      ) return false;
-
-      if (filters?.dateType === "currentMonth") {
-        const now = new Date();
-        const createdAt = new Date(deal.createdAt.replace(" ", "T"));
-
-        if (
-          createdAt.getMonth() !== now.getMonth() ||
-          createdAt.getFullYear() !== now.getFullYear()
-        ) return false;
-      }
-
-      return true;
-    });
-  }, [pipeLineDeals, filters]);
-
-  const getDealsBySection = (sectionId) => {
-    return filteredDeals?.filter((deal) => deal.stage === sectionId);
-  };
-
-  const classifyDeal = (deal) => {
-    const now = new Date();
-    const createdAt = deal?.createdAt
-      ? new Date(deal.createdAt.replace(" ", "T"))
-      : null;
-    const nextContact = deal?.cNextContact
-      ? new Date(deal.cNextContact.replace(" ", "T"))
-      : null;
-
-    const diffCreatedDays = (now - createdAt) / (1000 * 60 * 60 * 24);
-
-    // 1️⃣ Budget Issue (based on status)
-    if (deal?.status === "Low Budget") {
-      return "budget_issue";
-    }
-
-    // 2️⃣ Active (upcoming next contact within 30 days)
-    if (nextContact) {
-      const diffDays = (nextContact - now) / (1000 * 60 * 60 * 24);
-
-      if (diffDays >= 0 && diffDays <= 1) return "active_daily";
-      if (diffDays > 1 && diffDays <= 14) return "active_two_week";
-      if (diffDays > 14 && diffDays <= 30) return "active_monthly";
-    }
-
-    // 3️⃣ Scheduled (future but > 30 days)
-    if (nextContact) {
-      const diffDays = (nextContact - now) / (1000 * 60 * 60 * 24);
-
-      if (diffDays > 30) return "scheduled";
-    }
-
-    // 4️⃣ Stale (older than 30 days & no active movement)
-    if (diffCreatedDays > 30) {
-      return "stale";
-    }
-
-    return null;
-  };
+  // dealsByColumn comes from the classifier; client-side filters are already
+  // applied inside usePipelineData, so no extra filtering is needed here.
+  const getDealsBySection = (sectionId) => dealsByColumn?.[sectionId] || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -363,16 +165,23 @@ const Pipeline = () => {
                 Sales Pipeline
               </h1>
               <p className="text-muted-foreground">
-                Manage your leads through the sales process
+                Track follow-ups, manage urgency and never miss a lead.
               </p>
             </div>
           </div>
 
-          {/* Pipeline Stats */}
-          <PipelineStats stats={kpiStats} />
-          <PipelineFilters filters={filters}   // ✅ ADD THIS
-            onFiltersChange={handleFiltersChange}
-            onResetFilters={handleResetFilters} />
+          {/* "What needs you today" banner — auto-hides when there's no urgent work */}
+          <PipelineSummaryAlert stats={stats} />
+
+          {/* Pipeline Stats — six urgency cards derived from dealsByColumn */}
+          <PipelineStats stats={stats} />
+          <PipelineFilters
+            filters={filters}
+            deals={deals}
+            onFilterChange={handleFilterChange}
+            onReset={handleResetFilters}
+            activeFilterCount={activeFilterCount}
+          />
 
           {/* Pipeline Board */}
           <div className="bg-card border border-border rounded-xl p-3">

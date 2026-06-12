@@ -76,11 +76,43 @@ const DealDrawer = ({
         status: "",
         description: "",
         fieldList: [],
-        supportingDocument: [""]
+        supportingDocument: [""],
       });
       setIsEditing(true); // form open
     } else if (deal && mode === "view") {
-      setFormData(deal);
+      // Translate backend shape → form shape so the dropdowns / inputs show the
+      // right values AND `handleSubmit` doesn't blow up:
+      //   teamsIds[]      → teamId (singular)
+      //   collaboratorsIds + collaboratorsNames → fieldList: [{value,label}]
+      //   incidentDate "YYYY-MM-DD HH:MM:SS"    → "YYYY-MM-DD" (date input)
+      //   supportingDocument: any               → array (default [""])
+      const collabIds = Array.isArray(deal.collaboratorsIds)
+        ? deal.collaboratorsIds
+        : [];
+      const collabNames = deal.collaboratorsNames || {};
+      const fieldList = collabIds.map((id) => ({
+        value: id,
+        label: collabNames[id] || id,
+      }));
+
+      const supportingDocument = Array.isArray(deal.supportingDocument)
+        ? deal.supportingDocument.length
+          ? deal.supportingDocument
+          : [""]
+        : [""];
+
+      const incidentDate =
+        typeof deal.incidentDate === "string"
+          ? deal.incidentDate.slice(0, 10) // strip any time component
+          : "";
+
+      setFormData({
+        ...deal,
+        teamId: deal.teamsIds?.[0] || deal.teamId || "",
+        fieldList,
+        supportingDocument,
+        incidentDate,
+      });
       setIsEditing(false);
     }
   }, [deal, mode]);
@@ -234,9 +266,15 @@ const DealDrawer = ({
     e.preventDefault();
 
     if (!formData.name) {
-      toast.error("Subject is required");
+      toast.error("Name is required");
       return;
     }
+
+    // Safe array handling — supportingDocument may not be an array on edit if
+    // the backend returns it differently.
+    const docs = Array.isArray(formData.supportingDocument)
+      ? formData.supportingDocument
+      : [];
 
     const payload = {
       name: formData.name,
@@ -248,18 +286,28 @@ const DealDrawer = ({
       teamsIds: formData.teamId ? [formData.teamId] : [],
       status: formData.status,
       description: formData.description,
-      collaboratorsIds: formData.fieldList?.map((u) => u.value) || [],
-      supportingDocument: formData.supportingDocument.filter(
-        (url) => url.trim() !== ""
-      )
+      collaboratorsIds: Array.isArray(formData.fieldList)
+        ? formData.fieldList.map((u) => u.value).filter(Boolean)
+        : [],
+      supportingDocument: docs.filter(
+        (url) => typeof url === "string" && url.trim() !== ""
+      ),
     };
 
-    console.log("FINAL PAYLOAD 👉", payload);
-
-    if (mode === "add") {
-      await onCreate(payload);
-    } else {
-      await onUpdate(deal.id, payload);
+    try {
+      if (mode === "add") {
+        await onCreate(payload);
+        toast.success("Workplace note created");
+      } else {
+        await onUpdate(deal.id, payload);
+        toast.success("Workplace note updated");
+      }
+      // Close only on success — leave the form open so the user can fix and
+      // retry if the API fails.
+      onClose?.();
+    } catch (err) {
+      console.error("Workplace note save failed", err);
+      toast.error(err?.message || "Failed to save workplace note");
     }
   };
   const handleBulkUpdate = (e) => {
@@ -545,17 +593,17 @@ const DealDrawer = ({
                       <Select
                         label="Category"
                         value={formData.category || ""}
-                        options={categoryOptions} // 👉 later API se teams
-                        onChange={(option) =>
-                          handleSelectChange("category", option?.value)
+                        options={categoryOptions}
+                        onChange={(value) =>
+                          handleSelectChange("category", value)
                         }
                       />
                       <Select
                         label="Impact Level"
                         value={formData.impactLevel || ""}
-                        options={impactLevelOptions} // 👉 later API se teams
-                        onChange={(option) =>
-                          handleSelectChange("impactLevel", option?.value)
+                        options={impactLevelOptions}
+                        onChange={(value) =>
+                          handleSelectChange("impactLevel", value)
                         }
                       />
                     </div>
@@ -568,10 +616,9 @@ const DealDrawer = ({
                         options={[
                           { value: "Positive", label: "Positive" },
                           { value: "Negative", label: "Negative" },
-
-                        ]} // 👉 later API se teams
-                        onChange={(option) =>
-                          handleSelectChange("noteType", option?.value)
+                        ]}
+                        onChange={(value) =>
+                          handleSelectChange("noteType", value)
                         }
                       />
                     </div>

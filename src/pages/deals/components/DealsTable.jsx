@@ -425,7 +425,7 @@ const DealsTable = ({
 Thank you for contacting us for your lead generation requirements.
 
 I'm *${deal?.assignedUserName || "Team Member"}* from *AAJneeti Advertising*.
-
+z
 Let me know when you're available so that we can discuss this in more detail.
 
 *aajneeti.social*`;

@@ -1,68 +1,97 @@
-import React, { useMemo } from "react";
+import React, { memo } from "react";
 import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
 
-const PipelineStats = ({ stats }) => {
-  const statCards = [
+/**
+ * PipelineStats - the six urgency-based KPI cards above the kanban board.
+ *
+ * Reads counts from the already-classified `stats` object:
+ *   { dueToday, upcoming, overdue, active, stale, budgetIssue }
+ *
+ * Each card has a soft tinted background, a small color-coded icon box on
+ * the left, and a bold count + label on the right — mirroring the layout
+ * in the design reference.
+ */
+const PipelineStats = ({ stats = {} }) => {
+  const cards = [
     {
-      title: "Active Opportunity",
-      value: stats?.active || 0,
-      icon: "Sparkles",
-      color: "bg-indigo-100 text-indigo-600",
-      bgColor: "bg-indigo-50",
+      key: "dueToday",
+      label: "Due Today",
+      value: stats.dueToday || 0,
+      icon: "CalendarClock",
+      cardBg: "bg-orange-50",
+      iconBg: "bg-orange-100",
+      iconColor: "text-orange-600",
     },
     {
-      title: "Future Prospect",
-      value: stats?.future || 0,
+      key: "upcoming",
+      label: "Upcoming",
+      value: stats.upcoming || 0,
       icon: "Calendar",
-      color: "bg-blue-100 text-blue-600",
-      bgColor: "bg-blue-50",
+      cardBg: "bg-blue-50",
+      iconBg: "bg-blue-100",
+      iconColor: "text-blue-600",
     },
     {
-      title: "In Process",
-      value: stats?.inProcess || 0,
-      icon: "AlertTriangle",
-      color: "bg-red-100 text-red-600",
-      bgColor: "bg-red-50",
+      key: "overdue",
+      label: "Overdue",
+      value: stats.overdue || 0,
+      icon: "AlertCircle",
+      cardBg: "bg-red-50",
+      iconBg: "bg-red-100",
+      iconColor: "text-red-600",
     },
     {
-      title: "Low Budget | Low Intent",
-      value: stats?.lowBudget || 0,
-      icon: "Clock",
-      color: "bg-orange-100 text-orange-600",
-      bgColor: "bg-orange-50",
+      key: "active",
+      label: "Active Leads",
+      value: stats.active || 0,
+      icon: "Activity",
+      cardBg: "bg-emerald-50",
+      iconBg: "bg-emerald-100",
+      iconColor: "text-emerald-600",
     },
     {
-      title: "Old Leads",
-      value: stats?.oldLeads || 0,
+      key: "stale",
+      label: "Stale Leads",
+      value: stats.stale || 0,
       icon: "Archive",
-      color: "bg-gray-100 text-gray-600",
-      bgColor: "bg-gray-50",
+      cardBg: "bg-gray-50",
+      iconBg: "bg-gray-100",
+      iconColor: "text-gray-500",
+    },
+    {
+      key: "budgetIssue",
+      label: "Budget Issue",
+      value: stats.budgetIssue || 0,
+      icon: "Wallet",
+      cardBg: "bg-amber-50",
+      iconBg: "bg-amber-100",
+      iconColor: "text-amber-600",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-      {statCards.map((stat, index) => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      {cards.map((c, i) => (
         <motion.div
-          key={stat.title}
-          initial={{ opacity: 0, y: 10 }}
+          key={c.key}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.05 }}
-          className={`${stat.bgColor} border border-border rounded-xl p-5`}
+          transition={{ delay: i * 0.04 }}
+          className={`flex items-center gap-3 p-4 rounded-xl border border-border ${c.cardBg}`}
         >
-          <div className="flex items-start sm:justify-between mb-2 sm:flex-col gap-4">
-            <div
-              className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center`}
-            >
-              <Icon name={stat.icon} size={20} />
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="text-sm text-muted-foreground">
-                {stat.title}
-              </div>
-            </div>
+          <div
+            className={`w-10 h-10 ${c.iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}
+          >
+            <Icon name={c.icon} size={20} className={c.iconColor} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-2xl font-bold text-foreground leading-none tabular-nums">
+              {c.value}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1 truncate">
+              {c.label}
+            </p>
           </div>
         </motion.div>
       ))}
@@ -70,4 +99,4 @@ const PipelineStats = ({ stats }) => {
   );
 };
 
-export default PipelineStats;
+export default memo(PipelineStats);

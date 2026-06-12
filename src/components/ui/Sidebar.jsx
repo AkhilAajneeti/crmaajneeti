@@ -24,6 +24,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       items: [
         { label: "Accounts", path: "/accounts", icon: "Building2", entity: "Account" },
         { label: "Leads", path: "/leads", icon: "Target", entity: "Lead" },
+        { label: "Pipeline", path: "/pipeline", icon: "Filter" },
         { label: "Task", path: "/tasks", icon: "ListChecks", entity: "Task" },
         { label: "Meeting", path: "/meeting", icon: "Projector", entity: "Meeting" },
       ],
