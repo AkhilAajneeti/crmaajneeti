@@ -49,6 +49,22 @@ const DealsTable = ({
     return colors?.[stage] || "bg-gray-100 text-gray-800";
   };
 
+  // Subtle card background/border tint per note status (mobile cards)
+  const getStatusGradient = (status) => {
+    const gradients = {
+      Approved:
+        "bg-gradient-to-br from-blue-50/70 to-background border-blue-100",
+      Pending:
+        "bg-gradient-to-br from-orange-50/70 to-background border-orange-100",
+      Reject: "bg-gradient-to-br from-gray-50/70 to-background border-gray-200",
+    };
+
+    return (
+      gradients?.[status] ||
+      "bg-gradient-to-br from-background to-muted/20 border-border/50"
+    );
+  };
+
   const getProbabilityColor = (probability) => {
     if (probability >= 80) return "text-green-600";
     if (probability >= 60) return "text-yellow-600";
@@ -355,7 +371,13 @@ const DealsTable = ({
             <div
               key={deal?.id}
               onClick={() => onDealClick(deal)}
-              className="p-4 border-b border-border bg-background hover:bg-muted/30 transition"
+              className={`
+    mx-3 my-2 p-4 rounded-2xl border
+    hover:shadow-md
+    active:scale-[0.99]
+    transition-all duration-200
+    ${getStatusGradient(deal?.status)}
+  `}
             >
               <div className="flex items-start gap-3">
                 {/* Checkbox */}

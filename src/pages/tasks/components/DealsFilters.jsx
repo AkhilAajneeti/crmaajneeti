@@ -20,7 +20,7 @@ const DealsFilters = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [assignUser, setAssignUser] = useState([]);
-  const [status, setStatus] = useState([]);
+
   const statusOptions = [
     { value: "Canceled", label: "Canceled" },
     { value: "Completed", label: "Completed" },
@@ -43,21 +43,7 @@ const DealsFilters = ({
   ];
   const showDateInputs = ["between", "after", "before"].includes(filters?.dateType);
   // 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [statusRes] = await Promise.all([
-          fetchStatus(),
-        ]);
 
-        setStatus(statusRes.options || []);
-      } catch (err) {
-        console.error("Failed to load data", err);
-      }
-    };
-
-    loadData();
-  }, []);
 
   const priorityOptions = [
     { value: "", label: "All Status" },

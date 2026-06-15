@@ -33,17 +33,31 @@ const DealsTable = ({
 
   const getStageColor = (stage) => {
     const colors = {
-      New: "bg-blue-100 text-blue-800",
-      Interested: "bg-sky-100 text-sky-800",
-      "Follow up": "bg-indigo-100 text-indigo-800",
-      Converted: "bg-green-100 text-green-800",
-      "Not interested": "bg-orange-100 text-orange-800",
-      Broker: "bg-purple-100 text-purple-800",
-      "Call Not Picked": "bg-red-100 text-red-800",
-      Invalid: "bg-gray-100 text-gray-700",
+      Draft: "bg-gray-100 text-gray-700",
+      "In Review": "bg-orange-100 text-orange-800",
+      Published: "bg-green-100 text-green-800",
+      Archived: "bg-purple-100 text-purple-800",
     };
 
     return colors?.[stage] || "bg-gray-100 text-gray-800";
+  };
+
+  // Subtle card background/border tint per article status (mobile cards)
+  const getStatusGradient = (status) => {
+    const gradients = {
+      Draft: "bg-gradient-to-br from-gray-50/70 to-background border-gray-200",
+      "In Review":
+        "bg-gradient-to-br from-orange-50/70 to-background border-orange-100",
+      Published:
+        "bg-gradient-to-br from-green-50/70 to-background border-green-100",
+      Archived:
+        "bg-gradient-to-br from-purple-50/70 to-background border-purple-100",
+    };
+
+    return (
+      gradients?.[status] ||
+      "bg-gradient-to-br from-background to-muted/20 border-border/50"
+    );
   };
 
   const getProbabilityColor = (probability) => {
@@ -308,7 +322,13 @@ const DealsTable = ({
             <div
               key={deal?.id}
               onClick={() => onDealClick(deal)}
-              className="p-4 border-b border-border bg-background hover:bg-muted/30 transition"
+              className={`
+    mx-3 my-2 p-4 rounded-2xl border
+    hover:shadow-md
+    active:scale-[0.99]
+    transition-all duration-200
+    ${getStatusGradient(deal?.status)}
+  `}
             >
               <div className="flex items-start gap-3">
                 {/* Checkbox */}

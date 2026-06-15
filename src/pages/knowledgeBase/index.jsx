@@ -14,7 +14,7 @@ import TablePagination from "./components/TablePagination";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
-import { useMetaData } from "hooks/useMetaData";
+
 import { useKnowledge, useKnowledgeById } from "hooks/useKnowledge";
 import { createArticle, deleteArticle, updateArticle } from "services/knowledge.service";
 
@@ -34,7 +34,6 @@ const KnowledgeBase = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
 
-  const { data: metaData } = useMetaData();
   const { data: leadsDetails } = useKnowledgeById(selectedDeal?.id, mode);
 
   // Drawer state derived from URL — single source of truth.
@@ -109,9 +108,6 @@ const KnowledgeBase = () => {
   });
   // fetch leads
   const leads = leadsData?.list || [];
-  const source = metaData?.sources || [];
-  const status = metaData?.status || [];
-  const industry = metaData?.industries || [];
   const total = leadsData?.total || 0;
   const exportLeadsToCSV = (rows, fileName = "article_export") => {
     if (!rows || rows.length === 0) {
@@ -430,9 +426,7 @@ const KnowledgeBase = () => {
 
             {/* Deal Drawer */}
             <DealDrawer
-              status={status}
-              industry={industry}
-              source={source}
+
               leadsDetails={leadsDetails}
               deal={selectedDeal}
               mode={mode}

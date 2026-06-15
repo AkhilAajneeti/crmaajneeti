@@ -24,8 +24,6 @@ import IndustryChart from "./components/charts/IndustryChart";
 import AssignedUserChart from "./components/charts/AssignedUserChart";
 import MultiLineChart from "pages/dashboard/components/MultiLineChart";
 
-import { useMetaData } from "hooks/useMetaData";
-
 import { useComplaint, useComplaintById } from "hooks/useComplaint";
 import { createComplaint, deleteComplaint, updateComplaint } from "services/complaint.service";
 
@@ -45,7 +43,6 @@ const Complaints = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
 
-  const { data: metaData } = useMetaData();
   const { data: leadsDetails } = useComplaintById(selectedDeal?.id, mode);
 
   // Drawer state derived from URL — single source of truth.
@@ -390,7 +387,7 @@ const Complaints = () => {
                   Monitor, prioritize, and resolve customer issues in one place
                 </p>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-end space-x-3">
                 <Button
                   className="linearbg-1 text-white hover:text-white"
                   variant="outline"
@@ -423,30 +420,8 @@ const Complaints = () => {
               toggleAnalytics={() => setShowAnalytics((prev) => !prev)}
 
             />
-            {/* chartsAnanlysis */}
-            {showAnalytics && (
-              <div className="bg-card border border-border rounded-lg p-5 mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold">Lead Analytics</h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowAnalytics((prev) => !prev)}
-                  >
-                    <Icon name="X" size={20} />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  <IndustryChart leads={leads} />
 
-                  <MultiLineChart leads={leads} />
-
-                  <StatusChart leads={leads} />
-
-                  <AssignedUserChart leads={leads} />
-                </div>
-              </div>
-            )}
+            
 
             {/* Deals Table */}
             <DealsTable
@@ -492,8 +467,8 @@ const Complaints = () => {
 
             <ConfirmDeleteModal
               open={showDeleteConfirm}
-              title="Delete Selected Leads"
-              description={`Are you sure you want to delete ${selectedDeals.length} lead(s)? This action cannot be undone.`}
+              title="Delete Selected complaints"
+              description={`Are you sure you want to delete ${selectedDeals.length} complaint(s)? This action cannot be undone.`}
               onCancel={() => setShowDeleteConfirm(false)}
               onConfirm={handleConfirmBulkDelete}
             />

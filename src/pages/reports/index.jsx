@@ -44,20 +44,20 @@ const Reports = () => {
   const { data: leadsData, isLoading } = useReport({ limit, page, filters });
   const leads = leadsData?.list || [];
   const total = leadsData?.total || 0;
-  useEffect(() => {
-    const loadSource = async () => {
-      try {
-        const data = await fetchSources();
-        setSource(data.options || []);
-        // console.log(data.list);
-      } catch (error) {
-        console.log("failed to fetch data", error);
-      } finally {
+  // useEffect(() => {
+  //   const loadSource = async () => {
+  //     try {
+  //       const data = await fetchSources();
+  //       setSource(data.options || []);
+  //       // console.log(data.list);
+  //     } catch (error) {
+  //       console.log("failed to fetch data", error);
+  //     } finally {
 
-      }
-    };
-    loadSource();
-  }, []);
+  //     }
+  //   };
+  //   loadSource();
+  // }, []);
 
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -102,19 +102,19 @@ const Reports = () => {
 
 
   // fetch status
-  useEffect(() => {
-    const loadStatus = async () => {
-      try {
-        const data = await fetchStatus();
-        setStatus(data.options || []);
-        console.log(data.list);
-      } catch (error) {
-        console.log("failed to fetch data", error);
-      } finally {
-      }
-    };
-    loadStatus();
-  }, []);
+  // useEffect(() => {
+  //   const loadStatus = async () => {
+  //     try {
+  //       const data = await fetchStatus();
+  //       setStatus(data.options || []);
+  //       console.log(data.list);
+  //     } catch (error) {
+  //       console.log("failed to fetch data", error);
+  //     } finally {
+  //     }
+  //   };
+  //   loadStatus();
+  // }, []);
 
 
   const isWithinSelectedDays = (createdAt, selectedDay) => {

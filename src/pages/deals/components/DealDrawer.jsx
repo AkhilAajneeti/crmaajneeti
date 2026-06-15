@@ -445,30 +445,7 @@ const DealDrawer = ({
     return `${match[1]} ${match[2]}:00`;
   };
 
-  // fetching lead stream from id
-  // useEffect(() => {
-  //   if (!isOpen || !deal?.id) return;
 
-  //   const loadActivity = async () => {
-  //     try {
-  //       const id = deal?.id;
-  //       const res = await leadActivitesById(id);
-  //       console.log("LEAD DETAIL RESPONSE:", res);
-  //       setActivities(res.list || []);
-  //     } catch (err) {
-  //       console.error("Failed to fetch streams", err);
-  //       toast.error("Failed to load activity");
-  //     }
-  //   };
-
-  //   loadActivity();
-  // }, [isOpen, deal?.id]);
-
-  // useEffect(() => {
-  //   if (!isOpen) {
-  //     setmockStream([]);
-  //   }
-  // }, [isOpen]);
   const leadData = leadsDetails || deal;
   return (
     <>
@@ -767,7 +744,7 @@ const DealDrawer = ({
             {!showForm && !isMassUpdate && deal && (
               <>
                 {/* Tabs */}
-                <div className="flex items-center space-x-1 p-4 border-b border-border">
+                <div className="flex items-center space-x-1 p-4 border-b border-border overflow-x-auto whitespace-nowrap scrollbar-hide">
                   {tabs?.map((tab) => (
                     <button
                       key={tab?.id}
@@ -955,7 +932,7 @@ Let me know when you're available so that we can discuss this in more detail.
                           Details
                         </h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="grid grid-cols-2 md:grid-cols-2 gap-5">
                           {/* Status */}
                           <div>
                             <p className="text-sm text-muted-foreground">
@@ -979,7 +956,7 @@ Let me know when you're available so that we can discuss this in more detail.
 
 
                           {/* Description */}
-                          <div className="md:col-span-2 ">
+                          <div className="col-span-2 ">
                             <p className="text-sm text-muted-foreground">
                               Description
                             </p>

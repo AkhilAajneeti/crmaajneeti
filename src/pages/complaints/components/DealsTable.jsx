@@ -32,16 +32,34 @@ const DealsTable = ({
   const getStageColor = (stage) => {
     const colors = {
       New: "bg-blue-100 text-blue-800",
-      Interested: "bg-sky-100 text-sky-800",
-      "Follow up": "bg-indigo-100 text-indigo-800",
-      Converted: "bg-green-100 text-green-800",
-      "Not interested": "bg-orange-100 text-orange-800",
-      Broker: "bg-purple-100 text-purple-800",
-      "Call Not Picked": "bg-red-100 text-red-800",
-      Invalid: "bg-gray-100 text-gray-700",
+      Assigned: "bg-sky-100 text-sky-800",
+      Pending: "bg-orange-100 text-orange-800",
+      Closed: "bg-green-100 text-green-800",
+      Rejected: "bg-red-100 text-red-800",
+      Duplicate: "bg-purple-100 text-purple-800",
     };
 
     return colors?.[stage] || "bg-gray-100 text-gray-800";
+  };
+
+  // Subtle card background/border tint per complaint status (mobile cards)
+  const getStatusGradient = (status) => {
+    const gradients = {
+      New: "bg-gradient-to-br from-blue-50/70 to-background border-blue-100",
+      Assigned: "bg-gradient-to-br from-sky-50/70 to-background border-sky-100",
+      Pending:
+        "bg-gradient-to-br from-orange-50/70 to-background border-orange-100",
+      Closed:
+        "bg-gradient-to-br from-green-50/70 to-background border-green-100",
+      Rejected: "bg-gradient-to-br from-red-50/70 to-background border-red-100",
+      Duplicate:
+        "bg-gradient-to-br from-purple-50/70 to-background border-purple-100",
+    };
+
+    return (
+      gradients?.[status] ||
+      "bg-gradient-to-br from-background to-muted/20 border-border/50"
+    );
   };
   const getPriorityColor = (stage) => {
     const colors = {
@@ -335,7 +353,13 @@ const DealsTable = ({
             <div
               key={deal?.id}
               onClick={() => onDealClick(deal)}
-              className="p-4 border-b border-border bg-background hover:bg-muted/30 transition"
+              className={`
+    mx-3 my-2 p-4 rounded-2xl border
+    hover:shadow-md
+    active:scale-[0.99]
+    transition-all duration-200
+    ${getStatusGradient(deal?.status)}
+  `}
             >
               <div className="flex items-start gap-3">
                 {/* Checkbox */}

@@ -162,7 +162,7 @@ const DealDrawer = ({
     setMassFields((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const { data: meta } = useMetaData();
+
   const { data: teamData } = useTeams();
   const { data: accountData } = useAccounts({ limit, page });
   const { data: leadsData } = useLeads();

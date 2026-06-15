@@ -61,7 +61,7 @@ const DealsPage = () => {
   const canExportLead = canGlobal("exportPermission");
   const canMassUpdateLead = canGlobal("massUpdatePermission") && canEditLead;
 
-  const { data: metaData } = useMetaData();
+  // const { data: metaData } = useMetaData();
   const { data: leadsDetails } = useLeadDetails(selectedDeal?.id, mode);
 
   // Drawer state derived from URL — single source of truth.
@@ -148,9 +148,9 @@ const DealsPage = () => {
   });
   // fetch leads
   const leads = leadsData?.list || [];
-  const source = metaData?.sources || [];
-  const status = metaData?.status || [];
-  const industry = metaData?.industries || [];
+  // const source = metaData?.sources || [];
+  // const status = metaData?.status || [];
+  // const industry = metaData?.industries || [];
   const total = leadsData?.total || 0;
   const exportLeadsToCSV = (rows, fileName = "leads_export") => {
     if (!rows || rows.length === 0) {
@@ -438,7 +438,7 @@ const DealsPage = () => {
                   Track and manage your sales opportunities
                 </p>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-end space-x-3">
                 {canExportLead && (
                   <Button
                     className="linearbg-1 text-white hover:text-white"
@@ -535,9 +535,9 @@ const DealsPage = () => {
 
             {/* Deal Drawer */}
             <DealDrawer
-              status={status}
-              industry={industry}
-              source={source}
+              // status={status}
+              // industry={industry}
+              // source={source}
               leadsDetails={leadsDetails}
               deal={selectedDeal}
               mode={mode}

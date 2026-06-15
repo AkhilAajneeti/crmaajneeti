@@ -271,8 +271,6 @@ IFSC: ${bankData.ifsc}`;
     try {
       const payload = buildUpdatePayload();
 
-      console.log("FINAL PAYLOAD 👉", payload);
-
       await onUpdate(deal.id, payload);
 
       toast.success("Profile updated successfully");
@@ -367,7 +365,7 @@ IFSC: ${bankData.ifsc}`;
             {!isMassUpdate && deal && (
               <>
                 {/* Tabs */}
-                <div className="flex items-center space-x-1 p-4 border-b border-border">
+                <div className="flex items-center space-x-1 p-4 border-b border-border overflow-x-auto whitespace-nowrap scrollbar-hide">
                   {tabs?.map((tab) => (
                     <button
                       key={tab?.id}
@@ -505,7 +503,7 @@ IFSC: ${bankData.ifsc}`;
                                 value={formData.empCode || user?.empCode}
                                 onChange={(e) =>
                                   setFormData({ ...formData, empCode: e.target.value })
-                                  
+
                                 }
                                 disabled={!isAdmin}
                               />

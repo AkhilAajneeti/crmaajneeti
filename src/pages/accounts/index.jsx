@@ -344,7 +344,7 @@ const AccountsPage = () => {
               </p>
             </div>
 
-            <div className="flex items-center flex-wrap space-x-3 mt-4 sm:mt-0">
+            <div className="flex items-center flex-wrap space-x-3 mt-4 sm:mt-0 justify-end">
               <Button
                 className="hidden"
                 variant="outline"
@@ -355,6 +355,7 @@ const AccountsPage = () => {
               </Button>
               {canCreateAccount && (
                 <Button
+                className="hidden"
                   variant="outline"
                   type="button"
                   onClick={() => setIsQuickAddOpen(true)}

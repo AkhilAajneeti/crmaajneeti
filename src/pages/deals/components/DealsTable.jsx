@@ -225,6 +225,61 @@ const DealsTable = ({
       <Icon name="ArrowDown" size={16} className="text-primary" />
     );
   };
+  const getStageGradient = (stage) => {
+    const gradients = {
+      // ─── Positive / forward motion ────────────────────────────────
+      "new": "bg-gradient-to-br from-blue-50/70 to-background border-blue-100",
+      "interested":
+        "bg-gradient-to-br from-sky-50/70 to-background border-sky-100",
+      "qualified":
+        "bg-gradient-to-br from-emerald-50/70 to-background border-emerald-100",
+      "converted":
+        "bg-gradient-to-br from-green-50/70 to-background border-green-100",
+      "follow up":
+        "bg-gradient-to-br from-indigo-50/70 to-background border-indigo-100",
+      "in process":
+        "bg-gradient-to-br from-violet-50/70 to-background border-violet-100",
+      "proposal shared":
+        "bg-gradient-to-br from-cyan-50/70 to-background border-cyan-100",
+      "future prospect":
+        "bg-gradient-to-br from-teal-50/70 to-background border-teal-100",
+      "webinar":
+        "bg-gradient-to-br from-fuchsia-50/70 to-background border-fuchsia-100",
+
+      // ─── Pending / waiting ────────────────────────────────────────
+      "call later":
+        "bg-gradient-to-br from-amber-50/70 to-background border-amber-100",
+      "call not connecting":
+        "bg-gradient-to-br from-yellow-50/70 to-background border-yellow-100",
+      "call not picked":
+        "bg-gradient-to-br from-rose-50/70 to-background border-rose-100",
+
+      // ─── Negative / blocked ───────────────────────────────────────
+      "not interested":
+        "bg-gradient-to-br from-orange-50/70 to-background border-orange-100",
+      "low budget | low intent":
+        "bg-gradient-to-br from-purple-50/70 to-background border-purple-100",
+      "dead":
+        "bg-gradient-to-br from-red-50/70 to-background border-red-100",
+
+      // ─── Archived / discarded ─────────────────────────────────────
+      "invalid":
+        "bg-gradient-to-br from-gray-100/70 to-background border-gray-200",
+      "duplicate":
+        "bg-gradient-to-br from-slate-100/70 to-background border-slate-200",
+      "z old leads":
+        "bg-gradient-to-br from-stone-100/70 to-background border-stone-200",
+
+      // Legacy fallback
+      "broker":
+        "bg-gradient-to-br from-purple-50/70 to-background border-purple-100",
+    };
+
+    return (
+      gradients?.[stage?.toLowerCase()] ||
+      "bg-gradient-to-br from-background to-muted/20 border-border/50"
+    );
+  };
 
   const handleQuickAction = (e, action, deal) => {
     e?.stopPropagation();
@@ -539,58 +594,118 @@ Let me know when you're available so that we can discuss this in more detail.
             <div
               key={deal?.id}
               onClick={() => onDealClick(deal)}
-              className="p-4 border-b border-border bg-background hover:bg-muted/30 transition"
+              className={`
+    mx-3 my-2 p-4 rounded-2xl border
+    ${getStageGradient(deal?.status)}
+    hover:shadow-md
+    active:scale-[0.99]
+    transition-all duration-200
+  `}
             >
-              <div className="flex items-start gap-3">
-                {/* Checkbox */}
-                <Checkbox
-                  checked={selectedDeals?.includes(deal?.id)}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    onSelectDeal(deal?.id, e.target.checked);
-                  }}
-                  className="mt-1"
-                />
+              <div className="flex items-start justify-between gap-3">
+                {/* Left Section */}
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  {/* Checkbox */}
+                  <Checkbox
+                    checked={selectedDeals?.includes(deal?.id)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      onSelectDeal(deal?.id, e.target.checked);
+                    }}
+                    className="mt-1"
+                  />
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  {/* Top Row */}
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-foreground truncate">
-                      {deal?.name}
-                    </h3>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    {/* Top Row */}
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold text-foreground truncate">
+                        {deal?.name}
+                      </h3>
 
-                    <span
-                      className={`px-2 py-0.5 text-xs rounded-full ${getStageColor(
-                        deal?.status,
-                      )}`}
-                    >
-                      {deal?.status}
-                    </span>
-                  </div>
-
-                  {/* Project Name */}
-                  {deal?.cProjectName && (
-                    <div className="text-sm text-muted-foreground mt-1 truncate">
-                      {deal?.cProjectName}
+                      <span
+                        className={`px-2 py-0.5 text-xs rounded-full ${getStageColor(
+                          deal?.status
+                        )}`}
+                      >
+                        {deal?.status}
+                      </span>
                     </div>
-                  )}
 
-                  {/* Assigned User */}
-                  {deal?.assignedUserName && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                      <Icon name="User" size={12} />
-                      Assigned to{" "}
-                      <span className="truncate">{deal?.assignedUserName}</span>
+                    {/* Bottom */}
+                    <div className="flex items-end justify-between mt-3 gap-3">
+                      <div className="space-y-1 min-w-0">
+                        {/* Assigned */}
+                        {deal?.assignedUserName && (
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Icon name="User2" size={12} />
+                            <span className="truncate">
+                              {deal?.assignedUserName}
+                            </span>
+                          </div>
+                        )}
+                        {/* project */}
+                        {deal?.cProject && (
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Icon name="Building2" size={12} />
+                            <span className="truncate">
+                              {deal?.cProject}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Date */}
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Icon name="Calendar" size={12} />
+                          <span>{formatDate(deal?.createdAt)}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {/* Call — opens the device dialer via tel: */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Call lead"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const phone = deal?.phoneNumber?.replace(/\D/g, "");
+                            if (!phone) return;
+                            window.location.href = `tel:${phone}`;
+                          }}
+                          className="h-10 w-10 rounded-full hover:bg-blue-400   active:scale-95 transition-all duration-150 flex items-center justify-center"
+                        >
+                          <Icon name="PhoneCall" size={20} className="text-blue-600 hover:text-white" />
+                        </Button>
+
+                        {/* WhatsApp — brand green, white logo via invert */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Open WhatsApp chat"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const phone = deal?.phoneNumber?.replace(/\D/g, "");
+                            if (!phone) return;
+                            window.open(
+                              `https://api.whatsapp.com/send/?phone=${phone}`,
+                              "_blank",
+                              "noopener,noreferrer",
+                            );
+                          }}
+                          className="h-10 w-10 rounded-full  hover:bg-[#1fb85557]  active:scale-95 transition-all duration-150 flex items-center justify-center"
+                        >
+                          <img
+                            src="/assets/whatsapp-logo.png"
+                            alt=""
+                            className="w-8 h-8 object-contain  "
+                          />
+                        </Button>
+                      </div>
                     </div>
-                  )}
-
-                  {/* Created At */}
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                    <Icon name="Calendar" size={12} />
-                    Created: {formatDate(deal?.createdAt)}
                   </div>
                 </div>
+
+
               </div>
             </div>
           ))

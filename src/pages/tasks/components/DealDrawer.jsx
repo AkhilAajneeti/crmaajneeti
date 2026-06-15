@@ -197,68 +197,6 @@ const DealDrawer = ({
 
   ];
 
-  const getActivityIcon = (type) => {
-    switch (type) {
-      case "Post":
-        return "MessageSquare";
-      case "Update":
-        return "RefreshCcw";
-      case "Assign":
-        return "UserPlus";
-      case "Create":
-        return "PlusCircle";
-      default:
-        return "Activity";
-    }
-  };
-
-  const getActivityIconColor = (type) => {
-    switch (type) {
-      case "Post":
-        return "text-indigo-600";
-      case "Update":
-        return "text-blue-600";
-      case "Assign":
-        return "text-purple-600";
-      case "Create":
-        return "text-green-600";
-      default:
-        return "text-gray-500";
-    }
-  };
-
-  const getActivityMessage = (stream) => {
-    const { type, post, data, createdByName } = stream;
-
-    if (type === "Post") {
-      return post;
-    }
-
-    if (type === "Assign") {
-      return `Assigned to ${data?.assignedUserName}`;
-    }
-
-    if (type === "Create") {
-      return "Task was created";
-    }
-
-    if (type === "Update") {
-      if (data?.value) {
-        return `Status updated to ${data.value}`;
-      }
-      return "Task updated";
-    }
-
-    if (activity._scope === "Call") {
-      return `${activity.direction || "Call"} call scheduled`;
-    }
-
-    if (activity._scope === "Meeting") {
-      return "Meeting scheduled";
-    }
-
-    return "Activity updated";
-  };
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));

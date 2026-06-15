@@ -44,6 +44,26 @@ const DealsTable = ({
 
     return colors?.[stage] || "bg-gray-100 text-gray-800";
   };
+
+  // Subtle card background/border tint per task status (mobile cards)
+  const getStatusGradient = (status) => {
+    const gradients = {
+      Started: "bg-gradient-to-br from-blue-50/70 to-background border-blue-100",
+      Completed:
+        "bg-gradient-to-br from-green-50/70 to-background border-green-100",
+      Deffered:
+        "bg-gradient-to-br from-orange-50/70 to-background border-orange-100",
+      Canceled:
+        "bg-gradient-to-br from-purple-50/70 to-background border-purple-100",
+      "Not Started":
+        "bg-gradient-to-br from-gray-50/70 to-background border-gray-200",
+    };
+
+    return (
+      gradients?.[status] ||
+      "bg-gradient-to-br from-background to-muted/20 border-border/50"
+    );
+  };
   const getPrioriyColor = (stage) => {
     const colors = {
       Low: "bg-blue-100 text-blue-800",
@@ -136,7 +156,7 @@ const DealsTable = ({
       <td className="p-4">
         <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
       </td>
-      
+
       {/* Actions */}
       <td className="p-4">
         <div className="flex space-x-2">
@@ -230,7 +250,7 @@ const DealsTable = ({
                   </div>
                 </td>
               </tr>
-            ) :(paginatedDeals?.map((deal) => (
+            ) : (paginatedDeals?.map((deal) => (
               <tr
                 key={deal?.id}
                 onMouseEnter={() => setHoveredRow(deal?.id)}
@@ -295,9 +315,8 @@ const DealsTable = ({
 
                 <td className="px-4 py-4">
                   <div
-                    className={`flex items-center space-x-1 transition-opacity ${
-                      hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
-                    }`}
+                    className={`flex items-center space-x-1 transition-opacity ${hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
+                      }`}
                   >
                     {canEdit && (
                       <Button
@@ -334,7 +353,13 @@ const DealsTable = ({
           <div
             key={deal?.id}
             onClick={() => onDealClick(deal)}
-            className="p-4 border-b border-border bg-background hover:bg-muted/30 transition"
+            className={`
+    mx-3 my-2 p-4 rounded-2xl border
+    hover:shadow-md
+    active:scale-[0.99]
+    transition-all duration-200
+    ${getStatusGradient(deal?.status)}
+  `}
           >
             <div className="flex items-start gap-3">
               {/* Checkbox */}

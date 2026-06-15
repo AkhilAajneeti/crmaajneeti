@@ -13,6 +13,62 @@ import { useUsers } from "hooks/useUsers";
 import { useQueryClient } from "@tanstack/react-query";
 import { useworkplaceActivity, useWorkPlaceById, useworkplaceStream, useWorkPlaceSubs } from "hooks/useWorkplace";
 
+// Stream-post helpers ------------------------------------------------------
+
+// Turn http(s) URLs in plain text into clickable links. Anything that isn't a
+// URL is rendered as inert text — no dangerouslySetInnerHTML, so no XSS.
+const linkifyStreamText = (text) => {
+  if (!text) return null;
+  const parts = String(text).split(/(https?:\/\/[^\s]+)/g);
+  return parts.map((part, i) =>
+    /^https?:\/\//.test(part) ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary underline break-all hover:text-primary/80"
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    )
+  );
+};
+
+// Render a stream post with newline preservation, linkification, and a
+// Show more / Show less toggle for long posts. `whitespace-pre-line` turns
+// `\n\n` into proper paragraph breaks.
+const POST_COLLAPSE_THRESHOLD = 400; // characters
+
+const StreamPostBody = ({ text }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  // Defensive — sometimes the backend returns `{}` or null for `post`.
+  const str = typeof text === "string" ? text : "";
+  if (!str.trim()) return null;
+
+  const isLong = str.length > POST_COLLAPSE_THRESHOLD;
+  const visible =
+    expanded || !isLong ? str : `${str.slice(0, POST_COLLAPSE_THRESHOLD)}…`;
+
+  return (
+    <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line break-words mt-1">
+      {linkifyStreamText(visible)}
+      {isLong && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="ml-1 inline text-xs font-medium text-primary hover:text-primary/80 hover:underline"
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      )}
+    </div>
+  );
+};
+
 const DealDrawer = ({
   deal,
   isOpen,
@@ -1121,10 +1177,17 @@ const DealDrawer = ({
                                 </div>
                               </div>
 
-                              {/* MESSAGE */}
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {getActivityMessage(activity)}
-                              </p>
+                              {/* MESSAGE — Post types get the rich body
+                                  renderer (line breaks + clickable URLs +
+                                  show more); all other types stay as a
+                                  single-line summary. */}
+                              {activity?.type === "Post" ? (
+                                <StreamPostBody text={activity.post} />
+                              ) : (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {getActivityMessage(activity)}
+                                </p>
+                              )}
 
                               {/* STATUS BADGE */}
                               {activity?.data?.value && (

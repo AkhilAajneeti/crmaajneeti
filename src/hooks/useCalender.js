@@ -12,6 +12,7 @@ export const useCalenderById = (id) => {
     return useQuery({
         queryKey: ["calenderById", id],
         queryFn: () => fetchAttendanceById(id),
+        enabled: !!id, // 🔥 don't fire /CAttendanceRequest/undefined when no record is selected
         placeholderData: keepPreviousData,
     })
 }

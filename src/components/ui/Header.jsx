@@ -254,10 +254,15 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
         </div>
       </header>
 
-      {/* Backdrop for mobile dropdowns */}
+      {/* Backdrop for mobile dropdowns.
+          Lives OUTSIDE the <header> (which is z-40), so its z-index must stay
+          BELOW 40 — otherwise it ties with the header in the root stacking
+          context, paints on top of it (later-in-DOM wins), and intercepts
+          clicks on the dropdown card. The header's inline overlay already
+          handles outside-click-to-close; this one is just for the dim. */}
       {(isUserDropdownOpen || isHelpDropdownOpen) && (
         <div
-          className="fixed inset-0 bg-black/20 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/20 z-30 lg:hidden"
           onClick={handleDropdownClose}
         />
       )}

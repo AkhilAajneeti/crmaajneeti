@@ -55,6 +55,18 @@ const AccountsTable = ({
     { value: 100, label: "100 per page" },
   ];
 
+  // Colored pill styling per account type
+  const getTypeColor = (type) => {
+    switch (type) {
+      case "CPL":
+        return "bg-blue-100 text-blue-700 ring-1 ring-blue-200";
+      case "Retainer":
+        return "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200";
+      default:
+        return "bg-muted text-foreground ring-1 ring-border";
+    }
+  };
+
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
     let filtered = accounts?.filter((account) => {
@@ -143,6 +155,19 @@ const AccountsTable = ({
       newSelected?.delete(id);
     }
     setSelectedRows(newSelected);
+  };
+  const getStageGradient = (stage) => {
+    const gradients = {
+      // ─── Positive / forward motion ────────────────────────────────
+      "cpl": "bg-gradient-to-br from-blue-50/70 to-background border-blue-100",
+      "retainer":
+        "bg-gradient-to-br from-emerald-50/70 to-background border-emerald-100",
+    };
+
+    return (
+      gradients?.[stage?.toLowerCase()] ||
+      "bg-gradient-to-br from-background to-muted/20 border-border/50"
+    );
   };
 
   const formatDate = (dateString) => {
@@ -374,7 +399,7 @@ const AccountsTable = ({
                   {visibleColumns?.actions && (
                     <td className="p-4" onClick={(e) => e?.stopPropagation()}>
                       <div className="flex items-center space-x-1">
-                        
+
                         {canEdit && (
                           <Button
                             variant="ghost"
@@ -395,7 +420,7 @@ const AccountsTable = ({
                           >
                             <Icon name="Trash2" size={16} />
                           </Button>
-                        )} 
+                        )}
                       </div>
                     </td>
                   )}
@@ -411,7 +436,13 @@ const AccountsTable = ({
         {accounts?.map((account) => (
           <div
             key={account?.id}
-            className="p-4 border-b border-border last:border-b-0 bg-background hover:bg-muted/30 transition rounded-none"
+            className={`
+    mx-3 my-2 p-4 rounded-2xl border
+    ${getStageGradient(account?.type)}
+    hover:shadow-md
+    active:scale-[0.99]
+    transition-all duration-200
+  `}
           >
             {/* Top Row */}
             <div className="flex items-start justify-between gap-3">
@@ -458,7 +489,11 @@ const AccountsTable = ({
                 </p>
               )}
               {account?.type && (
-                <span className="px-2 py-0.5 text-xs rounded-md bg-muted text-foreground">
+                <span
+                  className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${getTypeColor(
+                    account?.type
+                  )}`}
+                >
                   {account?.type}
                 </span>
               )}
