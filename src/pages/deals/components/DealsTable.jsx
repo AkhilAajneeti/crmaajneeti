@@ -380,38 +380,38 @@ const DealsTable = ({
               </th>
               <th className="text-left px-4 py-3">
                 <button
-                  onClick={() => onSort("cProjectName")}
+                  onClick={() => onSort("cSector")}
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
                   <span>Sector</span>
-                  {getSortIcon("Project Name")}
+                  {getSortIcon("cSector")}
                 </button>
               </th>
               <th className="text-left px-4 py-3">
                 <button
-                  onClick={() => onSort("Source")}
+                  onClick={() => onSort("source")}
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
                   <span>Source</span>
-                  {getSortIcon("value")}
+                  {getSortIcon("source")}
                 </button>
               </th>
               <th className="text-left px-4 py-3">
                 <button
-                  onClick={() => onSort("Status")}
+                  onClick={() => onSort("status")}
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
                   <span>Status</span>
-                  {getSortIcon("owner")}
+                  {getSortIcon("status")}
                 </button>
               </th>
               <th className="text-left px-4 py-3">
                 <button
-                  onClick={() => onSort("email")}
+                  onClick={() => onSort("cNextContact")}
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
                   <span>Next Contact</span>
-                  {getSortIcon("stage")}
+                  {getSortIcon("cNextContact")}
                 </button>
               </th>
               <th className="text-left px-4 py-3">
@@ -420,7 +420,7 @@ const DealsTable = ({
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
                   <span>Create At</span>
-                  {getSortIcon("closeDate")}
+                  {getSortIcon("createdAt")}
                 </button>
               </th>
               <th className="text-left px-4 py-3">
@@ -605,15 +605,17 @@ Let me know when you're available so that we can discuss this in more detail.
               <div className="flex items-start justify-between gap-3">
                 {/* Left Section */}
                 <div className="flex items-start gap-3 flex-1 min-w-0">
-                  {/* Checkbox */}
-                  <Checkbox
-                    checked={selectedDeals?.includes(deal?.id)}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      onSelectDeal(deal?.id, e.target.checked);
-                    }}
-                    className="mt-1"
-                  />
+                  {/* Checkbox — stop the click bubbling to the card (which opens the drawer) */}
+                  <span onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedDeals?.includes(deal?.id)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onSelectDeal(deal?.id, e.target.checked);
+                      }}
+                      className="mt-1"
+                    />
+                  </span>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">

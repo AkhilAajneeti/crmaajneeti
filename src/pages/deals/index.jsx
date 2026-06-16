@@ -32,6 +32,8 @@ import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
 // so it survives the remount that happens when the drawer route opens/closes.
 // Cleared only when the user explicitly clears filters.
 const LEADS_VIEW_KEY = "leads_view_state";
+// Default ordering when no column sort is active (matches EspoCRM newest-first).
+const DEFAULT_SORT = { key: "createdAt", direction: "desc" };
 const loadLeadsView = () => {
   try {
     return JSON.parse(sessionStorage.getItem(LEADS_VIEW_KEY)) || {};
@@ -105,7 +107,7 @@ const DealsPage = () => {
   }, [leadsDetails, urlId]);
 
   const [sortConfig, setSortConfig] = useState(
-    () => loadLeadsView().sortConfig || { key: "createdAt", direction: "desc" }
+    () => loadLeadsView().sortConfig || DEFAULT_SORT
   );
   const [filters, setFilters] = useState(
     () =>
@@ -131,7 +133,7 @@ const DealsPage = () => {
     );
   }, [filters, page, limit, sortConfig]);
 
-  const { data: leadsData, isLoading } = useNewLeads({ limit, page, filters });
+  const { data: leadsData, isLoading } = useNewLeads({ limit, page, filters, sort: sortConfig });
   const createLeadMutation = useMutation({
     mutationFn: createLead,
     onSuccess: () => {
@@ -282,14 +284,17 @@ const DealsPage = () => {
     }
   };
 
+  // 3-click cycle per column: asc → desc → cleared (back to default order).
   const handleSort = (key) => {
-    setSortConfig((prevConfig) => ({
-      key,
-      direction:
-        prevConfig?.key === key && prevConfig?.direction === "asc"
-          ? "desc"
-          : "asc",
-    }));
+    setSortConfig((prevConfig) => {
+      if (prevConfig?.key === key) {
+        if (prevConfig.direction === "asc") return { key, direction: "desc" };
+        // Was already desc → third click clears the sort.
+        return DEFAULT_SORT;
+      }
+      return { key, direction: "asc" };
+    });
+    setPage(1);
   };
 
   const handleFiltersChange = (newFilters) => {
@@ -310,6 +315,7 @@ const DealsPage = () => {
       closeDateTo: "",
       xDays: ""
     });
+    setSortConfig(DEFAULT_SORT);
     setPage(1);
   };
   const handleBulkAction = (action) => {

@@ -19,10 +19,10 @@ export const useLeadsCount = (filters) => {
         cacheTime: 1000 * 60 * 30, // keep in memory 30 min
     });
 };
-export const useNewLeads = ({ limit, page, filters }) => {
+export const useNewLeads = ({ limit, page, filters, sort }) => {
     return useQuery({
-        queryKey: ["leads", limit, page, JSON.stringify(filters)],
-        queryFn: () => fetchNewLeads({ limit, page, filters }),
+        queryKey: ["leads", limit, page, JSON.stringify(filters), JSON.stringify(sort)],
+        queryFn: () => fetchNewLeads({ limit, page, filters, sort }),
         placeholderData: keepPreviousData,
     })
 }

@@ -207,14 +207,34 @@ const DealDrawer = ({
 
   const getStageColor = (stage) => {
     const colors = {
-      New: "bg-blue-100 text-blue-800",
-      Interested: "bg-sky-100 text-sky-800",
+      // ─── Positive / forward motion ────────────────────────────────
+      "New": "bg-blue-100 text-blue-800",
+      "Interested": "bg-sky-100 text-sky-800",
+      "Qualified": "bg-emerald-100 text-emerald-800",
+      "Converted": "bg-green-100 text-green-800",
       "Follow up": "bg-indigo-100 text-indigo-800",
-      Converted: "bg-green-100 text-green-800",
-      "Not interested": "bg-orange-100 text-orange-800",
-      Broker: "bg-purple-100 text-purple-800",
-      "Call Not Picked": "bg-red-100 text-red-800",
-      Invalid: "bg-gray-100 text-gray-700",
+      "In Process": "bg-violet-100 text-violet-800",
+      "Proposal Shared": "bg-cyan-100 text-cyan-800",
+      "Future Prospect": "bg-teal-100 text-teal-800",
+      "Webinar": "bg-fuchsia-100 text-fuchsia-800",
+
+      // ─── Pending / waiting ────────────────────────────────────────
+      "Call Later": "bg-amber-100 text-amber-800",
+      "Call Not Connecting": "bg-yellow-100 text-yellow-800",
+      "Call Not Picked": "bg-rose-100 text-rose-800",
+
+      // ─── Negative / blocked ───────────────────────────────────────
+      "Not Interested": "bg-orange-100 text-orange-800",
+      "Low budget | Low Intent": "bg-purple-100 text-purple-800",
+      "Dead": "bg-red-100 text-red-800",
+
+      // ─── Archived / discarded ─────────────────────────────────────
+      "Invalid": "bg-gray-100 text-gray-700",
+      "Duplicate": "bg-slate-100 text-slate-700",
+      "z old leads": "bg-stone-100 text-stone-700",
+
+      // Legacy fallbacks (older records that used these labels)
+      "Broker": "bg-purple-100 text-purple-800",
     };
     return colors?.[stage] || "bg-gray-100 text-gray-800";
   };
@@ -817,10 +837,10 @@ const DealDrawer = ({
                           {/* WhatsApp — Quick Reply */}
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                             
+
                             </div>
                             {deal?.phoneNumber ? (
-                              <a 
+                              <a
                                 href={`https://api.whatsapp.com/send/?phone=${deal.phoneNumber.replace(
                                   /\D/g,
                                   ""
@@ -835,10 +855,10 @@ const DealDrawer = ({
                                   alt="WhatsApp"
                                   className="w-4 h-4 object-contain"
                                 /> */}
-                              <span className="inline-flex items-center gap-1 p-2 text-[12px] font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                                <Icon name="Zap" size={10} />
-                                Quick Reply on WhatsApp
-                              </span>
+                                <span className="inline-flex items-center gap-1 p-2 text-[12px] font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                                  <Icon name="Zap" size={10} />
+                                  Quick Reply on WhatsApp
+                                </span>
                               </a>
                             ) : (
                               <p className="text-foreground">None</p>

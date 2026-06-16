@@ -143,9 +143,13 @@ export const fetchLeads = async () => {
 };
 
 // update for leads filter
-export const fetchNewLeads = async ({ limit, page, filters = {} }) => {
+export const fetchNewLeads = async ({ limit, page, filters = {}, sort }) => {
   const token = localStorage.getItem("auth_token");
   const offset = (page - 1) * limit;
+
+  // ✅ SORT — EspoCRM expects orderBy=<field>&order=asc|desc
+  const orderBy = sort?.key || "createdAt";
+  const order = sort?.direction === "asc" ? "asc" : "desc";
 
   let where = [];
 
@@ -290,7 +294,7 @@ export const fetchNewLeads = async ({ limit, page, filters = {} }) => {
     })
     .join("&");
 
-  const baseUrl = `https://gateway.aajneetiadvertising.com/Lead?maxSize=${limit}&offset=${offset}&orderBy=createdAt&order=desc`;
+  const baseUrl = `https://gateway.aajneetiadvertising.com/Lead?maxSize=${limit}&offset=${offset}&orderBy=${orderBy}&order=${order}`;
 
   const url = query ? `${baseUrl}&${query}` : baseUrl;
 
