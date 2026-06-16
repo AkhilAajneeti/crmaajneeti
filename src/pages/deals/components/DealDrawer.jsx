@@ -1226,7 +1226,7 @@ Let me know when you're available so that we can discuss this in more detail.
                         ))) : (
                           <div className="flex flex-col items-center justify-center py-10 text-center">
                             <img
-                              src="/public/assets/images/comment.png"
+                              src="/assets/images/comment.png"
                               alt="No Activities"
                               className="w-40 opacity-80"
                             />
