@@ -1518,7 +1518,7 @@ const AttendanceDrawer = ({
                   {tasks.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-10 text-center">
                       <img
-                        src="/public/assets/images/check.png"
+                        src="/assets/images/check.png"
                         alt="No Tasks"
                         className="w-40 opacity-80"
                       />
@@ -1696,7 +1696,7 @@ const AttendanceDrawer = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center py-10 text-center">
                     <img
-                      src="/public/assets/images/comment.png"
+                      src="/assets/images/comment.png"
                       alt="No Comments"
                       className="w-40 opacity-80"
                     />
