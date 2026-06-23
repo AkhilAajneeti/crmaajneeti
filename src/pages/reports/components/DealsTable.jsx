@@ -3,6 +3,58 @@ import Icon from "../../../components/AppIcon";
 
 import { Checkbox } from "../../../components/ui/Checkbox";
 
+// Initials from a person's name: "Dheeraj Kohli" -> "DK"
+const getInitials = (name) => {
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/).filter((p) => /[a-z0-9]/i.test(p));
+  const first = parts[0]?.[0] || "";
+  const second = parts[1]?.[0] || "";
+  return (first + second).toUpperCase() || "?";
+};
+
+// Deterministic avatar color so the same person always gets the same tone.
+const AVATAR_COLORS = [
+  "bg-emerald-500",
+  "bg-pink-500",
+  "bg-red-500",
+  "bg-blue-500",
+  "bg-violet-500",
+  "bg-amber-500",
+  "bg-cyan-500",
+  "bg-rose-500",
+  "bg-teal-500",
+  "bg-indigo-500",
+];
+
+const getAvatarColor = (name) => {
+  if (!name) return "bg-gray-400";
+  let sum = 0;
+  for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+  return AVATAR_COLORS[sum % AVATAR_COLORS.length];
+};
+
+// Avatar + name pill (used for person fields like "Assigned User").
+const UserPill = ({ name }) => {
+  if (!name) return <span className="text-muted-foreground text-sm">—</span>;
+  return (
+    <span
+      title={name}
+      className="inline-flex items-center gap-2 pl-1 pr-3 py-1 max-w-[180px] rounded-full border border-border bg-background shadow-sm"
+    >
+      <span
+        className={`flex items-center justify-center shrink-0 h-7 w-7 rounded-full text-[11px] font-semibold text-white ${getAvatarColor(
+          name
+        )}`}
+      >
+        {getInitials(name)}
+      </span>
+      <span className="text-sm font-medium text-foreground truncate min-w-0">
+        {name}
+      </span>
+    </span>
+  );
+};
+
 
 const DealsTable = ({
   deals,
@@ -212,7 +264,7 @@ const DealsTable = ({
                   key={deal?.id}
                   onMouseEnter={() => setHoveredRow(deal?.id)}
                   onMouseLeave={() => setHoveredRow(null)}
-                  className="hover:bg-muted/30 cursor-pointer transition-smooth"
+                  className="hover:bg-sky-50/60 cursor-pointer transition-colors duration-200"
                 >
                   <td className="px-4 py-4" onClick={() => onDealClick(deal)}>
                     <div className="font-medium text-foreground capitalize">
@@ -249,13 +301,7 @@ const DealsTable = ({
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <div
-                      className={`flex justify-center items-center space-x-2 px-2 py-1 font-medium rounded-ful`}
-                    >
-                      <span className={`text-sm text-foreg roundunded-full `}>
-                        {deal?.assignedUserName}
-                      </span>
-                    </div>
+                    <UserPill name={deal?.assignedUserName} />
                   </td>
                 </tr>
               ))

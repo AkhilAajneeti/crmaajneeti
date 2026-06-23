@@ -4,6 +4,59 @@ import Button from "../../../components/ui/Button";
 
 import Select from "../../../components/ui/Select";
 import { Checkbox } from "../../../components/ui/Checkbox";
+
+// Initials from a person's name: "Rani Muskan" -> "RM", "ANCHALA ." -> "A"
+const getInitials = (name) => {
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/).filter((p) => /[a-z0-9]/i.test(p));
+  const first = parts[0]?.[0] || "";
+  const second = parts[1]?.[0] || "";
+  return (first + second).toUpperCase() || "?";
+};
+
+// Deterministic avatar color so the same person always gets the same tone.
+const AVATAR_COLORS = [
+  "bg-emerald-500",
+  "bg-pink-500",
+  "bg-red-500",
+  "bg-blue-500",
+  "bg-violet-500",
+  "bg-amber-500",
+  "bg-cyan-500",
+  "bg-rose-500",
+  "bg-teal-500",
+  "bg-indigo-500",
+];
+
+const getAvatarColor = (name) => {
+  if (!name) return "bg-gray-400";
+  let sum = 0;
+  for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+  return AVATAR_COLORS[sum % AVATAR_COLORS.length];
+};
+
+// Avatar + name pill (used for person fields like "Created By").
+const UserPill = ({ name }) => {
+  if (!name) return <span className="text-muted-foreground text-sm">—</span>;
+  return (
+    <span
+      title={name}
+      className="inline-flex items-center gap-2 pl-1 pr-3 py-1 max-w-[180px] rounded-full border border-border bg-background shadow-sm"
+    >
+      <span
+        className={`flex items-center justify-center shrink-0 h-7 w-7 rounded-full text-[11px] font-semibold text-white ${getAvatarColor(
+          name
+        )}`}
+      >
+        {getInitials(name)}
+      </span>
+      <span className="text-sm font-medium text-foreground truncate min-w-0">
+        {name}
+      </span>
+    </span>
+  );
+};
+
 const AccountsTable = ({
   accounts,
   onRowClick,
@@ -333,7 +386,7 @@ const AccountsTable = ({
               <tr>
                 <td colSpan="6">
                   <div className="flex items-center justify-center h-[200px] text-gray-400 text-sm">
-                    No leads available
+                    No Accounts Available
                   </div>
                 </td>
               </tr>
@@ -341,7 +394,7 @@ const AccountsTable = ({
               filteredAndSortedData?.map((account) => (
                 <tr
                   key={account?.id}
-                  className="border-t border-border hover:bg-muted/30 cursor-pointer transition-colors"
+                  className="border-t border-border hover:bg-sky-50/60 cursor-pointer transition-colors duration-200"
                   onClick={() => onRowClick(account.id)}
                 >
                   <td className="p-4" onClick={(e) => e?.stopPropagation()}>
@@ -377,7 +430,19 @@ const AccountsTable = ({
                     <td className="p-4 text-foreground">{account?.industry}</td>
                   )}
                   {visibleColumns?.type && (
-                    <td className="p-4 text-foreground">{account?.type}</td>
+                    <td className="p-4">
+                      {account?.type ? (
+                        <span
+                          className={`px-2.5 py-0.5 text-sm font-medium rounded-full ${getTypeColor(
+                            account?.type
+                          )}`}
+                        >
+                          {account?.type}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </td>
                   )}
 
                   {visibleColumns?.modifiedat && (
@@ -393,7 +458,7 @@ const AccountsTable = ({
                   )}
                   {visibleColumns?.createdby && (
                     <td className="p-4 text-foreground">
-                      {account?.createdByName}
+                      <UserPill name={account?.createdByName} />
                     </td>
                   )}
                   {visibleColumns?.actions && (
@@ -461,11 +526,11 @@ const AccountsTable = ({
                     Account Name:{account?.name}
                   </h4>
 
-                  {/* Website / Email */}
+                  {/* Created By */}
                   {account?.createdByName && (
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Created By: {account?.createdByName}
-                    </p>
+                    <div className="mt-1.5">
+                      <UserPill name={account?.createdByName} />
+                    </div>
                   )}
                 </div>
               </div>

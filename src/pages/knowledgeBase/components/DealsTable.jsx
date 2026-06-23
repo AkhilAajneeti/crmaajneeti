@@ -3,6 +3,27 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { Checkbox } from "../../../components/ui/Checkbox";
 
+// Deterministic pill color for open-ended values (sector / category),
+// so the same value always gets the same color.
+const PILL_COLORS = [
+  "bg-blue-100 text-blue-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-amber-100 text-amber-700",
+  "bg-purple-100 text-purple-700",
+  "bg-pink-100 text-pink-700",
+  "bg-cyan-100 text-cyan-700",
+  "bg-indigo-100 text-indigo-700",
+  "bg-rose-100 text-rose-700",
+  "bg-teal-100 text-teal-700",
+];
+
+const getCategoryColor = (value) => {
+  if (!value) return "bg-gray-100 text-gray-700";
+  let sum = 0;
+  for (let i = 0; i < value.length; i++) sum += value.charCodeAt(i);
+  return PILL_COLORS[sum % PILL_COLORS.length];
+};
+
 const DealsTable = ({
   deals,
   selectedDeals,
@@ -234,7 +255,7 @@ const DealsTable = ({
                   key={deal?.id}
                   onMouseEnter={() => setHoveredRow(deal?.id)}
                   onMouseLeave={() => setHoveredRow(null)}
-                  className="hover:bg-muted/30 cursor-pointer transition-smooth"
+                  className="hover:bg-sky-50/60 cursor-pointer transition-colors duration-200"
                 >
                   <td className="px-4 py-4">
                     <Checkbox
@@ -252,9 +273,18 @@ const DealsTable = ({
                   </td>
 
                   <td className="px-4 py-4">
-                    <div className="font-medium text-foreground">
-                      {deal?.type}
-                    </div>
+                    {deal?.type ? (
+                      <span
+                        title={deal?.type}
+                        className={`inline-block max-w-[160px] truncate align-middle px-2.5 py-1 text-xs font-medium rounded-full ${getCategoryColor(
+                          deal?.type
+                        )}`}
+                      >
+                        {deal?.type}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-4">
                     <div

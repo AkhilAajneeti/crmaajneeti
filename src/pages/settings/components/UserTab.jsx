@@ -61,6 +61,70 @@ const canDeleteSettingRecord = (entity, record) => {
   return canDeleteRecord(entity, record);
 };
 
+// Initials from a value: "Vishal Saxena" -> "VS", "badal" -> "B"
+const getInitials = (name) => {
+  if (!name) return "?";
+  const parts = name.trim().split(/[\s_]+/).filter((p) => /[a-z0-9]/i.test(p));
+  const first = parts[0]?.[0] || "";
+  const second = parts[1]?.[0] || "";
+  return (first + second).toUpperCase() || "?";
+};
+
+// Deterministic avatar color so the same value always gets the same tone.
+const AVATAR_COLORS = [
+  "bg-emerald-500",
+  "bg-pink-500",
+  "bg-red-500",
+  "bg-blue-500",
+  "bg-violet-500",
+  "bg-amber-500",
+  "bg-cyan-500",
+  "bg-rose-500",
+  "bg-teal-500",
+  "bg-indigo-500",
+];
+
+const getAvatarColor = (name) => {
+  if (!name) return "bg-gray-400";
+  let sum = 0;
+  for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+  return AVATAR_COLORS[sum % AVATAR_COLORS.length];
+};
+
+// Avatar + name pill (used for the User Name column).
+const UserPill = ({ name }) => {
+  if (!name) return <span className="text-muted-foreground text-sm">—</span>;
+  return (
+    <span
+      title={name}
+      className="inline-flex items-center gap-2 pl-1 pr-3 py-1 max-w-[180px] rounded-full border border-border bg-background shadow-sm"
+    >
+      <span
+        className={`flex items-center justify-center shrink-0 h-7 w-7 rounded-full text-[11px] font-semibold text-white ${getAvatarColor(
+          name
+        )}`}
+      >
+        {getInitials(name)}
+      </span>
+      <span className="text-sm font-medium text-foreground truncate min-w-0">
+        {name}
+      </span>
+    </span>
+  );
+};
+
+// Colored pill per user role/type (admin / regular).
+const getRoleColor = (type) => {
+  switch (String(type).toLowerCase()) {
+    case "admin":
+      return "bg-purple-100 text-purple-700 ring-1 ring-purple-200";
+    case "regular":
+      return "bg-blue-100 text-blue-700 ring-1 ring-blue-200";
+    default:
+      return "bg-gray-100 text-gray-700 ring-1 ring-border";
+  }
+};
+
 const UserTab = ({ deepLink }) => {
   const navigate = useNavigate();
   const [teamMembers, setTeamMembers] = useState([]);
@@ -612,7 +676,7 @@ const UserTab = ({ deepLink }) => {
                 paginatedMembers?.map((member) => (
                   <tr
                     key={member?.id}
-                    className="border-b border-border hover:bg-muted/50 transition-smooth"
+                    className="border-b border-border hover:bg-sky-50/60 cursor-pointer transition-colors duration-200"
                   >
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-3">
@@ -650,14 +714,20 @@ const UserTab = ({ deepLink }) => {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <span className="text-sm text-card-foreground">
-                        {member?.type}
-                      </span>
+                      {member?.type ? (
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full capitalize ${getRoleColor(
+                            member?.type
+                          )}`}
+                        >
+                          {member?.type}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
                     </td>
                     <td className="py-4 px-4">
-                      <span className="text-sm text-card-foreground">
-                        {member?.userName}
-                      </span>
+                      <UserPill name={member?.userName} />
                     </td>
                     <td className="py-4 px-4">
                       {getStatusBadge(member?.isActive ? "Active" : "InActive")}
