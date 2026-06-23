@@ -60,6 +60,7 @@ const DealsTable = ({
   deals,
   selectedDeals,
   onSelectAll,
+  onSelectDeal,
   onDealClick,
   sortConfig,
   onSort,
@@ -325,15 +326,17 @@ const DealsTable = ({
   `}
           >
             <div className="flex items-start gap-3">
-              {/* Checkbox */}
-              <Checkbox
-                checked={selectedDeals?.includes(deal?.id)}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  onSelectDeal(deal?.id, e.target.checked);
-                }}
-                className="mt-1"
-              />
+              {/* Checkbox — stop the click bubbling to the card (which opens the drawer) */}
+              <span onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedDeals?.includes(deal?.id)}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onSelectDeal?.(deal?.id, e.target.checked);
+                  }}
+                  className="mt-1"
+                />
+              </span>
 
               {/* Content */}
               <div className="flex-1 min-w-0">

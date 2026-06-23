@@ -22,6 +22,7 @@ import { deleteTasks } from "services/tasks.service";
 import { useAccountById } from "hooks/useAccounts";
 import { useCalenderById, useCalenderStream } from "hooks/useCalender";
 import { createNewAttendance, updateAttendance } from "services/calender.service";
+import AttendanceSuccessModal from "./AttendanceSuccessModal";
 
 const AttendanceDrawer = ({
   data,
@@ -50,6 +51,8 @@ const AttendanceDrawer = ({
   const [tasks, setTasks] = useState([]);
   const [taskLoading, setTaskLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  // Holds the requestType of a just-created request → drives the success modal.
+  const [successType, setSuccessType] = useState(null);
   const [users, setUsers] = useState([]);
   const [team, setTeam] = useState([]);
   const [massFields, setMassFields] = useState({
@@ -426,15 +429,22 @@ const AttendanceDrawer = ({
       console.log("CREATE ATTENDANCE PAYLOAD", payload);
 
       await createNewAttendance(payload);
-      toast.success("Attendance request created successfully");
-      onSuccess();
-      onClose();
+      // Show the premium success modal; the drawer's onSuccess/onClose run when
+      // the user dismisses it via "Got It" (see handleSuccessModalClose).
+      setSuccessType(formData.requestType);
     } catch (err) {
       console.error("Create failed:", err);
       toast.error(err?.message || "Failed to create attendance request");
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // Dismiss the success modal, then run the original post-create flow.
+  const handleSuccessModalClose = () => {
+    setSuccessType(null);
+    onSuccess();
+    onClose();
   };
 
   const handleSave = () => {
@@ -1849,6 +1859,13 @@ const AttendanceDrawer = ({
           </div>
         </div>
       </div>
+
+      {/* Premium success modal — appears after a request is created */}
+      <AttendanceSuccessModal
+        isOpen={!!successType}
+        requestType={successType}
+        onClose={handleSuccessModalClose}
+      />
     </>
   );
 };
