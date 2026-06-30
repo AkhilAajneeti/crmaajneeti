@@ -22,6 +22,17 @@ import {
 } from "utils/permissions";
 import { deleteAttendance } from "services/calender.service";
 
+// Persist list view-state (filters/page/limit/sort) per browser-tab session so it
+// survives the remount that happens when the detail/drawer route opens & closes.
+const ATTENDANCE_VIEW_KEY = "attendance_view_state";
+const loadAttendanceView = () => {
+  try {
+    return JSON.parse(sessionStorage.getItem(ATTENDANCE_VIEW_KEY)) || {};
+  } catch {
+    return {};
+  }
+};
+
 const Attendance = () => {
   const navigate = useNavigate();
   // EspoCRM-style URL params: /CAttendanceRequest/<action>/<id?>
@@ -35,25 +46,28 @@ const Attendance = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState("create"); // create | edit | view
   const [selectedDeal, setSelectedDeal] = useState(null);
-  const [limit, setLimit] = useState(20);
-  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(() => loadAttendanceView().limit ?? 20);
+  const [page, setPage] = useState(() => loadAttendanceView().page ?? 1);
   const [dateRange, setDateRange] = useState({
     start: "",
     end: "",
   });
-  const [sortConfig, setSortConfig] = useState({
-    key: "createdAt",
-    direction: "desc",
-  });
-  const [filters, setFilters] = useState({
-    search: "",
-    status: "",
-    dateType: "",
-    requestType: "",
-    createdById: "",
-    closeDateFrom: "",
-    closeDateTo: "",
-  });
+  const [sortConfig, setSortConfig] = useState(
+    () =>
+      loadAttendanceView().sortConfig || { key: "createdAt", direction: "desc" }
+  );
+  const [filters, setFilters] = useState(
+    () =>
+      loadAttendanceView().filters || {
+        search: "",
+        status: "",
+        dateType: "",
+        requestType: "",
+        createdById: "",
+        closeDateFrom: "",
+        closeDateTo: "",
+      }
+  );
   const canCreateAttendance = canCreate("CAttendanceRequest");
   const canEditAttendance = canEdit("CAttendanceRequest");
   const canEditAttendanceStatus =
@@ -76,6 +90,14 @@ const Attendance = () => {
 
   const mockcalender = data?.list || [];
   const total = data?.total || 0;
+
+  // Persist the list view-state so it survives the drawer-route remount.
+  useEffect(() => {
+    sessionStorage.setItem(
+      ATTENDANCE_VIEW_KEY,
+      JSON.stringify({ filters, page, limit, sortConfig })
+    );
+  }, [filters, page, limit, sortConfig]);
 
   // Drawer state derived from URL — single source of truth.
   // /attendance                          → drawer closed

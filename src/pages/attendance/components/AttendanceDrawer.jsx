@@ -700,24 +700,29 @@ const AttendanceDrawer = ({
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+          <div className="flex items-center justify-between p-6 border-b border-border gap-4">
+            <div className="flex items-center space-x-4 min-w-0">
+              <div className="w-12 h-12 shrink-0 bg-primary/10 rounded-lg flex items-center justify-center">
                 <Icon
                   name="ClipboardList"
                   size={24}
                   className="text-primary"
                 />
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-foreground">
+              <div className="min-w-0">
+                <h2
+                  title={
+                    drawerMode === "view" ? account?.name || "" : undefined
+                  }
+                  className="text-xl font-semibold text-foreground truncate"
+                >
                   {drawerMode === "create"
                     ? "Add Request"
                     : drawerMode === "edit"
                       ? "Edit Request"
                       : account?.name || "Request Details"}
                 </h2>
-                <h3 className="text-lg font-semibold text-foreground">
+                <h3 className="text-sm font-medium text-muted-foreground truncate">
                   {drawerMode === "view" ? "Attendance Request Details" : ""}
                 </h3>
               </div>
@@ -1327,7 +1332,8 @@ const AttendanceDrawer = ({
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Icon name="Building2" size={13} />
                               Department
                             </p>
                             <p className="font-medium text-foreground">
@@ -1336,7 +1342,8 @@ const AttendanceDrawer = ({
                           </div>
 
                           <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Icon name="Hash" size={13} />
                               Employee Code
                             </p>
                             <p className="font-medium text-foreground">
@@ -1345,7 +1352,8 @@ const AttendanceDrawer = ({
                           </div>
 
                           <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Icon name="Tag" size={13} />
                               Request Type
                             </p>
                             <p className="font-medium text-foreground">
@@ -1354,7 +1362,8 @@ const AttendanceDrawer = ({
                           </div>
 
                           <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Icon name="Wallet" size={13} />
                               Leave Balance
                             </p>
                             <p className="font-medium text-foreground">
@@ -1365,7 +1374,8 @@ const AttendanceDrawer = ({
 
                         <div className="grid grid-cols-3 gap-4">
                           <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                            <p className="text-xs text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Icon name="Calendar" size={13} />
                               Start Date
                             </p>
                             <p className="font-semibold text-foreground">
@@ -1374,7 +1384,8 @@ const AttendanceDrawer = ({
                           </div>
 
                           <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                            <p className="text-xs text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Icon name="CalendarCheck" size={13} />
                               End Date
                             </p>
                             <p className="font-semibold text-foreground">
@@ -1383,7 +1394,8 @@ const AttendanceDrawer = ({
                           </div>
 
                           <div className="p-4 bg-primary/10 rounded-xl border border-primary/20 text-center">
-                            <p className="text-xs text-muted-foreground">
+                            <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                              <Icon name="Clock" size={13} />
                               Duration
                             </p>
                             <p className="text-lg font-bold text-primary">
@@ -1395,7 +1407,8 @@ const AttendanceDrawer = ({
                         </div>
 
                         <div className="bg-muted/40 border border-border rounded-xl p-4">
-                          <p className="text-xs text-muted-foreground mb-2">
+                          <p className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
+                            <Icon name="FileText" size={13} />
                             Description
                           </p>
                           <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">

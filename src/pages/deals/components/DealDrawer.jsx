@@ -37,6 +37,69 @@ const linkifyText = (text) => {
   );
 };
 
+// The `cQuestion` field arrives as a single string where each answer is wrapped
+// in <b>…</b> tags, e.g.  "How long…? <b>less_than_1_year</b> Budget? <b>need_consultation</b>".
+// Parse it into clean { question, answer } pairs so we can render readable Q&A.
+const parseQuestionAnswers = (raw) => {
+  if (!raw) return [];
+  // Split on the bold tags, keeping the captured answer text between segments.
+  const parts = String(raw).split(/<b>(.*?)<\/b>/gi);
+  const pairs = [];
+  for (let i = 0; i < parts.length; i += 2) {
+    const question = (parts[i] || "").replace(/<\/?b>/gi, "").trim();
+    const answer = (parts[i + 1] || "").trim();
+    if (!question && !answer) continue;
+    pairs.push({ question, answer });
+  }
+  return pairs;
+};
+
+// snake_case / machine values → human readable: "less_than_1_year" → "Less than 1 year"
+const humanizeAnswer = (value) => {
+  if (!value) return "";
+  const text = value.replace(/[_-]+/g, " ").trim();
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+// Renders the parsed Q&A as a readable list; falls back gracefully when the
+// string has no <b> tags (just shows the raw text).
+const QuestionAnswers = ({ raw }) => {
+  const pairs = parseQuestionAnswers(raw);
+
+  if (!raw) return <p className="text-foreground font-medium">None</p>;
+
+  // No structured answers — show the plain text as-is.
+  if (!pairs.some((p) => p.answer)) {
+    return (
+      <p className="text-foreground font-medium whitespace-pre-line">
+        {String(raw).replace(/<\/?b>/gi, "")}
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {pairs.map((pair, i) => (
+        <div key={i} className="flex gap-2">
+          <span className="text-sm font-semibold text-primary">{i + 1}.</span>
+          <div className="flex-1">
+            {pair.question && (
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {pair.question}
+              </p>
+            )}
+            {pair.answer && (
+              <p className="mt-0.5 text-sm font-semibold text-foreground">
+                {humanizeAnswer(pair.answer)}
+              </p>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const DealDrawer = ({
 
   deal,
@@ -792,7 +855,8 @@ const DealDrawer = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Name */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="User" size={14} />
                               Name
                             </p>
                             <p className="text-foreground font-medium">
@@ -802,7 +866,8 @@ const DealDrawer = ({
 
                           {/* Phone */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Phone" size={14} />
                               Phone
                             </p>
                             {deal?.phoneNumber ? (
@@ -819,7 +884,8 @@ const DealDrawer = ({
 
                           {/* Email */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Mail" size={14} />
                               Email
                             </p>
                             {deal?.emailAddress ? (
@@ -867,7 +933,8 @@ const DealDrawer = ({
 
                           {/* City */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="MapPin" size={14} />
                               City
                             </p>
                             <p className="text-foreground font-medium">
@@ -877,7 +944,8 @@ const DealDrawer = ({
 
                           {/* Next Contact */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="CalendarClock" size={14} />
                               Next Contact
                             </p>
                             <p className="text-foreground font-medium">
@@ -887,7 +955,8 @@ const DealDrawer = ({
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="ShieldCheck" size={14} />
                               OTP Verified
                             </p>
                             <p className="text-foreground font-medium">
@@ -895,15 +964,7 @@ const DealDrawer = ({
                             </p>
                           </div>
 
-                          {/* Question */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Question
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.cQuestion || "None"}
-                            </p>
-                          </div>
+                          
 
                           {/* WhatsApp — Full Branded Template */}
                           <div>
@@ -943,6 +1004,15 @@ Let me know when you're available so that we can discuss this in more detail.
                               <p className="text-foreground">None</p>
                             )}
                           </div>
+
+                          {/* Question */}
+                          <div className="col-span-2">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1.5">
+                              <Icon name="HelpCircle" size={14} />
+                              Question
+                            </p>
+                            <QuestionAnswers raw={deal?.cQuestion} />
+                          </div>
                         </div>
                       </div>
 
@@ -955,7 +1025,8 @@ Let me know when you're available so that we can discuss this in more detail.
                         <div className="grid grid-cols-2 md:grid-cols-2 gap-5">
                           {/* Status */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Activity" size={14} />
                               Status
                             </p>
                             <span className="inline-flex px-3 py-1 rounded-full text-xs font-medium bg-success/10 text-success">
@@ -965,7 +1036,8 @@ Let me know when you're available so that we can discuss this in more detail.
 
                           {/* Source */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Globe" size={14} />
                               Source
                             </p>
                             <p className="text-foreground font-medium">
@@ -977,7 +1049,8 @@ Let me know when you're available so that we can discuss this in more detail.
 
                           {/* Description */}
                           <div className="col-span-2 ">
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="FileText" size={14} />
                               Description
                             </p>
                             <p className="text-foreground leading-relaxed mt-1 whitespace-pre-line break-words">

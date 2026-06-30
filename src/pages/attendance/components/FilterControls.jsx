@@ -39,10 +39,16 @@ const FilterControls = ({
   ];
 
   const handleFilterChange = (key, value) => {
-    onFiltersChange({
+    const updated = {
       ...filters,
       [key]: value,
-    });
+    };
+    // Removing/changing the date filter clears its dependent date inputs.
+    if (key === "dateType") {
+      updated.closeDateFrom = "";
+      updated.closeDateTo = "";
+    }
+    onFiltersChange(updated);
   };
 
   useEffect(() => {
@@ -56,9 +62,6 @@ const FilterControls = ({
     setShowBulkActions(false);
   };
   const showDateInputs = ["between", "after", "before"].includes(filters?.dateType);
-  const activeFiltersCount = Object.values(filters)?.filter(
-    (value) => value !== "" && value !== null && value !== undefined,
-  )?.length;
   const assignUserOptions = assignUser.map((acc) => ({
     value: acc.id, // 👈 important (ID use karo)
     label: acc.name,
@@ -69,20 +72,61 @@ const FilterControls = ({
       value: item,
       label: item,
     }));
+
+  // Active-filter chips (removable). The date sub-inputs are represented by the
+  // single "dateType" chip — removing it also clears the date inputs.
+  const optionLabel = (options, value) =>
+    options?.find((o) => o.value === value)?.label || value;
+
+  const getFilterChipLabel = (key, value) => {
+    switch (key) {
+      case "search":
+        return `Search: "${value}"`;
+      case "status":
+        return `Status: ${optionLabel(statusOptions, value)}`;
+      case "requestType":
+        return `Type: ${optionLabel(requestOptions, value)}`;
+      case "dateType":
+        return `Date: ${optionLabel(daysOptions, value)}`;
+      case "createdById":
+        return `User: ${optionLabel(assignUserOptions, value)}`;
+      default:
+        return `${key}: ${value}`;
+    }
+  };
+
+  const CHIP_KEYS = ["search", "status", "requestType", "dateType", "createdById"];
+  const activeChips = CHIP_KEYS.filter((key) => filters?.[key]).map((key) => ({
+    key,
+    label: getFilterChipLabel(key, filters[key]),
+  }));
+
   return (
     <div className="bg-card border border-border rounded-lg p-4 mb-6">
       {/* Header Row */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-lg font-semibold text-foreground">
             Total Request ({dealCount?.toLocaleString()})
           </h2>
-          {activeFiltersCount > 0 && (
-            <div className="flex items-center space-x-2">
-              <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                {activeFiltersCount} filter{activeFiltersCount !== 1 ? "s" : ""}{" "}
-                active
-              </span>
+          {activeChips.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {activeChips.map((chip) => (
+                <span
+                  key={chip.key}
+                  className="group inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 text-xs font-medium text-primary bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/30 rounded-full shadow-sm transition-all duration-200 hover:border-primary/60 hover:from-primary/15 hover:to-primary/10 hover:shadow-md"
+                >
+                  <span className="truncate max-w-[160px]">{chip.label}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleFilterChange(chip.key, "")}
+                    aria-label={`Remove ${chip.label} filter`}
+                    className="flex items-center justify-center w-4 h-4 rounded-full text-primary/70 transition-all duration-200 hover:bg-destructive hover:text-white hover:scale-110"
+                  >
+                    <Icon name="X" size={11} />
+                  </button>
+                </span>
+              ))}
               <Button
                 variant="ghost"
                 size="sm"
