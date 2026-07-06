@@ -1,9 +1,32 @@
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import { fetchUser } from "services/user.service";
+
+const MONTH_NAMES = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+// Per-month seasonal color for inactive pills. Full literal class strings so
+// Tailwind's JIT keeps them (dynamic `bg-${x}` would get purged).
+const MONTH_THEMES = [
+  { tint: "bg-sky-50 text-sky-700 border-sky-200 hover:border-sky-300", dot: "bg-sky-500" },        // Jan
+  { tint: "bg-cyan-50 text-cyan-700 border-cyan-200 hover:border-cyan-300", dot: "bg-cyan-500" },    // Feb
+  { tint: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-300", dot: "bg-emerald-500" }, // Mar
+  { tint: "bg-green-50 text-green-700 border-green-200 hover:border-green-300", dot: "bg-green-500" }, // Apr
+  { tint: "bg-lime-50 text-lime-700 border-lime-200 hover:border-lime-300", dot: "bg-lime-500" },     // May
+  { tint: "bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-300", dot: "bg-amber-500" }, // Jun
+  { tint: "bg-orange-50 text-orange-700 border-orange-200 hover:border-orange-300", dot: "bg-orange-500" }, // Jul
+  { tint: "bg-red-50 text-red-700 border-red-200 hover:border-red-300", dot: "bg-red-500" },          // Aug
+  { tint: "bg-yellow-50 text-yellow-700 border-yellow-200 hover:border-yellow-300", dot: "bg-yellow-500" }, // Sep
+  { tint: "bg-rose-50 text-rose-700 border-rose-200 hover:border-rose-300", dot: "bg-rose-500" },     // Oct
+  { tint: "bg-indigo-50 text-indigo-700 border-indigo-200 hover:border-indigo-300", dot: "bg-indigo-500" }, // Nov
+  { tint: "bg-violet-50 text-violet-700 border-violet-200 hover:border-violet-300", dot: "bg-violet-500" }, // Dec
+];
 
 const FilterControls = ({
   filters,
@@ -43,13 +66,35 @@ const FilterControls = ({
       ...filters,
       [key]: value,
     };
-    // Removing/changing the date filter clears its dependent date inputs.
+    // Removing/changing the date filter clears its dependent date inputs
+    // (and the month pill selection, since both drive the same date dimension).
     if (key === "dateType") {
       updated.closeDateFrom = "";
       updated.closeDateTo = "";
+      updated.month = "";
     }
     onFiltersChange(updated);
   };
+
+  // Month quick-filter: reuses the shared date dimension (dateType="month").
+  // Clicking the active month again clears it (shows all records).
+  const handleMonthSelect = (monthIndex) => {
+    const isActive =
+      filters?.dateType === "month" && Number(filters?.month) === monthIndex;
+    onFiltersChange({
+      ...filters,
+      dateType: isActive ? "" : "month",
+      month: isActive ? "" : monthIndex,
+      // month owns its own range → clear the manual date inputs
+      closeDateFrom: "",
+      closeDateTo: "",
+    });
+  };
+
+  // Show pills for Jan through the current month of the current year.
+  const monthPills = MONTH_NAMES.slice(0, new Date().getMonth() + 1).map(
+    (label, index) => ({ index, label })
+  );
 
   useEffect(() => {
     fetchUser()
@@ -87,9 +132,16 @@ const FilterControls = ({
       case "requestType":
         return `Type: ${optionLabel(requestOptions, value)}`;
       case "dateType":
+        if (value === "month") {
+          return `Month: ${MONTH_NAMES[Number(filters.month)] || ""}`;
+        }
         return `Date: ${optionLabel(daysOptions, value)}`;
-      case "createdById":
-        return `User: ${optionLabel(assignUserOptions, value)}`;
+      case "createdById": {
+        // The user list loads async — until it resolves, show a placeholder
+        // instead of flashing the raw id; it becomes the name once loaded.
+        const found = assignUserOptions.find((o) => o.value === value);
+        return `User: ${found ? found.label : "…"}`;
+      }
       default:
         return `${key}: ${value}`;
     }
@@ -249,6 +301,54 @@ const FilterControls = ({
           Calender
         </Button>
       </div>
+
+      {/* Month quick-filter pills — Jan through the current month */}
+      <div className="mt-5 pt-4 border-t border-border">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <Icon name="CalendarRange" size={14} />
+          </span>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Filter by Month
+          </p>
+        </div>
+
+        {/* Horizontally scrollable, snap-aligned pill rail */}
+        <div className="flex gap-2.5 overflow-x-auto scrollbar-hide snap-x -mx-1 px-1 py-1">
+          {monthPills.map((m) => {
+            const isActive =
+              filters?.dateType === "month" &&
+              Number(filters?.month) === m.index;
+            const theme = MONTH_THEMES[m.index];
+            return (
+              <motion.button
+                key={m.index}
+                type="button"
+                onClick={() => handleMonthSelect(m.index)}
+                aria-pressed={isActive}
+                initial={false}
+                animate={{ scale: isActive ? 1.05 : 1 }}
+                whileHover={{ y: -3 }}
+                whileTap={{ scale: 0.92 }}
+                transition={{ type: "spring", stiffness: 420, damping: 26 }}
+                className={`group relative shrink-0 snap-start inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                  isActive
+                    ? "linearbg-1 border-transparent text-white shadow-md shadow-primary/30"
+                    : `${theme.tint} shadow-sm hover:shadow-md`
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full transition-all duration-200 ${
+                    isActive ? "bg-white" : `${theme.dot} group-hover:scale-125`
+                  }`}
+                />
+                {m.label}
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Advanced Filters Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mt-4 pt-4 border-t border-border">
         <div className="flex flex-col sm:flex-row gap-3 w-full">

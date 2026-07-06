@@ -41,6 +41,15 @@ select:focus {
   background: linear-gradient(52deg, #000000, #AC2334);
 }
 
+/* Hide scrollbars while keeping scroll (used by horizontal pill/tab rails) */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
 /*  */
 @keyframes shimmerMove {
   0% {

@@ -61,11 +61,13 @@ const Attendance = () => {
       loadAttendanceView().filters || {
         search: "",
         status: "",
-        dateType: "",
+        // Default view: the current month is pre-selected.
+        dateType: "month",
         requestType: "",
         createdById: "",
         closeDateFrom: "",
         closeDateTo: "",
+        month: new Date().getMonth(),
       }
   );
   const canCreateAttendance = canCreate("CAttendanceRequest");
@@ -157,6 +159,7 @@ const Attendance = () => {
       createdById: "",
       closeDateFrom: "",
       closeDateTo: "",
+      month: "",
     });
     setPage(1);
   };

@@ -143,6 +143,33 @@ export const fetchcalenderDetails = async ({ limit, page, filters }) => {
                 });
                 break;
             }
+
+            // 🔥 SPECIFIC MONTH (current year) — same between-range pattern as
+            // currentMonth/lastMonth. `filters.month` is the 0-based month index.
+            case "month": {
+                const monthIndex = Number(filters.month);
+                if (!Number.isNaN(monthIndex)) {
+                    const year = today.getFullYear();
+
+                    const start = new Date(year, monthIndex, 1);
+                    start.setHours(0, 0, 0, 0);
+
+                    // For the current month cap at "now" (mirrors currentMonth);
+                    // otherwise use the last calendar day of that month.
+                    const end =
+                        monthIndex === today.getMonth()
+                            ? new Date()
+                            : new Date(year, monthIndex + 1, 0);
+                    end.setHours(23, 59, 59, 999);
+
+                    where.push({
+                        type: "between",
+                        attribute: "createdAt",
+                        value: [toLocalISOString(start), toLocalISOString(end)],
+                    });
+                }
+                break;
+            }
         }
     }
 
