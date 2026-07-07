@@ -24,6 +24,19 @@ const COLORS = [
   "#22c55e", // light green
   "#e11d48", // rose
 ];
+
+// Fixed color per status so each always renders the same hue (order-independent).
+const STATUS_COLOR_MAP = {
+  Converted: "#06b6d4", // cyan
+  "Proposal Shared": "#8b5cf6", // purple
+  Interested: "#10b981", // green
+  "Follow Up": "#f59e0b", // amber
+  New: "#2563eb", // blue
+  "Not interested": "#ef4444", // red
+};
+
+const getStatusColor = (name, index) =>
+  STATUS_COLOR_MAP[name] || COLORS[index % COLORS.length];
 const STATUS_OPTIONS = [
   "Call Later",
   "Call Not Connecting",
@@ -328,7 +341,7 @@ const StatusChart = () => {
                 (entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={isEmpty ? "#d1d5db" : COLORS[index % COLORS.length]}
+                    fill={isEmpty ? "#d1d5db" : getStatusColor(entry?.name, index)}
                     opacity={isEmpty ? 0.4 : 1}
                   />
                 ),
@@ -351,7 +364,7 @@ const StatusChart = () => {
           <div key={item.name} className="flex items-center space-x-2">
             <div
               className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: COLORS[index % COLORS.length] }}
+              style={{ backgroundColor: getStatusColor(item.name, index) }}
             />
             <span>{item.name}</span>
           </div>
