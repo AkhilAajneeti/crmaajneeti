@@ -118,7 +118,7 @@ const DealsTable = ({
       Approved: "bg-green-100 text-green-900",
       Pending: "bg-sky-100 text-sky-800",
       Rejected: "bg-orange-100 text-orange-800",
-
+      LWP: "bg-purple-100 text-purple-800",
     };
 
     return colors?.[stage] || "bg-gray-100 text-gray-800";
@@ -132,6 +132,7 @@ const DealsTable = ({
       Pending: "bg-gradient-to-br from-sky-50/70 to-background border-sky-100",
       Rejected:
         "bg-gradient-to-br from-orange-50/70 to-background border-orange-100",
+      LWP: "bg-gradient-to-br from-purple-50/70 to-background border-purple-100",
     };
 
     return (

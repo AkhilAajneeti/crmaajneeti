@@ -144,7 +144,7 @@ const Attendance = () => {
     });
   }, [mockcalender, urlId]);
 
-  const STATUS = ["Approved", "Pending"];
+  const STATUS = ["Approved", "Pending", "Rejected", "LWP"];
 
 
   const handleSidebarToggle = () => {

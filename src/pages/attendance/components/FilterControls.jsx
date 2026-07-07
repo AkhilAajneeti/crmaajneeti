@@ -28,6 +28,18 @@ const MONTH_THEMES = [
   { tint: "bg-violet-50 text-violet-700 border-violet-200 hover:border-violet-300", dot: "bg-violet-500" }, // Dec
 ];
 
+// Per-status color for inactive status pills (full literal classes for JIT).
+const STATUS_THEMES = {
+  Approved: { tint: "bg-green-50 text-green-700 border-green-200 hover:border-green-300", dot: "bg-green-500" },
+  Pending: { tint: "bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-300", dot: "bg-amber-500" },
+  Rejected: { tint: "bg-red-50 text-red-700 border-red-200 hover:border-red-300", dot: "bg-red-500" },
+  LWP: { tint: "bg-purple-50 text-purple-700 border-purple-200 hover:border-purple-300", dot: "bg-purple-500" },
+};
+const DEFAULT_STATUS_THEME = {
+  tint: "bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300",
+  dot: "bg-slate-500",
+};
+
 const FilterControls = ({
   filters,
   onFiltersChange,
@@ -95,6 +107,11 @@ const FilterControls = ({
   const monthPills = MONTH_NAMES.slice(0, new Date().getMonth() + 1).map(
     (label, index) => ({ index, label })
   );
+
+  // Status quick-filter: clicking the active status again clears it.
+  const handleStatusSelect = (value) => {
+    handleFilterChange("status", filters?.status === value ? "" : value);
+  };
 
   useEffect(() => {
     fetchUser()
@@ -268,12 +285,6 @@ const FilterControls = ({
         />
 
         <Select
-          placeholder="Status"
-          options={statusOptions}
-          value={filters?.status || ""}
-          onChange={(value) => handleFilterChange("status", value)}
-        />
-        <Select
           placeholder="Request Type"
           options={requestOptions}
           value={filters?.requestType || ""}
@@ -301,6 +312,52 @@ const FilterControls = ({
           Calender
         </Button>
       </div>
+
+      {/* Status quick-filter pills */}
+      {statusOptions.length > 0 && (
+        <div className="mt-5 pt-4 border-t border-border">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Icon name="CircleCheck" size={14} />
+            </span>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Filter by Status
+            </p>
+          </div>
+
+          <div className="flex gap-2.5 overflow-x-auto scrollbar-hide snap-x -mx-1 px-1 py-1">
+            {statusOptions.map((s) => {
+              const isActive = filters?.status === s.value;
+              const theme = STATUS_THEMES[s.value] || DEFAULT_STATUS_THEME;
+              return (
+                <motion.button
+                  key={s.value}
+                  type="button"
+                  onClick={() => handleStatusSelect(s.value)}
+                  aria-pressed={isActive}
+                  initial={false}
+                  animate={{ scale: isActive ? 1.05 : 1 }}
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 26 }}
+                  className={`group relative shrink-0 snap-start inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                    isActive
+                      ? "linearbg-1 border-transparent text-white shadow-md shadow-primary/30"
+                      : `${theme.tint} shadow-sm hover:shadow-md`
+                  }`}
+                >
+                  <span
+                    className={`h-2 w-2 rounded-full transition-all duration-200 ${
+                      isActive ? "bg-white" : `${theme.dot} group-hover:scale-125`
+                    }`}
+                  />
+                  {s.label}
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Month quick-filter pills — Jan through the current month */}
       <div className="mt-5 pt-4 border-t border-border">
