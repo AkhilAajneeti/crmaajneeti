@@ -57,15 +57,15 @@ const UserPill = ({ name }) => {
   );
 };
 
-// Overtime = "SLC" (shown as Contribution Credit). It's the only request type
-// whose `durationInMinutes` means worked-overtime; leave types store 0 there.
-const OVERTIME_TYPES = ["SLC"];
-const isOvertime = (deal) => OVERTIME_TYPES.includes(deal?.requestType);
+// "SLC" (Contribution Credit) and "Short Leave" carry their duration in
+// `durationInMinutes`; the day-based types (Leave / Half Day) use
+// `leaveConsumed` instead — same split the drawer's Duration tile uses.
+const MINUTE_BASED_TYPES = ["SLC", "Short Leave"];
 
 // 90 -> "1h 30m", 45 -> "45m", 120 -> "2h"
-const formatDuration = (minutes) => {
+const formatMinutes = (minutes) => {
   const total = Number(minutes);
-  if (!Number.isFinite(total) || total <= 0) return "—";
+  if (!Number.isFinite(total) || total <= 0) return null;
 
   const hours = Math.floor(total / 60);
   const mins = total % 60;
@@ -74,6 +74,19 @@ const formatDuration = (minutes) => {
   if (!mins) return `${hours}h`;
   return `${hours}h ${mins}m`;
 };
+
+// 1 -> "1 day", 2.5 -> "2.5 days"
+const formatDays = (days) => {
+  const total = Number(days);
+  if (!Number.isFinite(total) || total <= 0) return null;
+  return `${total} ${total === 1 ? "day" : "days"}`;
+};
+
+// Readable duration for any request type; null when there's nothing to show.
+const formatDuration = (deal) =>
+  MINUTE_BASED_TYPES.includes(deal?.requestType)
+    ? formatMinutes(deal?.durationInMinutes)
+    : formatDays(deal?.leaveConsumed);
 
 // Colored pill per leave request type.
 const getRequestTypeColor = (type) => {
@@ -202,10 +215,10 @@ const DealsTable = ({
   // so render it as-is — slicing again would blank out every page past the first.
   const paginatedDeals = deals || [];
 
-  // Duration only matters for overtime rows, so drop the whole column when the
-  // current page has none — otherwise it renders as a column of dashes.
-  const hasOvertime = useMemo(
-    () => paginatedDeals.some(isOvertime),
+  // Drop the Duration column entirely when nothing on the page has one —
+  // otherwise it renders as a column of dashes.
+  const hasDuration = useMemo(
+    () => paginatedDeals.some((deal) => formatDuration(deal)),
     [paginatedDeals]
   );
 
@@ -274,13 +287,13 @@ const DealsTable = ({
                   {getSortIcon("owner")}
                 </button>
               </th>
-              {hasOvertime && (
+              {hasDuration && (
                 <th className="d-flex justify-content-center px-4 py-3">
                   <button
                     onClick={() => onSort("Status")}
                     className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                   >
-                    <span className="whitespace-nowrap">Overtime</span>
+                    <span className="whitespace-nowrap">Duration</span>
                   </button>
                 </th>
               )}
@@ -363,12 +376,12 @@ const DealsTable = ({
                       </span>
                     </div>
                   </td>
-                  {hasOvertime && (
+                  {hasDuration && (
                     <td className="px-4 py-4">
-                      {isOvertime(deal) ? (
+                      {formatDuration(deal) ? (
                         <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                           <Icon name="Clock" size={13} />
-                          {formatDuration(deal?.durationInMinutes)}
+                          {formatDuration(deal)}
                         </span>
                       ) : (
                         <span className="text-muted-foreground text-sm">—</span>

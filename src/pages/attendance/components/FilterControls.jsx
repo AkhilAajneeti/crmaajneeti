@@ -157,14 +157,25 @@ const FilterControls = ({
         // The user list loads async — until it resolves, show a placeholder
         // instead of flashing the raw id; it becomes the name once loaded.
         const found = assignUserOptions.find((o) => o.value === value);
-        return `User: ${found ? found.label : "…"}`;
+        return `Created By: ${found ? found.label : "…"}`;
+      }
+      case "assignedUserId": {
+        const found = assignUserOptions.find((o) => o.value === value);
+        return `Manager: ${found ? found.label : "…"}`;
       }
       default:
         return `${key}: ${value}`;
     }
   };
 
-  const CHIP_KEYS = ["search", "status", "requestType", "dateType", "createdById"];
+  const CHIP_KEYS = [
+    "search",
+    "status",
+    "requestType",
+    "dateType",
+    "createdById",
+    "assignedUserId",
+  ];
   const activeChips = CHIP_KEYS.filter((key) => filters?.[key]).map((key) => ({
     key,
     label: getFilterChipLabel(key, filters[key]),
@@ -274,7 +285,7 @@ const FilterControls = ({
       </div>
       {/* Filters */}
       <div
-        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 ${isExpanded ? "block" : "hidden lg:grid"}`}
+        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 ${isExpanded ? "block" : "hidden lg:grid"}`}
       >
         <Input
           type="search"
@@ -299,10 +310,18 @@ const FilterControls = ({
         />
 
         <Select
-          placeholder="By User Name"
+          placeholder="Created By"
           options={assignUserOptions}
           value={filters?.createdById || ""}
           onChange={(value) => handleFilterChange("createdById", value)}
+          searchable
+        />
+
+        <Select
+          placeholder="Reporting Manager"
+          options={assignUserOptions}
+          value={filters?.assignedUserId || ""}
+          onChange={(value) => handleFilterChange("assignedUserId", value)}
           searchable
         />
         <Button

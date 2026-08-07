@@ -213,6 +213,15 @@ export const fetchcalenderDetails = async ({ limit, page, filters }) => {
         });
     }
 
+    // Reporting manager = the record's assigned user.
+    if (filters.assignedUserId) {
+        where.push({
+            type: "equals",
+            attribute: "assignedUserId",
+            value: filters.assignedUserId,
+        });
+    }
+
 
     // ✅ QUERY BUILDER
     const query = where
