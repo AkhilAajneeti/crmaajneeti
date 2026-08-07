@@ -249,6 +249,14 @@ const DealsTable = ({
                   {getSortIcon("owner")}
                 </button>
               </th>
+              <th className="d-flex justify-content-center px-4 py-3">
+                <button
+                  onClick={() => onSort("Status")}
+                  className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                >
+                  <span>Duration</span>
+                </button>
+              </th>
               <th className="text-left px-4 py-3">
                 <button
                   onClick={() => onSort("account")}
@@ -256,6 +264,14 @@ const DealsTable = ({
                 >
                   <span>Start Date</span>
                   {getSortIcon("Project Name")}
+                </button>
+              </th>
+              <th className="d-flex justify-content-center px-4 py-3">
+                <button
+                  onClick={() => onSort("Status")}
+                  className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                >
+                  <span>Reporting Manager</span>
                 </button>
               </th>
               {(canEdit || canDelete) && (
@@ -321,9 +337,15 @@ const DealsTable = ({
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-foreground">{formatDate(deal?.startDate)}</div>
+                    <div className="text-foreground">{deal?.durationInMinutes}</div>
                   </td>
 
+                  <td className="px-4 py-4">
+                    <div className="text-foreground">{formatDate(deal?.startDate)}</div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="text-foreground">{deal?.assignedUserName}</div>
+                  </td>
                   {(canEditDeal(deal) || canDeleteDeal(deal)) ? (
                     <td className="p-4" onClick={(e) => e?.stopPropagation()}>
                       <div className="flex items-center space-x-1">
