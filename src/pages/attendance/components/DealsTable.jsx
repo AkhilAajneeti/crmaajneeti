@@ -57,6 +57,24 @@ const UserPill = ({ name }) => {
   );
 };
 
+// Overtime = "SLC" (shown as Contribution Credit). It's the only request type
+// whose `durationInMinutes` means worked-overtime; leave types store 0 there.
+const OVERTIME_TYPES = ["SLC"];
+const isOvertime = (deal) => OVERTIME_TYPES.includes(deal?.requestType);
+
+// 90 -> "1h 30m", 45 -> "45m", 120 -> "2h"
+const formatDuration = (minutes) => {
+  const total = Number(minutes);
+  if (!Number.isFinite(total) || total <= 0) return "—";
+
+  const hours = Math.floor(total / 60);
+  const mins = total % 60;
+
+  if (!hours) return `${mins}m`;
+  if (!mins) return `${hours}h`;
+  return `${hours}h ${mins}m`;
+};
+
 // Colored pill per leave request type.
 const getRequestTypeColor = (type) => {
   switch (type) {
@@ -184,6 +202,13 @@ const DealsTable = ({
   // so render it as-is — slicing again would blank out every page past the first.
   const paginatedDeals = deals || [];
 
+  // Duration only matters for overtime rows, so drop the whole column when the
+  // current page has none — otherwise it renders as a column of dashes.
+  const hasOvertime = useMemo(
+    () => paginatedDeals.some(isOvertime),
+    [paginatedDeals]
+  );
+
   const isAllSelected =
     selectedDeals?.length === paginatedDeals?.length &&
     paginatedDeals?.length > 0;
@@ -249,14 +274,16 @@ const DealsTable = ({
                   {getSortIcon("owner")}
                 </button>
               </th>
-              <th className="d-flex justify-content-center px-4 py-3">
-                <button
-                  onClick={() => onSort("Status")}
-                  className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
-                >
-                  <span>Duration</span>
-                </button>
-              </th>
+              {hasOvertime && (
+                <th className="d-flex justify-content-center px-4 py-3">
+                  <button
+                    onClick={() => onSort("Status")}
+                    className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
+                  >
+                    <span className="whitespace-nowrap">Overtime</span>
+                  </button>
+                </th>
+              )}
               <th className="text-left px-4 py-3">
                 <button
                   onClick={() => onSort("account")}
@@ -271,7 +298,7 @@ const DealsTable = ({
                   onClick={() => onSort("Status")}
                   className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary transition-smooth"
                 >
-                  <span>Reporting Manager</span>
+                  <span className="whitespace-nowrap">Reporting Manager</span>
                 </button>
               </th>
               {(canEdit || canDelete) && (
@@ -336,15 +363,29 @@ const DealsTable = ({
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-4">
-                    <div className="text-foreground">{deal?.durationInMinutes}</div>
-                  </td>
+                  {hasOvertime && (
+                    <td className="px-4 py-4">
+                      {isOvertime(deal) ? (
+                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                          <Icon name="Clock" size={13} />
+                          {formatDuration(deal?.durationInMinutes)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </td>
+                  )}
 
                   <td className="px-4 py-4">
-                    <div className="text-foreground">{formatDate(deal?.startDate)}</div>
+                    <div className="text-foreground whitespace-nowrap">{formatDate(deal?.startDate)}</div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-foreground">{deal?.assignedUserName}</div>
+                    <div
+                      title={deal?.assignedUserName || ""}
+                      className="text-foreground truncate max-w-[140px]"
+                    >
+                      {deal?.assignedUserName || "—"}
+                    </div>
                   </td>
                   {(canEditDeal(deal) || canDeleteDeal(deal)) ? (
                     <td className="p-4" onClick={(e) => e?.stopPropagation()}>
