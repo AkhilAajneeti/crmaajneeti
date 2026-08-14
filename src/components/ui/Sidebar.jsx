@@ -112,7 +112,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
               className="tricolor-burst h-full w-full rounded-[50%] blur-2xl"
               style={{
                 background:
-                  "radial-gradient(closest-side, rgba(255,153,51,0.45), rgba(255,153,51,0.12) 55%, rgba(255,153,51,0) 100%)",
+                  "radial-gradient(closest-side, rgba(255,153,51,0.18), rgba(255,153,51,0.05) 55%, rgba(255,153,51,0) 100%)",
               }}
             />
           </div>
@@ -122,12 +122,12 @@ const Sidebar = ({ isOpen = false, onClose }) => {
               className="tricolor-burst tricolor-burst-delayed h-full w-full rounded-[50%] blur-2xl"
               style={{
                 background:
-                  "radial-gradient(closest-side, rgba(19,136,8,0.42), rgba(19,136,8,0.12) 55%, rgba(19,136,8,0) 100%)",
+                  "radial-gradient(closest-side, rgba(19,136,8,0.16), rgba(19,136,8,0.05) 55%, rgba(19,136,8,0) 100%)",
               }}
             />
           </div>
 
-          <div className="absolute inset-y-0 right-0 w-[3px] bg-gradient-to-b from-[#FF9933] via-white to-[#138808]" />
+          <div className="absolute inset-y-0 right-0 w-[2px] bg-gradient-to-b from-[#FF9933] via-white to-[#138808] opacity-60" />
         </div>
 
         <div className="relative z-10 flex flex-col h-full">

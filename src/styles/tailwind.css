@@ -115,23 +115,23 @@
 /* Independence Day tricolor bursts — see components/ui/TricolorTheme.jsx.
    Kept outside @layer so the keyframes survive Tailwind's layer processing. */
 .tricolor-burst {
-  animation: tricolor-pulse 9s ease-in-out infinite;
+  animation: tricolor-pulse 14s ease-in-out infinite;
   will-change: transform, opacity;
 }
 
 .tricolor-burst-delayed {
-  animation-delay: 4.5s;
+  animation-delay: 7s;
 }
 
 @keyframes tricolor-pulse {
   0%,
   100% {
     transform: scale(1);
-    opacity: 0.7;
+    opacity: 0.75;
   }
 
   50% {
-    transform: scale(1.14);
+    transform: scale(1.05);
     opacity: 1;
   }
 }
