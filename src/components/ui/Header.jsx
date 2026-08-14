@@ -131,6 +131,18 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
 
           {/* Right Section - Actions & User */}
           <div className="flex items-center space-x-2">
+            {/* Independence Day flag — decorative, with a sweeping shine */}
+            <span
+              title="Happy Independence Day"
+              className="flag-shine relative inline-flex h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-black/10 shadow-sm"
+            >
+              <img
+                src="/assets/india.png"
+                alt="Indian flag"
+                className="h-full w-full object-cover"
+              />
+            </span>
+
             <div className="relative">
               {/* Notifications */}
               <Button

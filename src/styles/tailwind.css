@@ -141,3 +141,39 @@
     animation: none;
   }
 }
+
+/* Glint that sweeps across the Independence Day flag badge in the header.
+   The badge itself supplies `position: relative` + `overflow: hidden`. */
+.flag-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.8) 48%,
+    rgba(255, 255, 255, 0.25) 55%,
+    transparent 68%
+  );
+  transform: translateX(-130%);
+  animation: flag-shine-sweep 3.6s ease-in-out infinite;
+}
+
+@keyframes flag-shine-sweep {
+  0% {
+    transform: translateX(-130%);
+  }
+
+  45%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flag-shine::after {
+    animation: none;
+    opacity: 0;
+  }
+}
