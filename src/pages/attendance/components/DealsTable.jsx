@@ -35,22 +35,23 @@ const getAvatarColor = (name) => {
   return AVATAR_COLORS[sum % AVATAR_COLORS.length];
 };
 
-// Avatar + name pill (used for person fields like "Created By").
+// Avatar + name pill (used for person fields like "Created By" / "Reporting
+// Manager"). Text sits at the table's base size so it matches the plain cells.
 const UserPill = ({ name }) => {
-  if (!name) return <span className="text-muted-foreground text-sm">—</span>;
+  if (!name) return <span className="text-muted-foreground">—</span>;
   return (
     <span
       title={name}
-      className="inline-flex items-center gap-2 pl-1 pr-3 py-1 max-w-[180px] rounded-full border border-border bg-background shadow-sm"
+      className="inline-flex items-center gap-2 pl-1 pr-3 py-1 max-w-[200px] rounded-full border border-border bg-background shadow-sm"
     >
       <span
-        className={`flex items-center justify-center shrink-0 h-7 w-7 rounded-full text-[11px] font-semibold text-white ${getAvatarColor(
+        className={`flex items-center justify-center shrink-0 h-7 w-7 rounded-full text-xs font-semibold text-white ${getAvatarColor(
           name
         )}`}
       >
         {getInitials(name)}
       </span>
-      <span className="text-sm font-medium text-foreground truncate min-w-0">
+      <span className="font-medium text-foreground truncate min-w-0">
         {name}
       </span>
     </span>
@@ -353,7 +354,7 @@ const DealsTable = ({
                   <td className="px-4 py-4">
                     {deal?.requestType ? (
                       <span
-                        className={`inline-block px-2.5 py-1 text-xs font-medium rounded-full ${getRequestTypeColor(
+                        className={`inline-block px-3 py-1 font-medium rounded-full ${getRequestTypeColor(
                           deal?.requestType
                         )}`}
                       >
@@ -362,29 +363,27 @@ const DealsTable = ({
                           : deal?.requestType}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground text-sm">—</span>
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </td>
                   <td className="px-4 py-4">
                     <div
-                      className={`flex justify-center items-center space-x-2 px-2 py-1 font-medium rounded-full ${getStageColor(
+                      className={`inline-flex justify-center items-center px-3 py-1 font-medium rounded-full ${getStageColor(
                         deal?.status,
                       )}`}
                     >
-                      <span className={`text-sm text-foreg roundunded-full `}>
-                        {deal?.status}
-                      </span>
+                      {deal?.status}
                     </div>
                   </td>
                   {hasDuration && (
                     <td className="px-4 py-4">
                       {formatDuration(deal) ? (
-                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                          <Icon name="Clock" size={13} />
+                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700">
+                          <Icon name="Clock" size={15} />
                           {formatDuration(deal)}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground text-sm">—</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </td>
                   )}
@@ -393,12 +392,7 @@ const DealsTable = ({
                     <div className="text-foreground whitespace-nowrap">{formatDate(deal?.startDate)}</div>
                   </td>
                   <td className="px-4 py-4">
-                    <div
-                      title={deal?.assignedUserName || ""}
-                      className="text-foreground truncate max-w-[140px]"
-                    >
-                      {deal?.assignedUserName || "—"}
-                    </div>
+                    <UserPill name={deal?.assignedUserName} />
                   </td>
                   {(canEditDeal(deal) || canDeleteDeal(deal)) ? (
                     <td className="p-4" onClick={(e) => e?.stopPropagation()}>
