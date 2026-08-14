@@ -98,11 +98,39 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       <aside
         className={`
           fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 shadow-sm z-50 lg:z-30
+          overflow-hidden
           transform transition-transform duration-300 ease-out
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        <div className="flex flex-col h-full">
+        {/* Independence Day accents — saffron burst from the top, green from
+            the bottom, plus a tricolor stripe down the right edge. Decorative
+            only; the nav sits above it via `relative z-10`. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-28 left-1/2 h-64 w-[160%] -translate-x-1/2">
+            <div
+              className="tricolor-burst h-full w-full rounded-[50%] blur-2xl"
+              style={{
+                background:
+                  "radial-gradient(closest-side, rgba(255,153,51,0.45), rgba(255,153,51,0.12) 55%, rgba(255,153,51,0) 100%)",
+              }}
+            />
+          </div>
+
+          <div className="absolute -bottom-28 left-1/2 h-64 w-[160%] -translate-x-1/2">
+            <div
+              className="tricolor-burst tricolor-burst-delayed h-full w-full rounded-[50%] blur-2xl"
+              style={{
+                background:
+                  "radial-gradient(closest-side, rgba(19,136,8,0.42), rgba(19,136,8,0.12) 55%, rgba(19,136,8,0) 100%)",
+              }}
+            />
+          </div>
+
+          <div className="absolute inset-y-0 right-0 w-[3px] bg-gradient-to-b from-[#FF9933] via-white to-[#138808]" />
+        </div>
+
+        <div className="relative z-10 flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border">
             <div className="flex items-center space-x-3">
