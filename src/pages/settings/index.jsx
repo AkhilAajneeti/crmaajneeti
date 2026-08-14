@@ -101,7 +101,7 @@ const Settings = () => {
                 <Icon name="Settings" size={24} className="text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                <h1 className="text-2xl lg:text-3xl font-bold tricolor-heading">
                   Settings
                 </h1>
                 <p className="text-muted-foreground">

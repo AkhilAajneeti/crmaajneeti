@@ -241,7 +241,7 @@ const Activities = () => {
           {/* Page Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">
+              <h1 className="text-2xl font-bold tricolor-heading mb-2">
                 Activities
               </h1>
               <p className="text-muted-foreground">

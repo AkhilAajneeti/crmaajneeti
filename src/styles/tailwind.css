@@ -177,3 +177,22 @@
     opacity: 0;
   }
 }
+
+/* Saffron → green heading gradient for page section titles.
+   `inline-block` matters: on a full-width block the gradient would stretch
+   across the whole container and short titles would render almost entirely
+   saffron. Shrink-wrapping the element maps the full ramp across the word. */
+.tricolor-heading {
+  display: inline-block;
+  background-image: linear-gradient(
+    95deg,
+    #ff9933 0%,
+    #f0861c 28%,
+    #2e9e2a 62%,
+    #138808 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}

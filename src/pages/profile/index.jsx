@@ -183,7 +183,7 @@ const Profile = () => {
                 <Icon name="UsersRound" size={26} className="text-white" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight">
+                <h1 className="text-2xl lg:text-3xl font-bold tricolor-heading tracking-tight">
                   Profile &amp; Details
                 </h1>
                 <p className="text-sm text-muted-foreground mt-0.5">
