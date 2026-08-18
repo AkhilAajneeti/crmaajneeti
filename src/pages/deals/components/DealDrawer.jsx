@@ -591,7 +591,7 @@ const DealDrawer = ({
   const tabs = [
     { id: "overview", label: "Overview", icon: "LayoutList" },
     { id: "AssignedUsers", label: "Assigned User", icon: "UserCog" },
-    { id: "Stream", label: "Stream", icon: "Rss" },
+    { id: "Stream", label: "Feedback", icon: "MessageSquareText" },
     { id: "Activity", label: "Activity", icon: "History" },
   ];
 
@@ -855,7 +855,7 @@ const DealDrawer = ({
 
   const handleDelete = async (e, activity) => {
     e.stopPropagation();
-    const ok = window.confirm(`Delete Stream ${activity?.createdByName}?`);
+    const ok = window.confirm(`Delete Feedback ${activity?.createdByName}?`);
     if (!ok) return;
     await onDelete(activity.id); // 👈 parent ko bol rahe ho
     queryClient.invalidateQueries(["lead-stream", deal.id]);
@@ -1301,6 +1301,9 @@ const DealDrawer = ({
                             icon="UserRound"
                             tone="violet"
                             label="Name"
+                            className={
+                              editingField === "name" ? "md:col-span-2" : ""
+                            }
                             canEdit={canEditDeal(deal)}
                             isEditing={editingField === "name"}
                             isSaving={savingField === "name"}
@@ -1338,6 +1341,9 @@ const DealDrawer = ({
                             icon="PhoneCall"
                             tone="emerald"
                             label="Contact"
+                            className={
+                              editingField === "contacts" ? "md:col-span-2" : ""
+                            }
                             canEdit={canEditDeal(deal)}
                             isEditing={editingField === "contacts"}
                             isSaving={savingField === "contacts"}
@@ -1345,63 +1351,76 @@ const DealDrawer = ({
                             onCancel={cancelInlineEdit}
                             onSave={saveInlineContacts}
                             editor={
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 {phoneRows.map((row, index) => (
                                   <div
                                     key={index}
-                                    className="flex items-center gap-2"
+                                    className={`rounded-xl border p-3 transition-colors ${row.primary
+                                      ? "border-amber-200 bg-amber-50/40"
+                                      : "border-border bg-muted/20"
+                                      }`}
                                   >
-                                    <div className="flex-1 min-w-0">
-                                      <Input
-                                        icon="Phone"
-                                        value={row.phoneNumber || ""}
-                                        placeholder="+91..."
-                                        onChange={(e) =>
-                                          updatePhoneRow(index, {
-                                            phoneNumber: e.target.value,
-                                          })
+                                    <div className="mb-2 flex items-center justify-between gap-2">
+                                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                        Contact {index + 1}
+                                      </span>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => removePhoneRow(index)}
+                                        disabled={phoneRows.length === 1}
+                                        aria-label="Remove this number"
+                                        title={
+                                          phoneRows.length === 1
+                                            ? "A lead needs at least one number"
+                                            : "Remove this number"
                                         }
-                                      />
+                                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+                                      >
+                                        <Icon name="Trash2" size={15} />
+                                      </button>
                                     </div>
 
-                                    <div className="w-28 shrink-0">
-                                      <Select
-                                        icon="Tag"
-                                        options={PHONE_TYPE_OPTIONS}
-                                        value={row.type || "Mobile"}
-                                        onChange={(value) =>
-                                          updatePhoneRow(index, { type: value })
-                                        }
-                                      />
-                                    </div>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => setPrimaryPhone(index)}
-                                      aria-label="Mark as primary number"
-                                      title="Mark as primary"
-                                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors ${row.primary
-                                        ? "border-amber-300 bg-amber-50 text-amber-600"
-                                        : "border-border text-muted-foreground hover:text-amber-600"
-                                        }`}
-                                    >
-                                      <Icon name="Star" size={14} />
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => removePhoneRow(index)}
-                                      disabled={phoneRows.length === 1}
-                                      aria-label="Remove number"
-                                      title={
-                                        phoneRows.length === 1
-                                          ? "A lead needs at least one number"
-                                          : "Remove number"
+                                    <Input
+                                      icon="Phone"
+                                      type="tel"
+                                      value={row.phoneNumber || ""}
+                                      placeholder="+91 98765 43210"
+                                      onChange={(e) =>
+                                        updatePhoneRow(index, {
+                                          phoneNumber: e.target.value,
+                                        })
                                       }
-                                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                      <Icon name="Trash2" size={14} />
-                                    </button>
+                                    />
+
+                                    <div className="mt-2 flex items-center gap-2">
+                                      <div className="min-w-0 flex-1">
+                                        <Select
+                                          icon="Tag"
+                                          options={PHONE_TYPE_OPTIONS}
+                                          value={row.type || "Mobile"}
+                                          onChange={(value) =>
+                                            updatePhoneRow(index, {
+                                              type: value,
+                                            })
+                                          }
+                                        />
+                                      </div>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => setPrimaryPhone(index)}
+                                        aria-pressed={!!row.primary}
+                                        title="The primary number is the one shown in the leads list"
+                                        className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors ${row.primary
+                                          ? "border-amber-400 bg-amber-100 text-amber-800"
+                                          : "border-border bg-background text-muted-foreground hover:border-amber-300 hover:text-amber-700"
+                                          }`}
+                                      >
+                                        <Icon name="Star" size={15} />
+                                        {row.primary ? "Primary" : "Set primary"}
+                                      </button>
+                                    </div>
                                   </div>
                                 ))}
 
@@ -1410,9 +1429,10 @@ const DealDrawer = ({
                                   size="sm"
                                   variant="outline"
                                   onClick={addPhoneRow}
+                                  className="w-full"
                                 >
-                                  <Icon name="Plus" size={14} className="mr-1" />
-                                  Add contact
+                                  <Icon name="Plus" size={15} className="mr-1.5" />
+                                  Add another contact
                                 </Button>
                               </div>
                             }
@@ -1677,22 +1697,22 @@ Let me know when you're available so that we can discuss this in more detail.
                       <div className="border border-border rounded-xl p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Assigned User */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="UserCheck" size={14} />
-                              Assigned User
-                            </p>
+                          <FieldRow
+                            icon="UserCheck"
+                            tone="violet"
+                            label="Assigned User"
+                          >
                             <p className="text-foreground font-medium">
                               {leadData?.assignedUserName || "—"}
                             </p>
-                          </div>
+                          </FieldRow>
 
                           {/* Followers */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="UsersRound" size={14} />
-                              Followers
-                            </p>
+                          <FieldRow
+                            icon="UsersRound"
+                            tone="sky"
+                            label="Followers"
+                          >
                             <p className="text-foreground font-medium">
                               {leadsDetails?.followersNames ? (
                                 <div className="flex flex-wrap gap-2">
@@ -1711,13 +1731,13 @@ Let me know when you're available so that we can discuss this in more detail.
                                 <span>None</span>
                               )}
                             </p>
-                          </div>
+                          </FieldRow>
                           {/* Followers */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Network" size={14} />
-                              Teams
-                            </p>
+                          <FieldRow
+                            icon="Network"
+                            tone="indigo"
+                            label="Teams"
+                          >
                             <p className="text-foreground font-medium">
                               {leadsDetails?.teamsNames ? (
                                 <div className="flex flex-wrap gap-2">
@@ -1736,7 +1756,7 @@ Let me know when you're available so that we can discuss this in more detail.
                                 <span>None</span>
                               )}
                             </p>
-                          </div>
+                          </FieldRow>
                         </div>
                       </div>
 
@@ -1749,30 +1769,30 @@ Let me know when you're available so that we can discuss this in more detail.
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Created */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="CalendarPlus" size={14} />
-                              Created
-                            </p>
+                          <FieldRow
+                            icon="CalendarPlus"
+                            tone="teal"
+                            label="Created"
+                          >
                             <p className="text-foreground font-medium">
                               {deal?.createdAt
                                 ? `${formatDateTime(deal.createdAt)} by ${deal?.createdByName || "—"}`
                                 : "—"}
                             </p>
-                          </div>
+                          </FieldRow>
 
                           {/* Modified */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="PencilLine" size={14} />
-                              Last Modified
-                            </p>
+                          <FieldRow
+                            icon="PencilLine"
+                            tone="amber"
+                            label="Last Modified"
+                          >
                             <p className="text-foreground font-medium">
                               {deal?.modifiedAt
                                 ? `${formatDateTime(deal.modifiedAt)} by ${deal?.modifiedByName || "—"}`
                                 : "—"}
                             </p>
-                          </div>
+                          </FieldRow>
                         </div>
                       </div>
                     </div>
@@ -1782,7 +1802,7 @@ Let me know when you're available so that we can discuss this in more detail.
                       <div className="flex items-center justify-between">
                         <h3 className="flex items-center gap-2 text-lg font-medium text-foreground">
                           <Icon name="Megaphone" size={18} className="text-primary" />
-                          Recent Stream
+                          Recent Feedback
                         </h3>
                         <Button
                           variant="outline"
@@ -1790,7 +1810,7 @@ Let me know when you're available so that we can discuss this in more detail.
                           onClick={createActivity}
                         >
                           <Icon name="Plus" size={16} className="mr-1" />
-                          Add Stream
+                          Add Feedback
                         </Button>
                       </div>
                       <div className="space-y-4">
