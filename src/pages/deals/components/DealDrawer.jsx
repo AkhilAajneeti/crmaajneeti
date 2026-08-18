@@ -100,6 +100,140 @@ const QuestionAnswers = ({ raw }) => {
   );
 };
 
+// Per-colour chip styling. Written out as literal class strings because
+// Tailwind's JIT can't see `bg-${colour}-50` and would purge it.
+const CHIP_PALETTE = {
+  blue: {
+    idle: "border-blue-200 bg-blue-50 text-blue-700 hover:border-blue-400",
+    active: "border-blue-500 bg-blue-100 text-blue-800 ring-1 ring-blue-500",
+    pill: "bg-blue-100 text-blue-800",
+  },
+  sky: {
+    idle: "border-sky-200 bg-sky-50 text-sky-700 hover:border-sky-400",
+    active: "border-sky-500 bg-sky-100 text-sky-800 ring-1 ring-sky-500",
+    pill: "bg-sky-100 text-sky-800",
+  },
+  emerald: {
+    idle: "border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-400",
+    active: "border-emerald-500 bg-emerald-100 text-emerald-800 ring-1 ring-emerald-500",
+    pill: "bg-emerald-100 text-emerald-800",
+  },
+  green: {
+    idle: "border-green-200 bg-green-50 text-green-700 hover:border-green-400",
+    active: "border-green-500 bg-green-100 text-green-800 ring-1 ring-green-500",
+    pill: "bg-green-100 text-green-800",
+  },
+  indigo: {
+    idle: "border-indigo-200 bg-indigo-50 text-indigo-700 hover:border-indigo-400",
+    active: "border-indigo-500 bg-indigo-100 text-indigo-800 ring-1 ring-indigo-500",
+    pill: "bg-indigo-100 text-indigo-800",
+  },
+  violet: {
+    idle: "border-violet-200 bg-violet-50 text-violet-700 hover:border-violet-400",
+    active: "border-violet-500 bg-violet-100 text-violet-800 ring-1 ring-violet-500",
+    pill: "bg-violet-100 text-violet-800",
+  },
+  cyan: {
+    idle: "border-cyan-200 bg-cyan-50 text-cyan-700 hover:border-cyan-400",
+    active: "border-cyan-500 bg-cyan-100 text-cyan-800 ring-1 ring-cyan-500",
+    pill: "bg-cyan-100 text-cyan-800",
+  },
+  teal: {
+    idle: "border-teal-200 bg-teal-50 text-teal-700 hover:border-teal-400",
+    active: "border-teal-500 bg-teal-100 text-teal-800 ring-1 ring-teal-500",
+    pill: "bg-teal-100 text-teal-800",
+  },
+  fuchsia: {
+    idle: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700 hover:border-fuchsia-400",
+    active: "border-fuchsia-500 bg-fuchsia-100 text-fuchsia-800 ring-1 ring-fuchsia-500",
+    pill: "bg-fuchsia-100 text-fuchsia-800",
+  },
+  amber: {
+    idle: "border-amber-200 bg-amber-50 text-amber-700 hover:border-amber-400",
+    active: "border-amber-500 bg-amber-100 text-amber-800 ring-1 ring-amber-500",
+    pill: "bg-amber-100 text-amber-800",
+  },
+  yellow: {
+    idle: "border-yellow-200 bg-yellow-50 text-yellow-700 hover:border-yellow-400",
+    active: "border-yellow-500 bg-yellow-100 text-yellow-800 ring-1 ring-yellow-500",
+    pill: "bg-yellow-100 text-yellow-800",
+  },
+  orange: {
+    idle: "border-orange-200 bg-orange-50 text-orange-700 hover:border-orange-400",
+    active: "border-orange-500 bg-orange-100 text-orange-800 ring-1 ring-orange-500",
+    pill: "bg-orange-100 text-orange-800",
+  },
+  rose: {
+    idle: "border-rose-200 bg-rose-50 text-rose-700 hover:border-rose-400",
+    active: "border-rose-500 bg-rose-100 text-rose-800 ring-1 ring-rose-500",
+    pill: "bg-rose-100 text-rose-800",
+  },
+  purple: {
+    idle: "border-purple-200 bg-purple-50 text-purple-700 hover:border-purple-400",
+    active: "border-purple-500 bg-purple-100 text-purple-800 ring-1 ring-purple-500",
+    pill: "bg-purple-100 text-purple-800",
+  },
+  red: {
+    idle: "border-red-200 bg-red-50 text-red-700 hover:border-red-400",
+    active: "border-red-500 bg-red-100 text-red-800 ring-1 ring-red-500",
+    pill: "bg-red-100 text-red-800",
+  },
+  gray: {
+    idle: "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-400",
+    active: "border-gray-500 bg-gray-100 text-gray-800 ring-1 ring-gray-500",
+    pill: "bg-gray-100 text-gray-800",
+  },
+  slate: {
+    idle: "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-400",
+    active: "border-slate-500 bg-slate-100 text-slate-800 ring-1 ring-slate-500",
+    pill: "bg-slate-100 text-slate-800",
+  },
+  stone: {
+    idle: "border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-400",
+    active: "border-stone-500 bg-stone-100 text-stone-800 ring-1 ring-stone-500",
+    pill: "bg-stone-100 text-stone-800",
+  },
+};
+
+// Each status gets a colour that matches what it means: forward motion in
+// greens/blues, waiting in ambers, negative in reds, archived in greys.
+const STATUS_COLORS = {
+  "New": "blue",
+  "Interested": "sky",
+  "Qualified": "emerald",
+  "Converted": "green",
+  "Follow Up": "indigo",
+  "In Process": "violet",
+  "Proposal Shared": "cyan",
+  "Future Prospect": "teal",
+  "Webinar": "fuchsia",
+  "Call Later": "amber",
+  "Call Not Connecting": "yellow",
+  "Call Not Picked": "rose",
+  "Not interested": "orange",
+  "Low Budget | Low Intent": "purple",
+  "Dead": "red",
+  "Invalid": "gray",
+  "Duplicate": "slate",
+  "Z Old Leads": "stone",
+};
+
+// Case-insensitive lookup — stored values drift in casing ("Follow up" vs
+// "Follow Up"), and a status should never lose its colour over that.
+const STATUS_COLORS_BY_KEY = Object.fromEntries(
+  Object.entries(STATUS_COLORS).map(([status, colour]) => [
+    status.toLowerCase(),
+    colour,
+  ])
+);
+
+const getStatusTheme = (status) =>
+  CHIP_PALETTE[STATUS_COLORS_BY_KEY[String(status || "").toLowerCase()]] || {
+    idle: "border-border bg-background text-foreground hover:border-primary/40",
+    active: "border-primary bg-primary/10 text-primary ring-1 ring-primary",
+    pill: "bg-gray-100 text-gray-800",
+  };
+
 // Coloured icon tiles for the inline-editable rows in the overview.
 const INLINE_TONES = {
   violet: "bg-violet-50 text-violet-600 ring-violet-200/70",
@@ -1466,6 +1600,7 @@ Let me know when you're available so that we can discuss this in more detail.
                                 {statusOptions.map((option) => {
                                   const isSelected =
                                     formData.status === option.value;
+                                  const theme = getStatusTheme(option.value);
 
                                   return (
                                     <button
@@ -1476,8 +1611,8 @@ Let me know when you're available so that we can discuss this in more detail.
                                         handleChange("status", option.value)
                                       }
                                       className={`rounded-full border px-4 py-2 text-sm transition-all duration-150 ${isSelected
-                                        ? "border-emerald-500 bg-emerald-50/70 font-semibold text-emerald-700 ring-1 ring-emerald-500 shadow-sm"
-                                        : "border-border bg-background text-foreground hover:border-primary/40 hover:bg-muted/50"
+                                        ? `${theme.active} font-semibold shadow-sm`
+                                        : `${theme.idle} hover:shadow-sm`
                                         }`}
                                     >
                                       {option.label}
@@ -1487,7 +1622,11 @@ Let me know when you're available so that we can discuss this in more detail.
                               </div>
                             }
                           >
-                            <span className="inline-flex px-3 py-1 rounded-full text-xs font-medium bg-success/10 text-success">
+                            <span
+                              className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusTheme(
+                                leadData?.status
+                              ).pill}`}
+                            >
                               {leadData?.status || "—"}
                             </span>
                           </InlineEditRow>
