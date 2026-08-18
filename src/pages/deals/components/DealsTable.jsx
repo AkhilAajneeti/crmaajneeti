@@ -2,6 +2,8 @@ import React, { useState, useMemo } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { Checkbox } from "../../../components/ui/Checkbox";
+import { isClosedLeadStatus } from "utils/leadStatus";
+import QuickEditSheet from "./QuickEditSheet";
 
 // Initials from a person's name: "Minakshi Dubey" -> "MD"
 const getInitials = (name) => {
@@ -70,6 +72,8 @@ const DealsTable = ({
   canDelete = true,
 }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
+  // Lead currently open in the quick-edit bottom sheet (mobile cards).
+  const [quickEditDeal, setQuickEditDeal] = useState(null);
 
   // plain date — used for "Created At" (no status coloring)
   const formatDate = (value) => {
@@ -181,7 +185,18 @@ const DealsTable = ({
     };
   };
 
-  const NextContactCell = ({ value }) => {
+  const NextContactCell = ({ value, status }) => {
+    // Dead / Invalid / Not interested / Duplicate (and already-closed) leads
+    // are finished — nobody is chasing them, so a past date is stale data
+    // rather than a missed follow-up. Show the plain date, no red alarm.
+    if (isClosedLeadStatus(status)) {
+      return (
+        <span className="inline-flex px-2 py-1 text-xs font-medium text-muted-foreground">
+          {formatDate(value)}
+        </span>
+      );
+    }
+
     const { text, color, bg } = formatNextContact(value);
     return (
       <span
@@ -549,7 +564,10 @@ const DealsTable = ({
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <NextContactCell value={deal?.cNextContact} />
+                    <NextContactCell
+                      value={deal?.cNextContact}
+                      status={deal?.status}
+                    />
                   </td>
                   <td className="px-4 py-4">
                     <div className="text-sm text-foreground">
@@ -710,6 +728,21 @@ Let me know when you're available so that we can discuss this in more detail.
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
+                        {/* Quick edit — status, note and follow-up without
+                            opening the full drawer */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Quick update lead"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setQuickEditDeal(deal);
+                          }}
+                          className="h-10 w-10 rounded-full hover:bg-violet-400 active:scale-95 transition-all duration-150 flex items-center justify-center"
+                        >
+                          <Icon name="SquarePen" size={20} className="text-violet-600 hover:text-white" />
+                        </Button>
+
                         {/* Call — opens the device dialer via tel: */}
                         <Button
                           variant="ghost"
@@ -760,6 +793,12 @@ Let me know when you're available so that we can discuss this in more detail.
           ))
         )}
       </div>
+
+      <QuickEditSheet
+        deal={quickEditDeal}
+        isOpen={!!quickEditDeal}
+        onClose={() => setQuickEditDeal(null)}
+      />
     </div>
   );
 };

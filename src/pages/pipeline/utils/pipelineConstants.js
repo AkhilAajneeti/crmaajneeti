@@ -26,15 +26,9 @@ export const STALE_MIN_DAYS = 14;
 
 // --- Status taxonomy ---
 // Lowercased substring matches — sales reps invent status strings, be liberal.
-export const EXCLUDED_STATUSES = [
-  "converted",
-  "dead",
-  "recycled",
-  "won",
-  "lost",
-  "closed",
-  "purchased",
-];
+// Closed-out leads never reach the board. Sourced from the shared list so
+// the pipeline and the leads table agree on what "closed" means.
+export { CLOSED_LEAD_STATUSES as EXCLUDED_STATUSES } from "utils/leadStatus";
 
 export const BUDGET_KEYWORDS = [
   "budget",
