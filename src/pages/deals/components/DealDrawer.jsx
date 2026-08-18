@@ -100,6 +100,119 @@ const QuestionAnswers = ({ raw }) => {
   );
 };
 
+// Coloured icon tiles for the inline-editable rows in the overview.
+const INLINE_TONES = {
+  violet: "bg-gradient-to-br from-violet-500 to-purple-600",
+  sky: "bg-gradient-to-br from-sky-500 to-blue-600",
+  emerald: "bg-gradient-to-br from-emerald-500 to-green-600",
+  amber: "bg-gradient-to-br from-amber-500 to-orange-500",
+};
+
+const PHONE_TYPE_OPTIONS = [
+  { value: "Mobile", label: "Mobile" },
+  { value: "Office", label: "Office" },
+  { value: "Home", label: "Home" },
+  { value: "Fax", label: "Fax" },
+  { value: "Other", label: "Other" },
+];
+
+// EspoCRM keeps every number for a record in `phoneNumberData`; the scalar
+// `phoneNumber` is only ever the primary one. Older records (and the leads
+// list payload) may carry just the scalar, so seed from whichever exists.
+const getPhoneRows = (record) => {
+  const rows = Array.isArray(record?.phoneNumberData)
+    ? record.phoneNumberData
+    : [];
+
+  if (rows.length) {
+    return rows.map((row) => ({
+      phoneNumber: row?.phoneNumber || "",
+      type: row?.type || "Mobile",
+      primary: !!row?.primary,
+    }));
+  }
+
+  return [
+    {
+      phoneNumber: record?.phoneNumber || "+91",
+      type: "Mobile",
+      primary: true,
+    },
+  ];
+};
+
+// One row of the overview: coloured icon tile, label, current value and a
+// pencil that swaps the value for the very same Input/Select controls the
+// full Edit form uses — the editing mechanism is shared, not duplicated.
+const InlineEditRow = ({
+  icon,
+  tone = "violet",
+  label,
+  children,
+  editor,
+  canEdit,
+  isEditing,
+  isSaving,
+  onEdit,
+  onCancel,
+  onSave,
+  className = "",
+}) => (
+  <div className={`flex items-start gap-3 ${className}`}>
+    <span
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-sm ${INLINE_TONES[tone] || INLINE_TONES.violet}`}
+    >
+      <Icon name={icon} size={18} />
+    </span>
+
+    <div className="min-w-0 flex-1">
+      <p className="text-sm text-muted-foreground">{label}</p>
+
+      {isEditing ? (
+        <div className="mt-2 space-y-3">
+          {editor}
+
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={onSave} disabled={isSaving}>
+              <Icon
+                name={isSaving ? "Loader2" : "Check"}
+                size={14}
+                className={`mr-1 ${isSaving ? "animate-spin" : ""}`}
+              />
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
+
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onCancel}
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-0.5 flex items-center gap-2">
+          <div className="min-w-0">{children}</div>
+
+          {canEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-label={`Edit ${label}`}
+              title={`Edit ${label}`}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary"
+            >
+              <Icon name="Pencil" size={13} />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+);
+
 const DealDrawer = ({
 
   deal,
@@ -120,6 +233,10 @@ const DealDrawer = ({
   const [postingActivity, setPostingActivity] = useState(false);
   const [expandedActivityId, setExpandedActivityId] = useState(null);
   const [editingActivityId, setEditingActivityId] = useState(null);
+  // Which single field the view tab is currently editing inline, and which
+  // one is mid-save (drives the spinner on that row's Save button).
+  const [editingField, setEditingField] = useState(null);
+  const [savingField, setSavingField] = useState(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -378,6 +495,143 @@ const DealDrawer = ({
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
+  // ── Inline editing (view tab) ──────────────────────────────────────────────
+  // Deliberately reuses formData + handleChange + onUpdate, so a field edited
+  // inline goes through exactly the same path as the full Edit form.
+  const startInlineEdit = (field) => {
+    setFormData({
+      ...leadData,
+      phoneNumberData: getPhoneRows(leadData),
+    });
+    setEditingField(field);
+  };
+
+  const cancelInlineEdit = () => {
+    setFormData(deal);
+    setEditingField(null);
+  };
+
+  // Sends only the touched fields — a partial PUT, so an inline save can never
+  // clobber a field the drawer happens to be holding a stale copy of.
+  const saveInline = async (payload) => {
+    if (!deal?.id) return;
+
+    try {
+      setSavingField(editingField);
+      await onUpdate(deal.id, payload);
+
+      // The page invalidates ["leads"], but the drawer renders the full record
+      // from ["leadDetails", id] — refresh that too or it shows stale values.
+      queryClient.invalidateQueries({ queryKey: ["leadDetails", deal.id] });
+      setEditingField(null);
+    } catch (error) {
+      console.error("Inline update failed", error);
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  const saveInlineName = () => {
+    const firstName = (formData.firstName || "").trim();
+    const lastName = (formData.lastName || "").trim();
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    // Same rule the full form enforces.
+    if (!fullName) {
+      toast.error("Name is required");
+      return;
+    }
+
+    saveInline({ firstName, lastName, name: fullName });
+  };
+
+  const saveInlineStatus = () => {
+    if (!formData.status) {
+      toast.error("Status is required");
+      return;
+    }
+
+    saveInline({ status: formData.status });
+  };
+
+  // ── Contact numbers (array) ────────────────────────────────────────────────
+  const phoneRows = Array.isArray(formData.phoneNumberData)
+    ? formData.phoneNumberData
+    : [];
+
+  const updatePhoneRow = (index, patch) =>
+    setFormData((prev) => ({
+      ...prev,
+      phoneNumberData: (prev.phoneNumberData || []).map((row, i) =>
+        i === index ? { ...row, ...patch } : row
+      ),
+    }));
+
+  const addPhoneRow = () =>
+    setFormData((prev) => ({
+      ...prev,
+      phoneNumberData: [
+        ...(prev.phoneNumberData || []),
+        { phoneNumber: "+91", type: "Mobile", primary: false },
+      ],
+    }));
+
+  const removePhoneRow = (index) =>
+    setFormData((prev) => ({
+      ...prev,
+      phoneNumberData: (prev.phoneNumberData || []).filter(
+        (_, i) => i !== index
+      ),
+    }));
+
+  // Exactly one number can be primary — selecting one clears the rest.
+  const setPrimaryPhone = (index) =>
+    setFormData((prev) => ({
+      ...prev,
+      phoneNumberData: (prev.phoneNumberData || []).map((row, i) => ({
+        ...row,
+        primary: i === index,
+      })),
+    }));
+
+  const saveInlineContacts = () => {
+    const rows = phoneRows
+      .map((row) => ({
+        ...row,
+        phoneNumber: (row.phoneNumber || "").trim(),
+      }))
+      .filter((row) => row.phoneNumber);
+
+    if (!rows.length) {
+      toast.error("Add at least one contact number");
+      return;
+    }
+
+    const duplicates = new Set(rows.map((row) => row.phoneNumber));
+    if (duplicates.size !== rows.length) {
+      toast.error("Duplicate contact numbers");
+      return;
+    }
+
+    // Fall back to the first row when nothing is flagged primary.
+    const primaryIndex = Math.max(
+      rows.findIndex((row) => row.primary),
+      0
+    );
+    const normalized = rows.map((row, i) => ({
+      ...row,
+      primary: i === primaryIndex,
+    }));
+
+    saveInline({
+      phoneNumberData: normalized,
+      // Keep the scalar in sync — the leads table and the WhatsApp links read
+      // `phoneNumber`, not the array.
+      phoneNumber: normalized[primaryIndex].phoneNumber,
+    });
+  };
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const fullName =
@@ -530,6 +784,11 @@ const DealDrawer = ({
 
 
   const leadData = leadsDetails || deal;
+  // Numbers shown in view mode. `getPhoneRows` falls back to a "+91" stub for
+  // empty records, which is useful in the editor but noise in the display.
+  const contactNumbers = getPhoneRows(leadData).filter(
+    (row) => row.phoneNumber && row.phoneNumber !== "+91"
+  );
   return (
     <>
       {/* Backdrop */}
@@ -854,38 +1113,157 @@ const DealDrawer = ({
                       <div className="border border-border rounded-xl p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Name */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="User" size={14} />
-                              Name
+                          <InlineEditRow
+                            icon="UserRound"
+                            tone="violet"
+                            label="Name"
+                            canEdit={canEditDeal(deal)}
+                            isEditing={editingField === "name"}
+                            isSaving={savingField === "name"}
+                            onEdit={() => startInlineEdit("name")}
+                            onCancel={cancelInlineEdit}
+                            onSave={saveInlineName}
+                            editor={
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <Input
+                                  label="First Name *"
+                                  value={formData.firstName || ""}
+                                  onChange={(e) =>
+                                    handleChange("firstName", e.target.value)
+                                  }
+                                />
+                                <Input
+                                  label="Last Name"
+                                  value={formData.lastName || ""}
+                                  onChange={(e) =>
+                                    handleChange("lastName", e.target.value)
+                                  }
+                                />
+                              </div>
+                            }
+                          >
+                            <p className="text-foreground font-medium truncate">
+                              {leadData?.name || "None"}
                             </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.name || "None"}
-                            </p>
-                          </div>
+                          </InlineEditRow>
+                          {/* Contact numbers — an array, so a lead can carry
+                              as many numbers as it needs */}
+                          <InlineEditRow
+                            icon="PhoneCall"
+                            tone="emerald"
+                            label="Contact"
+                            canEdit={canEditDeal(deal)}
+                            isEditing={editingField === "contacts"}
+                            isSaving={savingField === "contacts"}
+                            onEdit={() => startInlineEdit("contacts")}
+                            onCancel={cancelInlineEdit}
+                            onSave={saveInlineContacts}
+                            editor={
+                              <div className="space-y-2">
+                                {phoneRows.map((row, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <div className="flex-1 min-w-0">
+                                      <Input
+                                        value={row.phoneNumber || ""}
+                                        placeholder="+91..."
+                                        onChange={(e) =>
+                                          updatePhoneRow(index, {
+                                            phoneNumber: e.target.value,
+                                          })
+                                        }
+                                      />
+                                    </div>
 
-                          {/* Phone */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Phone" size={14} />
-                              Phone
-                            </p>
-                            {deal?.phoneNumber ? (
-                              <a
-                                href={`tel:${deal.phoneNumber}`}
-                                className="text-primary hover:underline"
-                              >
-                                {deal?.phoneNumber || "None"}
-                              </a>
+                                    <div className="w-28 shrink-0">
+                                      <Select
+                                        options={PHONE_TYPE_OPTIONS}
+                                        value={row.type || "Mobile"}
+                                        onChange={(value) =>
+                                          updatePhoneRow(index, { type: value })
+                                        }
+                                      />
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => setPrimaryPhone(index)}
+                                      aria-label="Mark as primary number"
+                                      title="Mark as primary"
+                                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors ${row.primary
+                                        ? "border-amber-300 bg-amber-50 text-amber-600"
+                                        : "border-border text-muted-foreground hover:text-amber-600"
+                                        }`}
+                                    >
+                                      <Icon name="Star" size={14} />
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => removePhoneRow(index)}
+                                      disabled={phoneRows.length === 1}
+                                      aria-label="Remove number"
+                                      title={
+                                        phoneRows.length === 1
+                                          ? "A lead needs at least one number"
+                                          : "Remove number"
+                                      }
+                                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                      <Icon name="Trash2" size={14} />
+                                    </button>
+                                  </div>
+                                ))}
+
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={addPhoneRow}
+                                >
+                                  <Icon name="Plus" size={14} className="mr-1" />
+                                  Add contact
+                                </Button>
+                              </div>
+                            }
+                          >
+                            {contactNumbers.length ? (
+                              <div className="space-y-1">
+                                {contactNumbers.map((row, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex flex-wrap items-center gap-2"
+                                  >
+                                    <a
+                                      href={`tel:${row.phoneNumber}`}
+                                      className="text-primary hover:underline"
+                                    >
+                                      {row.phoneNumber}
+                                    </a>
+
+                                    <span className="text-[11px] text-muted-foreground">
+                                      {row.type}
+                                    </span>
+
+                                    {row.primary && contactNumbers.length > 1 && (
+                                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                                        <Icon name="Star" size={10} />
+                                        Primary
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
                             ) : (
                               <p className="text-foreground">None</p>
                             )}
-                          </div>
-
+                          </InlineEditRow>
                           {/* Email */}
                           <div>
                             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Mail" size={14} />
+                              <Icon name="AtSign" size={14} />
                               Email
                             </p>
                             {deal?.emailAddress ? (
@@ -934,7 +1312,7 @@ const DealDrawer = ({
                           {/* City */}
                           <div>
                             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="MapPin" size={14} />
+                              <Icon name="MapPinned" size={14} />
                               City
                             </p>
                             <p className="text-foreground font-medium">
@@ -1008,7 +1386,7 @@ Let me know when you're available so that we can discuss this in more detail.
                           {/* Question */}
                           <div className="col-span-2">
                             <p className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1.5">
-                              <Icon name="HelpCircle" size={14} />
+                              <Icon name="MessagesSquare" size={14} />
                               Question
                             </p>
                             <QuestionAnswers raw={deal?.cQuestion} />
@@ -1024,20 +1402,36 @@ Let me know when you're available so that we can discuss this in more detail.
 
                         <div className="grid grid-cols-2 md:grid-cols-2 gap-5">
                           {/* Status */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Activity" size={14} />
-                              Status
-                            </p>
+                          <InlineEditRow
+                            icon="CircleDot"
+                            tone="violet"
+                            label="Status"
+                            canEdit={canEditDeal(deal)}
+                            isEditing={editingField === "status"}
+                            isSaving={savingField === "status"}
+                            onEdit={() => startInlineEdit("status")}
+                            onCancel={cancelInlineEdit}
+                            onSave={saveInlineStatus}
+                            editor={
+                              <Select
+                                options={statusOptions}
+                                value={formData.status || ""}
+                                onChange={(value) =>
+                                  handleChange("status", value)
+                                }
+                                placeholder="Select status"
+                                searchable
+                              />
+                            }
+                          >
                             <span className="inline-flex px-3 py-1 rounded-full text-xs font-medium bg-success/10 text-success">
-                              {deal?.status || "—"}
+                              {leadData?.status || "—"}
                             </span>
-                          </div>
-
+                          </InlineEditRow>
                           {/* Source */}
                           <div>
                             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Globe" size={14} />
+                              <Icon name="Radio" size={14} />
                               Source
                             </p>
                             <p className="text-foreground font-medium">
@@ -1050,7 +1444,7 @@ Let me know when you're available so that we can discuss this in more detail.
                           {/* Description */}
                           <div className="col-span-2 ">
                             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="FileText" size={14} />
+                              <Icon name="NotepadText" size={14} />
                               Description
                             </p>
                             <p className="text-foreground leading-relaxed mt-1 whitespace-pre-line break-words">
