@@ -862,7 +862,7 @@ const DealDrawer = ({
                   {/* ================= Overview ================= */}
                   <div className="bg-card border border-border rounded-lg p-4 space-y-4">
                     {/* Name */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                       <Input
                         label="First Name *"
                         icon="UserRound"
@@ -882,7 +882,7 @@ const DealDrawer = ({
                     </div>
 
                     {/* Phone & Email */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                       <Input
                         label="Phone"
                         icon="PhoneCall"
@@ -902,7 +902,7 @@ const DealDrawer = ({
                     </div>
 
                     {/* Whatsapp & City */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                       <Input
                         label="Whatsapp"
                         icon="MessageCircle"
@@ -922,7 +922,7 @@ const DealDrawer = ({
                     </div>
 
                     {/* Project & Next Contact */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 
                       <Input
                         type="datetime-local"
@@ -946,7 +946,7 @@ const DealDrawer = ({
                     </div>
                   </div>
                   <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                       <Select
                         label="Status"
                         icon="CircleDot"
@@ -964,7 +964,7 @@ const DealDrawer = ({
                     </div>
                   </div>
                   {/* ================= Assigned User ================= */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
                       <Select
                         label="Assigned User"
@@ -1038,7 +1038,7 @@ const DealDrawer = ({
                 <p className="text-sm text-muted-foreground">
                   Updating {selectedIds.length} selected Leads
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   {/* Assigned User */}
                   <div className="flex items-center gap-3">
                     <input
@@ -1057,7 +1057,7 @@ const DealDrawer = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   {/* Team */}
                   <div className="flex items-center gap-3">
                     <input
@@ -1076,7 +1076,7 @@ const DealDrawer = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   {/* Status */}
                   <div className="flex items-center gap-3">
                     <input
@@ -1134,14 +1134,14 @@ const DealDrawer = ({
                     <div className="space-y-6">
                       {/* ================= Overview ================= */}
                       <div className="border border-border rounded-xl p-4 sm:p-6">
-                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
+                        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
                           {/* Name */}
                           <InlineEditRow
                             icon="UserRound"
                             tone="violet"
                             label="Name"
                             className={
-                              editingField === "name" ? "md:col-span-2" : ""
+                              editingField === "name" ? "lg:col-span-2" : ""
                             }
                             canEdit={canEditDeal(deal)}
                             isEditing={editingField === "name"}
@@ -1150,7 +1150,7 @@ const DealDrawer = ({
                             onCancel={cancelInlineEdit}
                             onSave={saveInlineName}
                             editor={
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 <Input
                                   label="First Name *"
                                   icon="UserRound"
@@ -1181,7 +1181,7 @@ const DealDrawer = ({
                             tone="emerald"
                             label="Contact"
                             className={
-                              editingField === "contacts" ? "md:col-span-2" : ""
+                              editingField === "contacts" ? "lg:col-span-2" : ""
                             }
                             canEdit={canEditDeal(deal)}
                             isEditing={editingField === "contacts"}
@@ -1450,14 +1450,14 @@ Let me know when you're available so that we can discuss this in more detail.
                           Details
                         </h3>
 
-                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                           {/* Status */}
                           <InlineEditRow
                             icon="CircleDot"
                             tone="violet"
                             label="Status"
                             className={
-                              editingField === "status" ? "col-span-2" : ""
+                              editingField === "status" ? "lg:col-span-2" : ""
                             }
                             canEdit={canEditDeal(deal)}
                             isEditing={editingField === "status"}
@@ -1480,7 +1480,7 @@ Let me know when you're available so that we can discuss this in more detail.
                                       onClick={() =>
                                         handleChange("status", option.value)
                                       }
-                                      className={`rounded-full border px-4 py-2 text-sm transition-all duration-150 ${isSelected
+                                      className={`rounded-full border px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm transition-all duration-150 ${isSelected
                                         ? `${theme.active} font-semibold shadow-sm`
                                         : `${theme.idle} hover:shadow-sm`
                                         }`}
@@ -1535,7 +1535,7 @@ Let me know when you're available so that we can discuss this in more detail.
                     <div className="space-y-6">
                       {/* ================= Assigned User ================= */}
                       <div className="border border-border rounded-xl p-4 sm:p-6">
-                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
+                        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
                           {/* Assigned User */}
                           <FieldRow
                             icon="UserCheck"
@@ -1607,7 +1607,7 @@ Let me know when you're available so that we can discuss this in more detail.
                           Audit Information
                         </h3>
 
-                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
+                        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
                           {/* Created */}
                           <FieldRow
                             icon="CalendarPlus"
@@ -1879,7 +1879,7 @@ Let me know when you're available so that we can discuss this in more detail.
                                 }`}
                             >
                               <div className="border-t pt-4 text-sm text-muted-foreground">
-                                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                                <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                                   <div>
                                     <p className="text-xs">Direction</p>
                                     <p className="font-medium text-foreground">
