@@ -28,7 +28,7 @@ const linkifyText = (text) => {
         href={part}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-primary underline break-all hover:text-primary/80"
+        className="text-primary underline break-words hover:text-primary/80"
       >
         {part}
       </a>
@@ -157,7 +157,7 @@ const FieldIcon = ({ name, tone = "violet" }) => (
 
 // Read-only counterpart of InlineEditRow — identical chrome, no editor.
 const FieldRow = ({ icon, tone, label, children, className = "" }) => (
-  <div className={`flex items-start gap-3 ${className}`}>
+  <div className={`flex min-w-0 items-start gap-3 ${className}`}>
     <FieldIcon name={icon} tone={tone} />
 
     <div className="min-w-0 flex-1">
@@ -184,7 +184,7 @@ const InlineEditRow = ({
   onSave,
   className = "",
 }) => (
-  <div className={`flex items-start gap-3 ${className}`}>
+  <div className={`flex min-w-0 items-start gap-3 ${className}`}>
     <FieldIcon name={icon} tone={tone} />
 
     <div className="min-w-0 flex-1">
@@ -1129,12 +1129,12 @@ const DealDrawer = ({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                   {activeTab === "overview" && (
                     <div className="space-y-6">
                       {/* ================= Overview ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="border border-border rounded-xl p-4 sm:p-6">
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
                           {/* Name */}
                           <InlineEditRow
                             icon="UserRound"
@@ -1317,7 +1317,7 @@ const DealDrawer = ({
                             {deal?.emailAddress ? (
                               <a
                                 href={`mailto:${deal.emailAddress}`}
-                                className="text-primary hover:underline break-all"
+                                className="text-primary hover:underline break-words"
                               >
                                 {deal?.emailAddress || "None"}
                               </a>
@@ -1444,13 +1444,13 @@ Let me know when you're available so that we can discuss this in more detail.
                       </div>
 
                       {/* ================= Details ================= */}
-                      <div className="border border-border rounded-xl p-6">
+                      <div className="border border-border rounded-xl p-4 sm:p-6">
                         <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
                           <Icon name="SlidersHorizontal" size={17} className="text-primary" />
                           Details
                         </h3>
 
-                        <div className="grid grid-cols-2 md:grid-cols-2 gap-5">
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                           {/* Status */}
                           <InlineEditRow
                             icon="CircleDot"
@@ -1534,8 +1534,8 @@ Let me know when you're available so that we can discuss this in more detail.
                   {activeTab === "AssignedUsers" && (
                     <div className="space-y-6">
                       {/* ================= Assigned User ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="border border-border rounded-xl p-4 sm:p-6">
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
                           {/* Assigned User */}
                           <FieldRow
                             icon="UserCheck"
@@ -1601,13 +1601,13 @@ Let me know when you're available so that we can discuss this in more detail.
                       </div>
 
                       {/* ================= Audit Information ================= */}
-                      <div className="border border-border rounded-xl p-6">
+                      <div className="border border-border rounded-xl p-4 sm:p-6">
                         <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
                           <Icon name="ScrollText" size={17} className="text-primary" />
                           Audit Information
                         </h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
                           {/* Created */}
                           <FieldRow
                             icon="CalendarPlus"
