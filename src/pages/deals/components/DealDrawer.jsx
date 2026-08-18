@@ -102,10 +102,10 @@ const QuestionAnswers = ({ raw }) => {
 
 // Coloured icon tiles for the inline-editable rows in the overview.
 const INLINE_TONES = {
-  violet: "bg-gradient-to-br from-violet-500 to-purple-600",
-  sky: "bg-gradient-to-br from-sky-500 to-blue-600",
-  emerald: "bg-gradient-to-br from-emerald-500 to-green-600",
-  amber: "bg-gradient-to-br from-amber-500 to-orange-500",
+  violet: "bg-violet-50 text-violet-600 ring-violet-200/70",
+  sky: "bg-sky-50 text-sky-600 ring-sky-200/70",
+  emerald: "bg-emerald-50 text-emerald-600 ring-emerald-200/70",
+  amber: "bg-amber-50 text-amber-600 ring-amber-200/70",
 };
 
 const PHONE_TYPE_OPTIONS = [
@@ -160,7 +160,7 @@ const InlineEditRow = ({
 }) => (
   <div className={`flex items-start gap-3 ${className}`}>
     <span
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-sm ${INLINE_TONES[tone] || INLINE_TONES.violet}`}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ${INLINE_TONES[tone] || INLINE_TONES.violet}`}
     >
       <Icon name={icon} size={18} />
     </span>
@@ -862,6 +862,7 @@ const DealDrawer = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input
                         label="First Name *"
+                        icon="UserRound"
                         value={formData.firstName || ""}
                         onChange={(e) =>
                           handleChange("firstName", e.target.value)
@@ -869,6 +870,7 @@ const DealDrawer = ({
                       />
                       <Input
                         label="Last Name"
+                        icon="Users"
                         value={formData.lastName || ""}
                         onChange={(e) =>
                           handleChange("lastName", e.target.value)
@@ -880,6 +882,7 @@ const DealDrawer = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input
                         label="Phone"
+                        icon="PhoneCall"
                         value={formData.phoneNumber || ""}
                         onChange={(e) =>
                           handleChange("phoneNumber", e.target.value)
@@ -887,6 +890,7 @@ const DealDrawer = ({
                       />
                       <Input
                         label="Email"
+                        icon="AtSign"
                         value={formData.emailAddress || ""}
                         onChange={(e) =>
                           handleChange("emailAddress", e.target.value)
@@ -898,6 +902,7 @@ const DealDrawer = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input
                         label="Whatsapp"
+                        icon="MessageCircle"
                         value={formData.whatsapp || ""}
                         onChange={(e) =>
                           handleChange("whatsapp", e.target.value)
@@ -905,6 +910,7 @@ const DealDrawer = ({
                       />
                       <Input
                         label="City"
+                        icon="MapPinned"
                         value={formData.addressCity || ""}
                         onChange={(e) =>
                           handleChange("addressCity", e.target.value)
@@ -918,6 +924,7 @@ const DealDrawer = ({
                       <Input
                         type="datetime-local"
                         label="Next Contact"
+                        icon="CalendarClock"
                         value={formData.cNextContact || ""}
                         onChange={(e) =>
                           handleChange("cNextContact", e.target.value)
@@ -925,6 +932,7 @@ const DealDrawer = ({
                       />
                       <Select
                         label="OPT Verified"
+                        icon="ShieldCheck"
                         value={formData.cOTPVerified || ""}
                         options={[
                           { value: "Yes", label: "Yes" },
@@ -938,12 +946,14 @@ const DealDrawer = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Select
                         label="Status"
+                        icon="CircleDot"
                         value={formData.status || "New"}
                         options={statusOptions}
                         onChange={(value) => handleChange("status", value)}
                       />
                       <Select
                         label="Source"
+                        icon="Radio"
                         value={formData.source || ""}
                         options={sourceOptions}
                         onChange={(value) => handleChange("source", value)}
@@ -955,6 +965,7 @@ const DealDrawer = ({
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
                       <Select
                         label="Assigned User"
+                        icon="UserCheck"
                         value={formData.assignedUserId || ""}
                         options={userOptions} // 👉 later API se users
                         onChange={(value) =>
@@ -966,6 +977,7 @@ const DealDrawer = ({
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
                       <Select
                         label="Teams"
+                        icon="Network"
                         value={formData.teamId || ""}
                         options={teamOptions} // 👉 later API se teams
                         onChange={(value) =>
@@ -1033,6 +1045,7 @@ const DealDrawer = ({
                     />
                     <Select
                       label="Assigned User"
+                      icon="UserCheck"
                       value={formData.assignedUserId}
                       options={userOptions}
                       disabled={!massFields.assignedUserId}
@@ -1051,6 +1064,7 @@ const DealDrawer = ({
                     />
                     <Select
                       label="Team"
+                      icon="Network"
                       value={formData.teamId}
                       options={teamOptions}
                       disabled={!massFields.teamId}
@@ -1069,6 +1083,7 @@ const DealDrawer = ({
                     />
                     <Select
                       label="Status"
+                      icon="CircleDot"
                       value={formData.status}
                       options={statusOptions}
                       disabled={!massFields.status}
@@ -1132,6 +1147,7 @@ const DealDrawer = ({
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <Input
                                   label="First Name *"
+                                  icon="UserRound"
                                   value={formData.firstName || ""}
                                   onChange={(e) =>
                                     handleChange("firstName", e.target.value)
@@ -1139,6 +1155,7 @@ const DealDrawer = ({
                                 />
                                 <Input
                                   label="Last Name"
+                                  icon="Users"
                                   value={formData.lastName || ""}
                                   onChange={(e) =>
                                     handleChange("lastName", e.target.value)
@@ -1172,6 +1189,7 @@ const DealDrawer = ({
                                   >
                                     <div className="flex-1 min-w-0">
                                       <Input
+                                        icon="Phone"
                                         value={row.phoneNumber || ""}
                                         placeholder="+91..."
                                         onChange={(e) =>
@@ -1184,6 +1202,7 @@ const DealDrawer = ({
 
                                     <div className="w-28 shrink-0">
                                       <Select
+                                        icon="Tag"
                                         options={PHONE_TYPE_OPTIONS}
                                         value={row.type || "Mobile"}
                                         onChange={(value) =>

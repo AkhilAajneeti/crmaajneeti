@@ -4,6 +4,7 @@ import { ChevronDown, Check, Search, X } from "lucide-react";
 import { cn } from "../../utils/cn";
 import Button from "./Button";
 import Input from "./Input";
+import AppIcon from "../AppIcon";
 
 const Select = React.forwardRef(({
     className,
@@ -19,6 +20,8 @@ const Select = React.forwardRef(({
     error,
     searchable = false,
     clearable = false,
+    // Optional leading icon (any lucide name), mirroring Input.
+    icon,
     loading = false,
     id,
     name,
@@ -143,7 +146,16 @@ const Select = React.forwardRef(({
                     aria-haspopup="listbox"
                     {...props}
                 >
-                    <span className="truncate">{getSelectedDisplay()}</span>
+                    <span className="flex min-w-0 items-center gap-2">
+                        {icon && (
+                            <AppIcon
+                                name={icon}
+                                size={16}
+                                className="shrink-0 text-muted-foreground"
+                            />
+                        )}
+                        <span className="truncate">{getSelectedDisplay()}</span>
+                    </span>
 
                     <div className="flex items-center gap-1">
                         {loading && (

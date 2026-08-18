@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "../../utils/cn";
+import Icon from "../AppIcon";
 
 const Input = React.forwardRef(({
     className,
@@ -8,6 +9,9 @@ const Input = React.forwardRef(({
     description,
     error,
     required = false,
+    // Optional leading icon (any lucide name). Opt-in: without it the field
+    // renders exactly as before.
+    icon,
     id,
     ...props
 }, ref) => {
@@ -65,17 +69,26 @@ const Input = React.forwardRef(({
                 </label>
             )}
 
-            <input
-                type={type}
-                className={cn(
-                    baseInputClasses,
-                    error && "border-destructive focus-visible:ring-destructive",
-                    className
+            <div className="relative">
+                {icon && (
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        <Icon name={icon} size={16} />
+                    </span>
                 )}
-                ref={ref}
-                id={inputId}
-                {...props}
-            />
+
+                <input
+                    type={type}
+                    className={cn(
+                        baseInputClasses,
+                        icon && "pl-9",
+                        error && "border-destructive focus-visible:ring-destructive",
+                        className
+                    )}
+                    ref={ref}
+                    id={inputId}
+                    {...props}
+                />
+            </div>
 
             {description && !error && (
                 <p className="text-sm text-muted-foreground">
