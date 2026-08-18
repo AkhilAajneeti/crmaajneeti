@@ -106,6 +106,9 @@ const INLINE_TONES = {
   sky: "bg-sky-50 text-sky-600 ring-sky-200/70",
   emerald: "bg-emerald-50 text-emerald-600 ring-emerald-200/70",
   amber: "bg-amber-50 text-amber-600 ring-amber-200/70",
+  indigo: "bg-indigo-50 text-indigo-600 ring-indigo-200/70",
+  teal: "bg-teal-50 text-teal-600 ring-teal-200/70",
+  rose: "bg-rose-50 text-rose-600 ring-rose-200/70",
 };
 
 const PHONE_TYPE_OPTIONS = [
@@ -141,6 +144,27 @@ const getPhoneRows = (record) => {
   ];
 };
 
+// The tinted icon chip every overview row leads with.
+const FieldIcon = ({ name, tone = "violet" }) => (
+  <span
+    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ${INLINE_TONES[tone] || INLINE_TONES.violet}`}
+  >
+    <Icon name={name} size={18} />
+  </span>
+);
+
+// Read-only counterpart of InlineEditRow — identical chrome, no editor.
+const FieldRow = ({ icon, tone, label, children, className = "" }) => (
+  <div className={`flex items-start gap-3 ${className}`}>
+    <FieldIcon name={icon} tone={tone} />
+
+    <div className="min-w-0 flex-1">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <div className="mt-0.5">{children}</div>
+    </div>
+  </div>
+);
+
 // One row of the overview: coloured icon tile, label, current value and a
 // pencil that swaps the value for the very same Input/Select controls the
 // full Edit form uses — the editing mechanism is shared, not duplicated.
@@ -159,11 +183,7 @@ const InlineEditRow = ({
   className = "",
 }) => (
   <div className={`flex items-start gap-3 ${className}`}>
-    <span
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ${INLINE_TONES[tone] || INLINE_TONES.violet}`}
-    >
-      <Icon name={icon} size={18} />
-    </span>
+    <FieldIcon name={icon} tone={tone} />
 
     <div className="min-w-0 flex-1">
       <p className="text-sm text-muted-foreground">{label}</p>
@@ -1285,11 +1305,11 @@ const DealDrawer = ({
                             )}
                           </InlineEditRow>
                           {/* Email */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="AtSign" size={14} />
-                              Email
-                            </p>
+                          <FieldRow
+                            icon="AtSign"
+                            tone="sky"
+                            label="Email"
+                          >
                             {deal?.emailAddress ? (
                               <a
                                 href={`mailto:${deal.emailAddress}`}
@@ -1300,7 +1320,7 @@ const DealDrawer = ({
                             ) : (
                               <p className="text-foreground">None</p>
                             )}
-                          </div>
+                          </FieldRow>
 
                           {/* WhatsApp — Quick Reply */}
                           <div>
@@ -1334,37 +1354,37 @@ const DealDrawer = ({
                           </div>
 
                           {/* City */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="MapPinned" size={14} />
-                              City
-                            </p>
+                          <FieldRow
+                            icon="MapPinned"
+                            tone="amber"
+                            label="City"
+                          >
                             <p className="text-foreground font-medium">
                               {deal?.addressCity || "None"}
                             </p>
-                          </div>
+                          </FieldRow>
 
                           {/* Next Contact */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="CalendarClock" size={14} />
-                              Next Contact
-                            </p>
+                          <FieldRow
+                            icon="CalendarClock"
+                            tone="indigo"
+                            label="Next Contact"
+                          >
                             <p className="text-foreground font-medium">
                               {deal?.cNextContact
                                 ? formatDateTime(deal.cNextContact)
                                 : "None"}
                             </p>
-                          </div>
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="ShieldCheck" size={14} />
-                              OTP Verified
-                            </p>
+                          </FieldRow>
+                          <FieldRow
+                            icon="ShieldCheck"
+                            tone="teal"
+                            label="OTP Verified"
+                          >
                             <p className="text-foreground font-medium">
                               {deal?.cOTPVerified || "No"}
                             </p>
-                          </div>
+                          </FieldRow>
 
                           
 
@@ -1408,13 +1428,14 @@ Let me know when you're available so that we can discuss this in more detail.
                           </div>
 
                           {/* Question */}
-                          <div className="col-span-2">
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1.5">
-                              <Icon name="MessagesSquare" size={14} />
-                              Question
-                            </p>
+                          <FieldRow
+                            icon="MessagesSquare"
+                            tone="rose"
+                            label="Question"
+                            className="col-span-2"
+                          >
                             <QuestionAnswers raw={deal?.cQuestion} />
-                          </div>
+                          </FieldRow>
                         </div>
                       </div>
 
@@ -1471,28 +1492,29 @@ Let me know when you're available so that we can discuss this in more detail.
                             </span>
                           </InlineEditRow>
                           {/* Source */}
-                          <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Radio" size={14} />
-                              Source
-                            </p>
+                          <FieldRow
+                            icon="Radio"
+                            tone="sky"
+                            label="Source"
+                          >
                             <p className="text-foreground font-medium">
                               {deal?.source || "—"}
                             </p>
-                          </div>
+                          </FieldRow>
                           {/* Source */}
 
 
                           {/* Description */}
-                          <div className="col-span-2 ">
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="NotepadText" size={14} />
-                              Description
-                            </p>
+                          <FieldRow
+                            icon="NotepadText"
+                            tone="indigo"
+                            label="Description"
+                            className="col-span-2"
+                          >
                             <p className="text-foreground leading-relaxed mt-1 whitespace-pre-line break-words">
                               {linkifyText(deal?.description)}
                             </p>
-                          </div>
+                          </FieldRow>
                         </div>
                       </div>
                     </div>
