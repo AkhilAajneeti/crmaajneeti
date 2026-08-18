@@ -172,23 +172,28 @@ const InlineEditRow = ({
         <div className="mt-2 space-y-3">
           {editor}
 
-          <div className="flex items-center gap-2">
-            <Button size="sm" onClick={onSave} disabled={isSaving}>
-              <Icon
-                name={isSaving ? "Loader2" : "Check"}
-                size={14}
-                className={`mr-1 ${isSaving ? "animate-spin" : ""}`}
-              />
-              {isSaving ? "Saving..." : "Save"}
-            </Button>
-
+          <div className="flex items-center justify-end gap-2 pt-1">
             <Button
               size="sm"
-              variant="ghost"
+              variant="outline"
               onClick={onCancel}
               disabled={isSaving}
             >
               Cancel
+            </Button>
+
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={onSave}
+              disabled={isSaving}
+            >
+              <Icon
+                name={isSaving ? "LoaderCircle" : "CheckCheck"}
+                size={15}
+                className={`mr-1.5 ${isSaving ? "animate-spin" : ""}`}
+              />
+              {isSaving ? "Saving..." : "Save"}
             </Button>
           </div>
         </div>
@@ -420,10 +425,10 @@ const DealDrawer = ({
   };
 
   const tabs = [
-    { id: "overview", label: "Overview", icon: "Eye" },
-    { id: "AssignedUsers", label: "Assigned User", icon: "Users" },
-    { id: "Stream", label: "Stream", icon: "Calendar" },
-    { id: "Activity", label: "Activity", icon: "FileText" },
+    { id: "overview", label: "Overview", icon: "LayoutList" },
+    { id: "AssignedUsers", label: "Assigned User", icon: "UserCog" },
+    { id: "Stream", label: "Stream", icon: "Rss" },
+    { id: "Activity", label: "Activity", icon: "History" },
   ];
 
   const getActivityIcon = (type) => {
@@ -1396,7 +1401,8 @@ Let me know when you're available so that we can discuss this in more detail.
 
                       {/* ================= Details ================= */}
                       <div className="border border-border rounded-xl p-6">
-                        <h3 className="text-base font-semibold text-foreground mb-6">
+                        <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+                          <Icon name="SlidersHorizontal" size={17} className="text-primary" />
                           Details
                         </h3>
 
@@ -1406,6 +1412,9 @@ Let me know when you're available so that we can discuss this in more detail.
                             icon="CircleDot"
                             tone="violet"
                             label="Status"
+                            className={
+                              editingField === "status" ? "col-span-2" : ""
+                            }
                             canEdit={canEditDeal(deal)}
                             isEditing={editingField === "status"}
                             isSaving={savingField === "status"}
@@ -1413,15 +1422,29 @@ Let me know when you're available so that we can discuss this in more detail.
                             onCancel={cancelInlineEdit}
                             onSave={saveInlineStatus}
                             editor={
-                              <Select
-                                options={statusOptions}
-                                value={formData.status || ""}
-                                onChange={(value) =>
-                                  handleChange("status", value)
-                                }
-                                placeholder="Select status"
-                                searchable
-                              />
+                              <div className="flex flex-wrap gap-2">
+                                {statusOptions.map((option) => {
+                                  const isSelected =
+                                    formData.status === option.value;
+
+                                  return (
+                                    <button
+                                      key={option.value}
+                                      type="button"
+                                      aria-pressed={isSelected}
+                                      onClick={() =>
+                                        handleChange("status", option.value)
+                                      }
+                                      className={`rounded-full border px-4 py-2 text-sm transition-all duration-150 ${isSelected
+                                        ? "border-emerald-500 bg-emerald-50/70 font-semibold text-emerald-700 ring-1 ring-emerald-500 shadow-sm"
+                                        : "border-border bg-background text-foreground hover:border-primary/40 hover:bg-muted/50"
+                                        }`}
+                                    >
+                                      {option.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             }
                           >
                             <span className="inline-flex px-3 py-1 rounded-full text-xs font-medium bg-success/10 text-success">
@@ -1465,7 +1488,8 @@ Let me know when you're available so that we can discuss this in more detail.
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Assigned User */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="UserCheck" size={14} />
                               Assigned User
                             </p>
                             <p className="text-foreground font-medium">
@@ -1475,7 +1499,8 @@ Let me know when you're available so that we can discuss this in more detail.
 
                           {/* Followers */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="UsersRound" size={14} />
                               Followers
                             </p>
                             <p className="text-foreground font-medium">
@@ -1499,8 +1524,9 @@ Let me know when you're available so that we can discuss this in more detail.
                           </div>
                           {/* Followers */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
-                              Followers
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Network" size={14} />
+                              Teams
                             </p>
                             <p className="text-foreground font-medium">
                               {leadsDetails?.teamsNames ? (
@@ -1526,14 +1552,16 @@ Let me know when you're available so that we can discuss this in more detail.
 
                       {/* ================= Audit Information ================= */}
                       <div className="border border-border rounded-xl p-6">
-                        <h3 className="text-base font-semibold text-foreground mb-6">
+                        <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+                          <Icon name="ScrollText" size={17} className="text-primary" />
                           Audit Information
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Created */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="CalendarPlus" size={14} />
                               Created
                             </p>
                             <p className="text-foreground font-medium">
@@ -1545,7 +1573,8 @@ Let me know when you're available so that we can discuss this in more detail.
 
                           {/* Modified */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="PencilLine" size={14} />
                               Last Modified
                             </p>
                             <p className="text-foreground font-medium">
@@ -1561,7 +1590,8 @@ Let me know when you're available so that we can discuss this in more detail.
                   {activeTab === "Stream" && (
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-foreground">
+                        <h3 className="flex items-center gap-2 text-lg font-medium text-foreground">
+                          <Icon name="Megaphone" size={18} className="text-primary" />
                           Recent Stream
                         </h3>
                         <Button
