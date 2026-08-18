@@ -53,7 +53,7 @@ const DealsFilters = ({
     { value: "Converted", label: "Converted" },
     { value: "Dead", label: "Dead" },
     { value: "Duplicate", label: "Duplicate" },
-    { value: "Follow Up", label: "Follow Up" },
+    { value: "Follow up", label: "Follow Up" },
     { value: "Future Prospect", label: "Future Prospect" },
     { value: "In Process", label: "In Process" },
     { value: "Interested", label: "Interested" },

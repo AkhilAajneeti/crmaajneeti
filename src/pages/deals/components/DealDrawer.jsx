@@ -123,6 +123,16 @@ const CHIP_PALETTE = {
     active: "border-green-500 bg-green-100 text-green-800 ring-1 ring-green-500",
     pill: "bg-green-100 text-green-800",
   },
+  greenDark: {
+    idle: "border-green-400 bg-green-50 text-green-800 hover:border-green-600",
+    active: "border-green-600 bg-green-100 text-green-900 ring-1 ring-green-600",
+    pill: "bg-green-100 text-green-900",
+  },
+  greenDeep: {
+    idle: "border-emerald-600 bg-emerald-50 text-emerald-900 hover:border-emerald-700",
+    active: "border-emerald-700 bg-emerald-100 text-emerald-900 ring-1 ring-emerald-700",
+    pill: "bg-emerald-100 text-emerald-900",
+  },
   indigo: {
     idle: "border-indigo-200 bg-indigo-50 text-indigo-700 hover:border-indigo-400",
     active: "border-indigo-500 bg-indigo-100 text-indigo-800 ring-1 ring-indigo-500",
@@ -199,10 +209,10 @@ const CHIP_PALETTE = {
 // greens/blues, waiting in ambers, negative in reds, archived in greys.
 const STATUS_COLORS = {
   "New": "blue",
-  "Interested": "sky",
+  "Interested": "greenDeep",
   "Qualified": "emerald",
   "Converted": "green",
-  "Follow Up": "indigo",
+  "Follow Up": "greenDark",
   "In Process": "violet",
   "Proposal Shared": "cyan",
   "Future Prospect": "teal",
@@ -481,7 +491,7 @@ const DealDrawer = ({
     { value: "Converted", label: "Converted" },
     { value: "Dead", label: "Dead" },
     { value: "Duplicate", label: "Duplicate" },
-    { value: "Follow Up", label: "Follow Up" },
+    { value: "Follow up", label: "Follow Up" },
     { value: "Future Prospect", label: "Future Prospect" },
     { value: "In Process", label: "In Process" },
     { value: "Interested", label: "Interested" },
