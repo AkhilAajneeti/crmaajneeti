@@ -161,7 +161,7 @@ const Pipeline = () => {
           {/* Page Header */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div>
-              <h1 className="text-2xl font-bold tricolor-heading">
+              <h1 className="text-2xl font-bold text-foreground">
                 Sales Pipeline
               </h1>
               <p className="text-muted-foreground">

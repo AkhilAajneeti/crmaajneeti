@@ -336,7 +336,7 @@ const AccountsPage = () => {
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-semibold tricolor-heading">
+              <h1 className="text-2xl font-semibold text-foreground">
                 Accounts
               </h1>
               <p className="text-muted-foreground mt-1">

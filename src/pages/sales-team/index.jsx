@@ -403,7 +403,7 @@ const SalesTeam = () => {
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
             <div>
-              <h1 className="text-2xl font-bold tricolor-heading">Sales Team</h1>
+              <h1 className="text-2xl font-bold text-foreground">Sales Team</h1>
               <p className="text-muted-foreground mt-1">
                 Manage your individual contacts and relationships
               </p>

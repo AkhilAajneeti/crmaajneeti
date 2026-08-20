@@ -354,7 +354,7 @@ const KnowledgeBase = () => {
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold tricolor-heading">
+                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
                   Knowledge Base
                 </h1>
                 <p className="text-muted-foreground mt-1">
