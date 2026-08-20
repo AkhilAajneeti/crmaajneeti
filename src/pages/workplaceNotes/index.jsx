@@ -12,16 +12,15 @@ import DealDrawer from "./components/DealDrawer";
 import Papa from "papaparse";
 import TablePagination from "./components/TablePagination";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  createLead,
-  deleteActivity,
-  deleteLead,
-  updateLead,
-} from "services/leads.service";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { useMetaData } from "hooks/useMetaData";
 import { useWorkPlace } from "hooks/useWorkplace";
-import { createWorkplace, updateWorkplace } from "services/workplace.service";
+import {
+  createWorkplace,
+  deleteActivity,
+  deleteWorkplace,
+  updateWorkplace,
+} from "services/workplace.service";
 
 const WorkPlace = () => {
   const navigate = useNavigate();
@@ -85,15 +84,15 @@ const WorkPlace = () => {
   // useWorkPlaceById resolves, the drawer's effect rebuilds formData from the
   // fetched record. The page no longer needs its own redundant by-id fetch.
 
-  const createLeadMutation = useMutation({
+  const createWorkplaceMutation = useMutation({
     mutationFn: createWorkplace,
     onSuccess: () => {
-      toast.success("Lead created");
+      toast.success("Note created");
       queryClient.invalidateQueries(["work"]);
     },
   });
-  const deleteLeadMutation = useMutation({
-    mutationFn: deleteLead,
+  const deleteWorkplaceMutation = useMutation({
+    mutationFn: deleteWorkplace,
     onSuccess: () => {
       toast.success("Deleted");
       queryClient.invalidateQueries(["work"]);
@@ -163,7 +162,7 @@ const WorkPlace = () => {
   };
   const handleCreateLead = async (payload) => {
     try {
-      createLeadMutation.mutate(payload);
+      createWorkplaceMutation.mutate(payload);
     } catch (err) {
       console.error("Workplace creationd failed", err);
     }
@@ -176,7 +175,7 @@ const WorkPlace = () => {
   const handleDeleteLead = async (id) => {
     try {
       toast.loading("Deleting workplace...", { id: "delete-workplace" });
-      deleteLeadMutation.mutate(id);
+      deleteWorkplaceMutation.mutate(id);
     } catch (err) {
       console.error("Delete failed", err);
     }
@@ -278,7 +277,7 @@ const WorkPlace = () => {
   };
   const bulkDeleteMutation = useMutation({
     mutationFn: async (ids) => {
-      return Promise.all(ids.map((id) => deleteLead(id)));
+      return Promise.all(ids.map((id) => deleteWorkplace(id)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["work"]);

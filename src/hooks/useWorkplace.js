@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { fetchWorkPlace, fetchWorkPlaceById, workplaceActivitesById, workplaceStreamById, workPlaceSubscription, workPlaceUnsubscribe } from "services/workplace.service"
+import { createWorkplacePost, fetchWorkPlace, fetchWorkPlaceById, updateWorkplacePost, workplaceActivitesById, workplaceStreamById, workPlaceSubscription, workPlaceUnsubscribe } from "services/workplace.service"
 
 export const useWorkPlace = ({ limit, page, filters }) => {
     return useQuery({
@@ -19,7 +19,7 @@ export const useWorkPlaceById = (id, isOpen) => {
 }
 export const useworkplaceStream = (leadId, isOpen) => {
     return useQuery({
-        queryKey: ["lead-stream", leadId],
+        queryKey: ["workplace-stream", leadId],
         queryFn: () => workplaceStreamById(leadId),
         enabled: !!leadId && isOpen,
     });
@@ -74,5 +74,36 @@ export const useworkplaceActivity = (leadId, isOpen) => {
         queryKey: ["workplace-activity", leadId],
         queryFn: () => workplaceActivitesById(leadId),
         enabled: !!leadId && isOpen,
+    });
+};
+// --------------- Stream posts ---------------
+// Workplace-only: the leads stream hooks are a separate cache entry and a
+// separate entity, so nothing here reaches into them.
+//
+// Both mutations refresh ["workplace-stream", noteId], which is the key
+// useworkplaceStream reads from.
+export const useCreateWorkplacePost = (noteId) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (post) => createWorkplacePost({ noteId, post }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["workplace-stream", noteId],
+            });
+        },
+    });
+};
+
+export const useUpdateWorkplacePost = (noteId) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ postId, post }) => updateWorkplacePost({ postId, post }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["workplace-stream", noteId],
+            });
+        },
     });
 };

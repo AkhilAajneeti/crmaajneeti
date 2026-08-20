@@ -413,23 +413,6 @@ export const updateworkplaceStream = async (id, payload) => {
     return await res.json();
 };
 
-export const createLeadActivity = async (payload) => {
-    console.log(payload);
-    const token = localStorage.getItem("auth_token");
-    const res = await fetch("https://gateway.aajneetiadvertising.com/Note", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", token: token },
-
-        body: JSON.stringify(payload),
-    });
-    const text = await res.text();
-    if (!res.ok) {
-        console.error("API ERROR:", text);
-        throw new Error("Activity is not created", text);
-    }
-    // EspoCRM returns array
-    return text ? JSON.parse(text) : null;
-};
 
 //create activity
 export const workplaceActivitesById = async (id) => {
@@ -471,5 +454,95 @@ export const deleteActivity = async (id) => {
     if (!res.ok) {
         throw new Error("Failed to delete Activity");
     }
+    return res.json();
+};
+// --------------- Workplace note stream posts ---------------
+// Self-contained: workplace notes have nothing to do with leads, so these do
+// not reuse the Lead stream helpers.
+//
+// EspoCRM stores every stream comment as a Note record. What ties a comment
+// to its parent is the payload's parentType/parentId, not the URL — which is
+// why creating one is a plain POST /Note rather than a call to
+// /CWorkplaceNotes/{id}/stream (that path is read-only, used by the GET).
+export const createWorkplacePost = async ({ noteId, post }) => {
+    const token = localStorage.getItem("auth_token");
+
+    const res = await fetch(`https://gateway.aajneetiadvertising.com/Note`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            token: token,
+        },
+        body: JSON.stringify({
+            post,
+            parentId: noteId,
+            parentType: "CWorkplaceNotes",
+            type: "Post",
+            isInternal: false,
+            attachmentsIds: [],
+        }),
+    });
+
+    if (!res.ok) {
+        const text = await res.text();
+        if (res.status === 401 || res.status === 403) {
+            localStorage.clear();
+            window.location.href = "/login";
+        }
+        throw new Error(text || "Failed to post comment");
+    }
+
+    return res.json();
+};
+
+// Editing a comment is a PUT on the Note record itself. Posting to the
+// parent's /stream endpoint does nothing.
+export const updateWorkplacePost = async ({ postId, post }) => {
+    const token = localStorage.getItem("auth_token");
+
+    const res = await fetch(`https://gateway.aajneetiadvertising.com/Note/${postId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            token: token,
+        },
+        body: JSON.stringify({ post }),
+    });
+
+    if (!res.ok) {
+        const text = await res.text();
+        if (res.status === 401 || res.status === 403) {
+            localStorage.clear();
+            window.location.href = "/login";
+        }
+        throw new Error(text || "Failed to update comment");
+    }
+
+    return res.json();
+};
+
+// Delete the note itself. This lived in the leads service as `deleteLead`,
+// which pointed at DELETE /Lead/{id} — the wrong entity, so it always 404'd.
+export const deleteWorkplace = async (id) => {
+    const token = localStorage.getItem("auth_token");
+
+    const res = await fetch(
+        `https://gateway.aajneetiadvertising.com/CWorkplaceNotes/${id}`,
+        {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json", token: token },
+        }
+    );
+
+    if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+            localStorage.clear();
+            window.location.href = "/login";
+        }
+        throw new Error("Failed to delete workplace note");
+    }
+
     return res.json();
 };

@@ -3,7 +3,7 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
-import { fetchUser } from "services/user.service";
+import { useUsers } from "hooks/useUsers";
 import { fetchStatus } from "services/others.service";
 
 const DealsFilters = ({
@@ -19,7 +19,10 @@ const DealsFilters = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
-  const [assignUser, setAssignUser] = useState([]);
+  // Shared cached users query — every filter bar and drawer reads the same
+  // entry, so this no longer refetches /User on each mount.
+  const { data: usersData } = useUsers();
+  const assignUser = usersData?.list || [];
 
   const statusOptions = [
     { value: "Canceled", label: "Canceled" },
@@ -74,12 +77,6 @@ const DealsFilters = ({
     onBulkAction(action);
     setShowBulkActions(false);
   };
-  useEffect(() => {
-    fetchUser()
-      .then((res) => setAssignUser(res.list || []))
-      .catch((err) => console.error("User fetch failed", err));
-  }, []);
-
   const activeFiltersCount = Object.values(filters)?.filter(
     (value) => value !== "" && value !== null && value !== undefined,
   )?.length;

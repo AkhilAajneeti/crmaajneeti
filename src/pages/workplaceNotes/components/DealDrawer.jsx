@@ -7,11 +7,17 @@ import toast from "react-hot-toast";
 import Avatar from "react-avatar";
 import ReactSelect from "react-select";
 import makeAnimated from "react-select/animated";
-import { createLeadActivity, updateStream } from "services/leads.service";
 import { useTeams } from "hooks/useTeams";
 import { useUsers } from "hooks/useUsers";
 import { useQueryClient } from "@tanstack/react-query";
-import { useworkplaceActivity, useWorkPlaceById, useworkplaceStream, useWorkPlaceSubs } from "hooks/useWorkplace";
+import {
+  useCreateWorkplacePost,
+  useUpdateWorkplacePost,
+  useworkplaceActivity,
+  useWorkPlaceById,
+  useworkplaceStream,
+  useWorkPlaceSubs,
+} from "hooks/useWorkplace";
 
 // Stream-post helpers ------------------------------------------------------
 
@@ -102,6 +108,10 @@ const DealDrawer = ({
     supportingDocument: [""]
   });
   const queryClient = useQueryClient();
+  // Workplace-only stream mutations; they invalidate the workplace stream
+  // key themselves, so no manual invalidation is needed below.
+  const createPost = useCreateWorkplacePost(deal?.id);
+  const updatePost = useUpdateWorkplacePost(deal?.id);
   const { data: usersData } = useUsers();
   const { data: teamData } = useTeams();
   const { data: streamData } = useworkplaceStream(deal?.id, isOpen);
@@ -422,30 +432,21 @@ const DealDrawer = ({
       setPostingActivity(true);
 
       if (editingActivityId) {
-        // 🔥 UPDATE STREAM
-        const updated = await updateStream(editingActivityId, {
+        // A stream comment is a Note record, so editing it is a PUT on that
+        // record — not a post to the parent's /stream endpoint.
+        await updatePost.mutateAsync({
+          postId: editingActivityId,
           post: activityText,
         });
-        queryClient.invalidateQueries(["workplace-stream", deal.id]);
 
-
-        toast.success("Activity updated");
+        toast.success("Comment updated");
       } else {
-        // 🔥 CREATE STREAM
-        const payload = {
-          post: activityText,
-          parentId: deal.id,
-          parentType: "Lead",
-          type: "Post",
-          isInternal: false,
-          attachmentsIds: [],
-        };
+        // The service attaches it to this note via parentType
+        // "CWorkplaceNotes", which is what GET /CWorkplaceNotes/{id}/stream
+        // reads back.
+        await createPost.mutateAsync(activityText);
 
-        await createLeadActivity(payload);
-        queryClient.invalidateQueries(["lead-stream", deal.id]);
-        // setmockStream((prev) => [newActivity, ...prev]);
-
-        toast.success("Activity posted");
+        toast.success("Comment posted");
       }
 
       setActivityText("");

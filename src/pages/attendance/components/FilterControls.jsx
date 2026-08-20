@@ -4,7 +4,7 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
-import { fetchUser } from "services/user.service";
+import { useUsers } from "hooks/useUsers";
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -52,7 +52,10 @@ const FilterControls = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
-  const [assignUser, setAssignUser] = useState([]);
+  // Shared cached users query — every filter bar and drawer reads the same
+  // entry, so this no longer refetches /User on each mount.
+  const { data: usersData } = useUsers();
+  const assignUser = usersData?.list || [];
 
   const daysOptions = [
     { label: "Today", value: "today" },
@@ -112,12 +115,6 @@ const FilterControls = ({
   const handleStatusSelect = (value) => {
     handleFilterChange("status", filters?.status === value ? "" : value);
   };
-
-  useEffect(() => {
-    fetchUser()
-      .then((res) => setAssignUser(res.list || []))
-      .catch((err) => console.error("User fetch failed", err));
-  }, []);
 
   const handleBulkActionSelect = (action) => {
     bulkActions(action);

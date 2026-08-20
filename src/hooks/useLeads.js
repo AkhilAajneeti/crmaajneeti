@@ -16,7 +16,7 @@ export const useLeadsCount = (filters) => {
         queryFn: () => fetchLeadsCount(filters),
         keepPreviousData: true,
         staleTime: 1000 * 60 * 5, // cache 5 min
-        cacheTime: 1000 * 60 * 30, // keep in memory 30 min
+        gcTime: 1000 * 60 * 30, // keep in memory 30 min (v5 name; was cacheTime)
     });
 };
 export const useNewLeads = ({ limit, page, filters, sort }) => {
