@@ -1,6 +1,6 @@
 // components/ui/Select.jsx - Shadcn style Select
 import React, { useState, useRef, useEffect } from "react";
-import { ChevronDown, Check, Search, X } from "lucide-react";
+import { ChevronDown, Check, X } from "lucide-react";
 import { cn } from "../../utils/cn";
 import Button from "./Button";
 import Input from "./Input";
@@ -203,15 +203,13 @@ const Select = React.forwardRef(({
                     <div className="absolute z-50 w-full mt-2 bg-card text-card-foreground border border-border rounded-lg shadow-elevation-2 backdrop-blur-sm">
                         {searchable && (
                             <div className="p-3 border-b border-border">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search options..."
-                                        value={searchTerm}
-                                        onChange={handleSearchChange}
-                                        className="pl-10 bg-input border-border"
-                                    />
-                                </div>
+                                <Input
+                                    icon="Search"
+                                    placeholder="Search options..."
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
+                                    className="bg-input border-border"
+                                />
                             </div>
                         )}
 
