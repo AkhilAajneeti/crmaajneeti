@@ -61,9 +61,16 @@ const getEntityActionValue = (entity, action) => {
 const isOwnRecord = (record, user) => {
   if (!record || !user?.id) return false;
 
+  // An "own" grant means the record is assigned to the user. When the record
+  // carries an assignedUser at all, that field alone decides — treating
+  // creator/owner as ownership too would show Edit on records the server then
+  // rejects (e.g. a Case you created but which is assigned to someone else).
+  if ("assignedUserId" in record) return record.assignedUserId === user.id;
+
+  // Entities with no assignedUser (e.g. the user-keyed profile record) fall
+  // back to the other ownership fields.
   return [
     record.id,
-    record.assignedUserId,
     record.createdById,
     record.ownerId,
     record.userId,
