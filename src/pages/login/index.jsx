@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import LoginHeader from "./components/LoginHeader";
 import LoginForm from "./components/LoginForm";
+import LoginShowcase from "./components/LoginShowcase";
 import { motion } from "framer-motion";
 
 const LoginPage = () => {
@@ -19,114 +20,60 @@ const LoginPage = () => {
   return (
     <>
       <Helmet>
-        <title>Sign In - CRM</title>
+        <title>Sign In - Aajneeti Connect CRM</title>
         <meta
           name="description"
-          content="Sign in to your CRMPro account to access your sales pipeline, customer data, and CRM tools."
+          content="Sign in to your Aajneeti Connect account to access your sales pipeline, customer data, and CRM tools."
         />
       </Helmet>
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="relative min-h-screen bg-background grid grid-cols-1 lg:grid-cols-2"
+        className="relative min-h-screen grid grid-cols-1 lg:grid-cols-[1.18fr_1fr] bg-[#050c26]"
       >
-        {/* Left SIDE - VISUAL */}
-        <div className="hidden lg:flex relative items-center justify-center overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#1e3a8a] to-[#312e81] text-white">
-          {/* 🔲 Grid Pattern */}
-          <div className="absolute inset-0 opacity-10 bg-[linear-gradient(#ffffff20_1px,transparent_1px),linear-gradient(90deg,#ffffff20_1px,transparent_1px)] bg-[size:40px_40px]" />
+        {/* ── LEFT — brand showcase ───────────────────────────── */}
+        <LoginShowcase />
 
-          {/* 🌌 Glow Background */}
-          <div className="absolute top-[-80px] right-[-80px] w-[300px] h-[300px] bg-indigo-500/30 rounded-full blur-3xl" />
-          <div className="absolute bottom-[-100px] left-[-100px] w-[350px] h-[350px] bg-blue-500/20 rounded-full blur-3xl" />
+        {/* ── RIGHT — sign-in ─────────────────────────────────── */}
+        <div className="relative flex items-center justify-center overflow-hidden bg-[#eef3fb] p-6 sm:p-8 xl:p-12">
+          {/* Airy daylight backdrop */}
+          <div className="absolute inset-0 bg-[linear-gradient(160deg,#ffffff_0%,#eaf1fb_45%,#dfe9f8_100%)]" />
+          <div className="absolute -top-24 -right-16 h-[380px] w-[380px] rounded-full bg-white/70 blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-[320px] w-[320px] rounded-full bg-[#c7dbf6]/50 blur-3xl" />
+          {/* Faint window-light streaks */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-2/3 opacity-40 bg-[repeating-linear-gradient(105deg,rgba(255,255,255,0.9)_0px,rgba(255,255,255,0.9)_2px,transparent_2px,transparent_90px)]" />
 
-          {/* 🧊 Glass Card */}
+          {/* Mobile brand mark (left panel is hidden below lg) */}
+          <div className="absolute top-6 left-6 lg:hidden">
+            <img
+              src="/assets/aajneeti-logo-dark.png"
+              alt="Aajneeti Connect"
+              className="h-9 w-auto object-contain"
+            />
+          </div>
+
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="relative z-10 backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-2xl p-10 max-w-md text-center"
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="relative z-10 w-full max-w-[520px]"
           >
-            <h1 className="text-4xl font-bold mb-4 tracking-tight">
-              Smarter CRM. Better Growth.
-            </h1>
-            <p className="text-sm text-white/80 leading-relaxed">
-              Streamline your workflow, manage customer relationships, and
-              unlock data-driven insights — all in one place.
-            </p>
-          </motion.div>
+            <div className="rounded-[28px] border border-white/70 bg-white/95 px-8 py-11 shadow-[0_40px_90px_-40px_rgba(15,42,95,0.45)] backdrop-blur-xl sm:px-12">
+              <LoginHeader />
 
-          {/* 🚀 Floating Image - Bottom Left */}
-          <motion.img
-            src="/assets/images/Img1.png"
-            alt="crm visual"
-            initial={{ opacity: 0, x: -40, y: 40 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="absolute bottom-40 left-10 w-64 opacity-80 drop-shadow-2xl pointer-events-none rounded"
-          />
-
-          {/* 🌐 Floating Image - Top Right */}
-          <motion.img
-            src="/assets/images/Img2.png"
-            alt="crm visual"
-            initial={{ opacity: 0, x: 40, y: -40 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="absolute top-40 right-10 w-64 opacity-80 drop-shadow-2xl pointer-events-none rounded"
-          />
-
-          {/* ✨ Subtle Floating Animation */}
-          <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 6, repeat: Infinity }}
-            className="absolute bottom-10 left-10 w-40 h-40"
-          />
-          {/* 🚀 Rocket - Center Accent */}
-          <motion.img
-            src="/assets/images/rocket.png"
-            alt="rocket"
-            initial={{ opacity: 0, scale: 0.7, rotate: -10 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0, y: [0, -10, 0] }}
-            transition={{
-              delay: 0.5,
-              duration: 0.8,
-              y: { duration: 4, repeat: Infinity },
-            }}
-            className="absolute z-0 w-28 opacity-90 drop-shadow-[0_10px_30px_rgba(0,0,0,0.4)]"
-            style={{
-              bottom: "10%",
-              right: "10%",
-              transform: "translateX(-50%)",
-            }}
-          />
-        </div>
-
-        {/* Right LOGIN */}
-        <motion.div
-          initial={{ x: -80, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="flex items-center justify-center p-6 lg:p-12"
-        >
-          <div className="w-full max-w-md">
-            {/* Logo / Branding */}
-
-            {/* Card */}
-            <div className="relative rounded-2xl p-[1.5px] bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 animate-border shadow-[0_0_25px_rgba(99,102,241,0.4)]">
-              <div className="bg-card rounded-2xl p-8 space-y-6">
-                <LoginHeader />
+              <div className="mt-8">
                 <LoginForm />
               </div>
-            </div>
 
-            {/* Footer */}
-            <p className="mt-6 text-xs text-center text-muted-foreground">
-              © {new Date().getFullYear()} Aajneeti Connect Ltd. All rights
-              reserved.
-            </p>
-          </div>
-        </motion.div>
+              <p className="mt-8 text-center text-[12px] text-slate-400">
+                © {new Date().getFullYear()} Aajneeti Connect Ltd. All rights
+                reserved.
+              </p>
+            </div>
+          </motion.div>
+        </div>
       </motion.div>
     </>
   );

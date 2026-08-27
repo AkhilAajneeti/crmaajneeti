@@ -122,6 +122,28 @@ const DealsTable = ({
   canDelete = true,
 }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
+  // Mobile "⋮" action menu: { deal, top, right } positioned in viewport
+  // coordinates so it is never clipped by the card's overflow.
+  const [actionMenu, setActionMenu] = useState(null);
+
+  const openActionMenu = (e, deal, itemCount) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const menuHeight = itemCount * 44 + 12;
+    const openUpward = rect.bottom + menuHeight > window.innerHeight - 12;
+
+    setActionMenu({
+      deal,
+      top: openUpward ? rect.top - menuHeight - 6 : rect.bottom + 6,
+      right: Math.max(8, window.innerWidth - rect.right),
+    });
+  };
+
+  const runAction = (action) => {
+    const deal = actionMenu?.deal;
+    setActionMenu(null);
+    if (deal && typeof action === "function") action(deal);
+  };
 
   const currentUserId = JSON.parse(localStorage.getItem("login_object"))?.id;
 
@@ -482,13 +504,33 @@ const DealsTable = ({
                     {deal?.name}
                   </h3>
 
-                  <span
-                    className={`px-2 py-0.5 text-xs rounded-full ${getStageColor(
-                      deal?.status,
-                    )}`}
-                  >
-                    {deal?.status}
-                  </span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span
+                      className={`px-2 py-0.5 text-xs rounded-full ${getStageColor(
+                        deal?.status,
+                      )}`}
+                    >
+                      {deal?.status}
+                    </span>
+
+                    {/* ⋮ actions */}
+                    <button
+                      type="button"
+                      aria-label="Open actions"
+                      onClick={(e) =>
+                        openActionMenu(
+                          e,
+                          deal,
+                          1 +
+                            (canEditDeal(deal) ? 1 : 0) +
+                            (canDeleteDeal(deal) ? 1 : 0),
+                        )
+                      }
+                      className="-mr-1 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors active:bg-foreground/10 hover:bg-foreground/5"
+                    >
+                      <Icon name="MoreVertical" size={18} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Project Name */}
@@ -516,6 +558,65 @@ const DealsTable = ({
             </div>
           </div>
         ))}
+
+        {/* Action menu for the tapped card */}
+        {actionMenu && (
+          <>
+            {/* Tap-away backdrop */}
+            <div
+              className="fixed inset-0 z-40"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActionMenu(null);
+              }}
+            />
+
+            <div
+              role="menu"
+              onClick={(e) => e.stopPropagation()}
+              style={{ top: actionMenu.top, right: actionMenu.right }}
+              className="fixed z-50 w-40 overflow-hidden rounded-xl border border-border bg-popover py-1.5 shadow-lg"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => runAction(onDealClick)}
+                className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-sm text-foreground transition-colors active:bg-muted hover:bg-muted"
+              >
+                <Icon name="Eye" size={16} className="text-muted-foreground" />
+                View
+              </button>
+
+              {canEditDeal(actionMenu.deal) && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => runAction(onEdit)}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-sm text-foreground transition-colors active:bg-muted hover:bg-muted"
+                >
+                  <Icon
+                    name="Edit"
+                    size={16}
+                    className="text-muted-foreground"
+                  />
+                  Edit
+                </button>
+              )}
+
+              {canDeleteDeal(actionMenu.deal) && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => runAction(onDelete)}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-sm text-destructive transition-colors active:bg-red-50 hover:bg-red-50"
+                >
+                  <Icon name="Trash2" size={16} />
+                  Delete
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

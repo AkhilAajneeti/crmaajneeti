@@ -114,10 +114,13 @@ const LoginForm = () => {
     }
   };
 
+  const fieldClasses =
+    "h-[52px] rounded-xl border-slate-200 bg-white pl-11 text-[14px] text-slate-800 shadow-[0_1px_2px_rgba(15,23,42,0.04)] placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-[#2563eb]/30 focus-visible:ring-offset-0 focus-visible:border-[#2563eb]";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {errors.general && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3.5">
           <div className="flex items-center space-x-2">
             <Icon name="AlertCircle" size={16} className="text-red-500" />
             <p className="text-sm text-red-700">{errors.general}</p>
@@ -125,50 +128,111 @@ const LoginForm = () => {
         </div>
       )}
 
-      <Input
-        label="Username"
-        name="username"
-        value={formData.username}
-        onChange={handleInputChange}
-        error={errors.username}
-        disabled={isLoading}
-        required
-      />
-
-      <div className="relative">
+      {/* Username */}
+      <div className="space-y-2">
+        <label
+          htmlFor="login-username"
+          className="block text-[14px] font-semibold text-slate-700"
+        >
+          Username <span className="text-red-500">*</span>
+        </label>
         <Input
-          label="Password"
-          type={showPassword ? "text" : "password"}
-          name="password"
-          value={formData.password}
+          id="login-username"
+          icon="User"
+          placeholder="Enter your username"
+          name="username"
+          value={formData.username}
           onChange={handleInputChange}
-          error={errors.password}
+          error={errors.username}
           disabled={isLoading}
+          className={fieldClasses}
           required
         />
-
-        <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-9 text-muted-foreground hover:text-primary"
-        >
-          <Icon name={showPassword ? "EyeOff" : "Eye"} size={18} />
-        </button>
       </div>
 
-      <div className="flex items-center justify-between">
+      {/* Password */}
+      <div className="space-y-2">
+        <label
+          htmlFor="login-password"
+          className="block text-[14px] font-semibold text-slate-700"
+        >
+          Password <span className="text-red-500">*</span>
+        </label>
+        <div className="relative">
+          <Input
+            id="login-password"
+            icon="Lock"
+            placeholder="Enter your password"
+            type={showPassword ? "text" : "password"}
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+            error={errors.password}
+            disabled={isLoading}
+            className={`${fieldClasses} pr-11`}
+            required
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            className="absolute right-3.5 top-[26px] -translate-y-1/2 text-slate-400 transition-colors hover:text-[#2563eb]"
+          >
+            <Icon name={showPassword ? "EyeOff" : "Eye"} size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Remember + forgot */}
+      <div className="flex items-center justify-between pt-1">
         <Checkbox
           label="Keep me signed in"
           name="rememberMe"
           checked={formData.rememberMe}
           onChange={handleInputChange}
           disabled={isLoading}
+          className={`items-center [&_.peer]:h-[18px] [&_.peer]:w-[18px] [&_.peer]:rounded-[5px] [&_.peer]:border-[#2563eb] [&_label]:text-[13.5px] [&_label]:text-slate-600 ${
+            formData.rememberMe
+              ? "[&_.peer]:bg-[#2563eb] [&_.peer]:text-white"
+              : ""
+          }`}
         />
+        <button
+          type="button"
+          className="text-[13.5px] font-semibold text-[#2563eb] transition-colors hover:text-[#1d4ed8]"
+        >
+          Forgot Password?
+        </button>
       </div>
 
-      <Button type="submit" fullWidth loading={isLoading} disabled={isLoading}>
-        {isLoading ? "Signing In..." : "Sign In"}
+      {/* Submit */}
+      <Button
+        type="submit"
+        fullWidth
+        loading={isLoading}
+        disabled={isLoading}
+        className="mt-2 h-[58px] rounded-2xl bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#1e40af] text-[16px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(37,99,235,0.95)] transition-all hover:brightness-110 hover:shadow-[0_20px_40px_-14px_rgba(37,99,235,1)]"
+      >
+        <span className="flex items-center justify-center gap-3">
+          {!isLoading && (
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+              <Icon name="ArrowRight" size={17} />
+            </span>
+          )}
+          {isLoading ? "Signing In..." : "Sign In"}
+        </span>
       </Button>
+
+      {/* Secure footer */}
+      <div className="flex items-center gap-3 pt-3">
+        <span className="h-px flex-1 bg-slate-200" />
+        <span className="flex items-center gap-1.5 whitespace-nowrap text-[12.5px] text-slate-500">
+          <Icon name="ShieldCheck" size={14} className="text-[#2563eb]" />
+          Secure CRM Access
+        </span>
+        <span className="h-px flex-1 bg-slate-200" />
+      </div>
     </form>
   );
 };
