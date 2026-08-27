@@ -90,6 +90,11 @@ const LoginForm = () => {
         secret: data.secret,
         type: user.type,
         roles: Object.values(user.rolesNames || {}),
+        // Needed by the ACL helpers: a "team" grant (e.g. KnowledgeBaseArticle
+        // edit) is resolved by intersecting these with the record's teamsIds.
+        // Without them every "team" permission silently degrades to "own".
+        teamsIds: user.teamsIds || [],
+        defaultTeamId: user.defaultTeamId || null,
         acl: data.acl || null,
       };
 
