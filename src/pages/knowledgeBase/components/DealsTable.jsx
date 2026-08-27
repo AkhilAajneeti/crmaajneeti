@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { Checkbox } from "../../../components/ui/Checkbox";
+import { canDeleteRecord, canEditRecord } from "utils/permissions";
 
 // Deterministic pill color for open-ended values (sector / category),
 // so the same value always gets the same color.
@@ -38,6 +39,11 @@ const DealsTable = ({
   isLoading,
 }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
+
+  // Row actions follow the ACL for KnowledgeBaseArticle — an "own"/"team" grant
+  // resolves per record, so each row is checked individually.
+  const canEditDeal = (deal) => canEditRecord("KnowledgeBaseArticle", deal);
+  const canDeleteDeal = (deal) => canDeleteRecord("KnowledgeBaseArticle", deal);
 
   const formatDate = (date) => {
     if (!date) return "—"; // null / undefined / empty
@@ -309,23 +315,27 @@ const DealsTable = ({
                       className={`flex items-center space-x-1 transition-opacity ${hoveredRow === deal?.id ? "opacity-100" : "opacity-0"
                         }`}
                     >
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => handleQuickAction(e, "edit", deal)}
-                        className="h-8 w-8"
-                      >
-                        <Icon name="Edit" size={14} />
-                      </Button>
+                      {canEditDeal(deal) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => handleQuickAction(e, "edit", deal)}
+                          className="h-8 w-8"
+                        >
+                          <Icon name="Edit" size={14} />
+                        </Button>
+                      )}
 
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => handleDelete(e, deal)}
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                      >
-                        <Icon name="Trash2" size={14} />
-                      </Button>
+                      {canDeleteDeal(deal) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => handleDelete(e, deal)}
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                        >
+                          <Icon name="Trash2" size={14} />
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>

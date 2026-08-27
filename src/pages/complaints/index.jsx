@@ -25,6 +25,7 @@ import AssignedUserChart from "./components/charts/AssignedUserChart";
 import MultiLineChart from "pages/dashboard/components/MultiLineChart";
 
 import { useComplaint, useComplaintById } from "hooks/useComplaint";
+import { canCreate } from "utils/permissions";
 import { createComplaint, deleteComplaint, updateComplaint } from "services/complaint.service";
 
 const Complaints = () => {
@@ -399,13 +400,15 @@ const Complaints = () => {
                   Export All
                 </Button>
 
-                <Button
-                  onClick={handleAddLeads}
-                  className="linearbg-1 text-white hover:text-white"
-                >
-                  <Icon name="Plus" size={16} className="mr-2" />
-                  Create Complaint
-                </Button>
+                {canCreate("Case") && (
+                  <Button
+                    onClick={handleAddLeads}
+                    className="linearbg-1 text-white hover:text-white"
+                  >
+                    <Icon name="Plus" size={16} className="mr-2" />
+                    Create Complaint
+                  </Button>
+                )}
               </div>
             </div>
 

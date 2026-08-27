@@ -16,6 +16,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 
 import { useKnowledge, useKnowledgeById } from "hooks/useKnowledge";
+import { canCreate } from "utils/permissions";
 import { createArticle, deleteArticle, updateArticle } from "services/knowledge.service";
 
 const KnowledgeBase = () => {
@@ -373,13 +374,15 @@ const KnowledgeBase = () => {
                   Export All
                 </Button>
 
-                <Button
-                  onClick={handleAddArticle}
-                  className="linearbg-1 text-white hover:text-white"
-                >
-                  <Icon name="Plus" size={16} className="mr-2" />
-                  Create Article
-                </Button>
+                {canCreate("KnowledgeBaseArticle") && (
+                  <Button
+                    onClick={handleAddArticle}
+                    className="linearbg-1 text-white hover:text-white"
+                  >
+                    <Icon name="Plus" size={16} className="mr-2" />
+                    Create Article
+                  </Button>
+                )}
               </div>
             </div>
 

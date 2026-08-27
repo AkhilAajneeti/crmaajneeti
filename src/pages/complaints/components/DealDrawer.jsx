@@ -12,6 +12,7 @@ import { useUsers } from "hooks/useUsers";
 import { useLeadStream } from "hooks/useLeadStream";
 import { useLeadActivity } from "hooks/useLeadActivity";
 import { useQueryClient } from "@tanstack/react-query";
+import { canEditRecord } from "utils/permissions";
 import { useAccounts } from "hooks/useAccounts";
 import { ParentSelectorModal } from "components/ParentSelectorModal";
 
@@ -30,6 +31,9 @@ const DealDrawer = ({
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
+
+  // Only offer Edit when the ACL grants it for this specific record.
+  const canEditDeal = canEditRecord("Case", deal);
   const [showActivityForm, setActivityForm] = useState(false);
   const [activityText, setActivityText] = useState("");
   const [postingActivity, setPostingActivity] = useState(false);
@@ -446,7 +450,7 @@ const DealDrawer = ({
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              {mode == "view" && (
+              {mode == "view" && canEditDeal && (
                 <Button
                   variant="outline"
                   size="sm"
