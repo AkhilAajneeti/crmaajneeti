@@ -350,8 +350,9 @@ export const createLead = async (payload) => {
     console.error("API ERROR:", text);
     throw new Error("Lead is not created", text);
   }
-  // EspoCRM returns array
-  return res.json();
+  // The body was already consumed by res.text() above — calling res.json()
+  // here would throw "body has already been read" even on a successful POST.
+  return text ? JSON.parse(text) : null;
 };
 
 export const updateLead = async (id, payload) => {

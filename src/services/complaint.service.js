@@ -35,8 +35,9 @@ export const createComplaint = async (payload) => {
         console.error("API ERROR:", text);
         throw new Error("Complaint is not created", text);
     }
-    // EspoCRM returns array
-    return res.json();
+    // The body was already consumed by res.text() above — calling res.json()
+    // here would throw "body stream already read", so parse the text instead.
+    return text ? JSON.parse(text) : null;
 };
 
 export const updateComplaint = async (id, payload) => {
@@ -56,12 +57,15 @@ export const updateComplaint = async (id, payload) => {
     );
 
     const text = await res.text();
-    console.log("response from contact.service.js", res);
     if (!res.ok) {
-        throw new Error(text || "Lead update failed");
+        throw new Error(text || "Complaint update failed");
     }
 
-    return res.json();
+    // The body was already consumed by res.text() above — calling res.json()
+    // here would throw "body stream already read" even though the PUT
+    // succeeded, surfacing a false "Update failed" toast and skipping the
+    // cache invalidation that refreshes the list.
+    return text ? JSON.parse(text) : null;
 };
 export const deleteComplaint = async (id) => {
     const token = localStorage.getItem("auth_token");

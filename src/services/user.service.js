@@ -99,12 +99,13 @@ export const attachment = async (payload) => {
   );
 
   const text = await res.text();
-  console.log("response from User.service.js", res);
   if (!res.ok) {
     throw new Error(text || "User update failed");
   }
 
-  return res.json();
+  // The body was already consumed by res.text() above — calling res.json()
+  // here would throw "body has already been read" even on a successful POST.
+  return text ? JSON.parse(text) : null;
 };
 
 // profiles data

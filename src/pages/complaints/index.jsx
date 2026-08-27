@@ -187,7 +187,10 @@ const Complaints = () => {
 
       toast.success("Complaint updated ✅");
 
-      queryClient.invalidateQueries(["complaint"]); // 🔥 refresh list
+      // v5 takes a filters object; the bare-array form is a no-op match-all.
+      // "complaint" is a key prefix, so this refreshes both the list and the
+      // by-id query behind the drawer.
+      queryClient.invalidateQueries({ queryKey: ["complaint"] });
     } catch (error) {
       console.error(error);
       toast.error("Update failed ❌");
@@ -202,7 +205,7 @@ const Complaints = () => {
 
       toast.success("Complaint deleted ✅", { id: "delete" });
 
-      queryClient.invalidateQueries(["complaint"]);
+      queryClient.invalidateQueries({ queryKey: ["complaint"] });
     } catch (err) {
       console.error(err);
       toast.error("Delete failed ❌", { id: "delete" });
