@@ -10,6 +10,7 @@ import makeAnimated from "react-select/animated";
 import { useTeams } from "hooks/useTeams";
 import { useUsers } from "hooks/useUsers";
 import { useQueryClient } from "@tanstack/react-query";
+import { canEditRecord } from "utils/permissions";
 import {
   useCreateWorkplacePost,
   useUpdateWorkplacePost,
@@ -117,6 +118,10 @@ const DealDrawer = ({
   const { data: streamData } = useworkplaceStream(deal?.id, isOpen);
   const { data: activityData } = useworkplaceActivity(deal?.id, isOpen);
   const { data: workplaceById } = useWorkPlaceById(deal?.id, isOpen);
+
+  // Only offer Edit when the ACL grants it for this specific note. Prefer the
+  // full record over the partial list-row shape so owner/team fields resolve.
+  const canEditDeal = canEditRecord("CWorkplaceNotes", workplaceById || deal);
 
   const users = usersData?.list || [];
   const team = teamData?.list || [];
@@ -608,7 +613,7 @@ const DealDrawer = ({
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              {mode == "view" && (
+              {mode == "view" && canEditDeal && (
                 <Button
                   variant="outline"
                   size="sm"

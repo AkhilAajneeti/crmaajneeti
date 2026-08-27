@@ -143,62 +143,69 @@ const LoginShowcase = () => {
       </div>
 
       {/* ── Content ─────────────────────────────────────────────── */}
-      <div className="relative z-10 flex h-full flex-col px-12 py-10 xl:px-16">
+      <div className="relative z-10 flex h-full flex-col px-8 py-[clamp(18px,3vh,40px)] xl:px-10">
         {/* Brand lockup */}
         <motion.div
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="flex items-center gap-6"
+          className="flex items-center"
         >
           <img
             src="/assets/aajneeti-logo.png"
             alt="Aajneeti Connect"
             className="h-11 w-auto object-contain"
           />
-          <span className="h-10 w-px bg-white/15" />
-          <p className="text-[13px] leading-5 text-white/70">
-            Driven by Data.
-            <br />
-            Powered by Relationships.
-          </p>
         </motion.div>
 
         {/* Headline + mock dashboard */}
-        <div className="mt-16 grid flex-1 grid-cols-1 items-start gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+        <div className="mt-[clamp(16px,3.5vh,44px)] grid flex-1 grid-cols-1 items-center gap-8 xl:gap-7 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
           {/* Left column — pitch */}
           <div className="max-w-md">
-            <motion.h1
-              variants={fadeUp}
-              initial="hidden"
-              animate="show"
-              className="text-[42px] font-bold leading-[1.12] tracking-tight xl:text-5xl"
-            >
-              Smarter CRM.
-              <br />
-              <span className="text-[#5aa2ff]">Better Growth.</span>
-            </motion.h1>
-
             <motion.div
               variants={fadeUp}
               initial="hidden"
               animate="show"
+              className="flex items-center gap-3"
+            >
+              <span className="h-px w-8 shrink-0 bg-[#e8546b]/70" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#e8546b]">
+                Performance Marketing × CRM
+              </p>
+            </motion.div>
+
+            <motion.h1
+              variants={fadeUp}
+              initial="hidden"
+              animate="show"
               custom={0.4}
-              className="mt-5 h-[3px] w-36 rounded-full bg-gradient-to-r from-[#5aa2ff] via-[#3b82f6] to-transparent"
-            />
+              className="mt-[clamp(12px,2.2vh,22px)] text-[clamp(26px,min(2.2vw,38px),38px)] font-bold leading-[1.1] tracking-tight"
+            >
+              India's strongest
+              <br />
+              sales pipeline,
+              <br />
+              <span className="italic text-[#f8d0d8]">
+                engineered end to end.
+              </span>
+            </motion.h1>
 
             <motion.p
               variants={fadeUp}
               initial="hidden"
               animate="show"
               custom={1}
-              className="mt-7 text-[15px] leading-7 text-white/70"
+              className="mt-[clamp(12px,2.2vh,24px)] text-[14px] leading-6 text-white/70"
             >
-              Streamline your workflow, manage customer relationships, and
-              unlock data-driven insights — all in one place.
+              A CRM is only as powerful as the engine feeding it.{" "}
+              <span className="font-semibold text-white">
+                AAJneeti Connect Limited
+              </span>{" "}
+              builds both — the campaigns that capture demand and the pipeline
+              that converts it — as one continuous system.
             </motion.p>
 
-            <div className="mt-11 space-y-6">
+            <div className="mt-[clamp(16px,3vh,36px)] space-y-[clamp(10px,1.9vh,22px)]">
               {FEATURES?.map((feature, index) => (
                 <motion.div
                   key={feature?.title}
@@ -208,7 +215,7 @@ const LoginShowcase = () => {
                   custom={2 + index}
                   className="flex items-start gap-4"
                 >
-                  <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-[#1b3a8f] to-[#0e1c47] shadow-[0_10px_30px_-12px_rgba(37,99,235,0.9)]">
+                  <span className="flex h-[clamp(40px,5vh,52px)] w-[clamp(40px,5vh,52px)] shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-[#1b3a8f] to-[#0e1c47] shadow-[0_10px_30px_-12px_rgba(37,99,235,0.9)]">
                     <Icon
                       name={feature?.icon}
                       size={22}
@@ -229,14 +236,14 @@ const LoginShowcase = () => {
           </div>
 
           {/* Right column — dashboard preview */}
-          <div className="space-y-4">
+          <div className="space-y-[clamp(8px,1.6vh,18px)]">
             {/* Lead performance */}
             <motion.div
               variants={fadeUp}
               initial="hidden"
               animate="show"
               custom={1}
-              className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-xl shadow-[0_24px_60px_-30px_rgba(0,0,0,0.9)]"
+              className="rounded-2xl border border-white/10 bg-white/[0.06] p-[clamp(12px,2vh,20px)] backdrop-blur-xl shadow-[0_24px_60px_-30px_rgba(0,0,0,0.9)]"
             >
               <div className="flex items-start justify-between">
                 <p className="text-sm font-semibold">Lead Performance</p>
@@ -261,7 +268,7 @@ const LoginShowcase = () => {
 
               <svg
                 viewBox="0 0 400 120"
-                className="mt-4 h-28 w-full"
+                className="mt-3 h-[clamp(58px,9vh,104px)] w-full"
                 fill="none"
                 preserveAspectRatio="none"
                 aria-hidden="true"
@@ -297,7 +304,7 @@ const LoginShowcase = () => {
               {STATS?.map((stat) => (
                 <div
                   key={stat?.label}
-                  className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-4 text-center"
+                  className="rounded-xl border border-white/10 bg-white/[0.04] px-2 py-[clamp(8px,1.5vh,16px)] text-center"
                 >
                   <Icon
                     name={stat?.icon}
@@ -316,7 +323,7 @@ const LoginShowcase = () => {
               initial="hidden"
               animate="show"
               custom={3}
-              className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-xl shadow-[0_24px_60px_-30px_rgba(0,0,0,0.9)]"
+              className="rounded-2xl border border-white/10 bg-white/[0.06] p-[clamp(12px,2vh,20px)] backdrop-blur-xl shadow-[0_24px_60px_-30px_rgba(0,0,0,0.9)]"
             >
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Recent Leads</p>
@@ -334,10 +341,14 @@ const LoginShowcase = () => {
               </div>
 
               <div className="divide-y divide-white/[0.06]">
-                {LEADS?.map((lead) => (
+                {LEADS?.map((lead, index) => (
                   <div
                     key={lead?.name}
-                    className="grid grid-cols-[1.5fr_1.4fr_0.9fr_0.4fr] items-center gap-3 py-2.5"
+                    // Short viewports drop the tail rows so the panel still
+                    // fits on one screen without scrolling.
+                    className={`grid grid-cols-[1.5fr_1.4fr_0.9fr_0.4fr] items-center gap-3 py-[clamp(5px,1.1vh,11px)] ${
+                      index === 3 ? "[@media(max-height:840px)]:hidden" : ""
+                    } ${index === 2 ? "[@media(max-height:730px)]:hidden" : ""}`}
                   >
                     <div className="flex items-center gap-2.5">
                       <span
@@ -370,13 +381,11 @@ const LoginShowcase = () => {
           initial={{ opacity: 0, x: -16 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          className="mt-12 flex items-center gap-4"
+          className="mt-[clamp(16px,3vh,40px)] flex items-center gap-4"
         >
           <span className="h-12 w-[3px] rounded-full bg-gradient-to-b from-[#ff6b83] via-[#AC2334] to-transparent" />
-          <p className="text-[17px] font-medium italic leading-6 text-white/85">
-            One Platform.
-            <br />
-            Endless Opportunities.
+          <p className="max-w-lg text-[16px] font-medium italic leading-6 text-white/70">
+            Performance marketing, wired straight into your CRM.
           </p>
         </motion.div>
       </div>

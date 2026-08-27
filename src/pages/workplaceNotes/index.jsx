@@ -15,6 +15,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { useMetaData } from "hooks/useMetaData";
 import { useWorkPlace } from "hooks/useWorkplace";
+import { canCreate } from "utils/permissions";
 import {
   createWorkplace,
   deleteActivity,
@@ -366,13 +367,15 @@ const WorkPlace = () => {
               <div className="flex items-center space-x-3">
          
 
-                <Button
-                  onClick={handleAddwork}
-                  className="linearbg-1 text-white hover:text-white"
-                >
-                  <Icon name="Plus" size={16} className="mr-2" />
-                  New WorkPlace
-                </Button>
+                {canCreate("CWorkplaceNotes") && (
+                  <Button
+                    onClick={handleAddwork}
+                    className="linearbg-1 text-white hover:text-white"
+                  >
+                    <Icon name="Plus" size={16} className="mr-2" />
+                    New WorkPlace
+                  </Button>
+                )}
               </div>
             </div>
 
