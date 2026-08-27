@@ -15,6 +15,25 @@ import { useQueryClient } from "@tanstack/react-query";
 import { canEdit, canEditRecord } from "utils/permissions";
 import { LEAD_STATUS_OPTIONS, getStatusTheme } from "utils/leadStatus";
 
+// Shared shape for the add/edit form, matching the AccountDrawer's card system:
+// grouped sections on soft cards with an uppercase heading, fields on a
+// two-column grid that collapses to one on narrow screens.
+const FORM_CARD =
+  "bg-card border border-border rounded-2xl p-5 shadow-sm space-y-4";
+
+const FORM_HEADING =
+  "text-sm font-semibold text-muted-foreground uppercase tracking-wide";
+
+const FIELD = "h-11 rounded-xl";
+
+// Select renders its own trigger button, so size it through the wrapper rather
+// than editing the shared component. `>div>button` hits only the trigger, not
+// the option buttons in the dropdown.
+const SELECT_FIELD = "[&>div>button]:h-11 [&>div>button]:rounded-xl";
+
+const TEXTAREA =
+  "w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition";
+
 // Turn plain text into React nodes where any http(s) URL becomes a clickable
 // link. Safe (no dangerouslySetInnerHTML) — splits on URLs and renders the rest
 // as text, preserving newlines when used inside a `whitespace-pre-line` element.
@@ -856,16 +875,19 @@ const DealDrawer = ({
           </div>
           <div className="flex-1 overflow-y-auto">
             {showForm && !isMassUpdate && (
-              <div className="p-6">
+              <div className="p-5 sm:p-6 bg-gradient-to-br from-background to-muted/30">
                 {/* Lead Form Here */}
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* ================= Overview ================= */}
-                  <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                    {/* Name */}
-                    <div className="grid grid-cols-1 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* ================= Basic Info ================= */}
+                  <div className={FORM_CARD}>
+                    <h3 className={FORM_HEADING}>Basic Info</h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
                         label="First Name *"
                         icon="UserRound"
+                        placeholder="First name"
+                        className={FIELD}
                         value={formData.firstName || ""}
                         onChange={(e) =>
                           handleChange("firstName", e.target.value)
@@ -874,6 +896,8 @@ const DealDrawer = ({
                       <Input
                         label="Last Name"
                         icon="Users"
+                        placeholder="Last name"
+                        className={FIELD}
                         value={formData.lastName || ""}
                         onChange={(e) =>
                           handleChange("lastName", e.target.value)
@@ -881,11 +905,12 @@ const DealDrawer = ({
                       />
                     </div>
 
-                    {/* Phone & Email */}
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
                         label="Phone"
                         icon="PhoneCall"
+                        placeholder="+91"
+                        className={FIELD}
                         value={formData.phoneNumber || ""}
                         onChange={(e) =>
                           handleChange("phoneNumber", e.target.value)
@@ -894,6 +919,8 @@ const DealDrawer = ({
                       <Input
                         label="Email"
                         icon="AtSign"
+                        placeholder="name@company.com"
+                        className={FIELD}
                         value={formData.emailAddress || ""}
                         onChange={(e) =>
                           handleChange("emailAddress", e.target.value)
@@ -901,11 +928,12 @@ const DealDrawer = ({
                       />
                     </div>
 
-                    {/* Whatsapp & City */}
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
                         label="Whatsapp"
                         icon="MessageCircle"
+                        placeholder="Whatsapp number"
+                        className={FIELD}
                         value={formData.whatsapp || ""}
                         onChange={(e) =>
                           handleChange("whatsapp", e.target.value)
@@ -914,20 +942,45 @@ const DealDrawer = ({
                       <Input
                         label="City"
                         icon="MapPinned"
+                        placeholder="City"
+                        className={FIELD}
                         value={formData.addressCity || ""}
                         onChange={(e) =>
                           handleChange("addressCity", e.target.value)
                         }
                       />
                     </div>
+                  </div>
 
-                    {/* Project & Next Contact */}
-                    <div className="grid grid-cols-1 gap-4">
+                  {/* ================= Lead Details ================= */}
+                  <div className={FORM_CARD}>
+                    <h3 className={FORM_HEADING}>Lead Details</h3>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Select
+                        label="Status"
+                        icon="CircleDot"
+                        className={SELECT_FIELD}
+                        value={formData.status || "New"}
+                        options={statusOptions}
+                        onChange={(value) => handleChange("status", value)}
+                      />
+                      <Select
+                        label="Source"
+                        icon="Radio"
+                        className={SELECT_FIELD}
+                        value={formData.source || ""}
+                        options={sourceOptions}
+                        onChange={(value) => handleChange("source", value)}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
                         type="datetime-local"
                         label="Next Contact"
                         icon="CalendarClock"
+                        className={FIELD}
                         value={formData.cNextContact || ""}
                         onChange={(e) =>
                           handleChange("cNextContact", e.target.value)
@@ -936,6 +989,7 @@ const DealDrawer = ({
                       <Select
                         label="OPT Verified"
                         icon="ShieldCheck"
+                        className={SELECT_FIELD}
                         value={formData.cOTPVerified || ""}
                         options={[
                           { value: "Yes", label: "Yes" },
@@ -945,30 +999,16 @@ const DealDrawer = ({
                       />
                     </div>
                   </div>
-                  <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                    <div className="grid grid-cols-1 gap-4">
-                      <Select
-                        label="Status"
-                        icon="CircleDot"
-                        value={formData.status || "New"}
-                        options={statusOptions}
-                        onChange={(value) => handleChange("status", value)}
-                      />
-                      <Select
-                        label="Source"
-                        icon="Radio"
-                        value={formData.source || ""}
-                        options={sourceOptions}
-                        onChange={(value) => handleChange("source", value)}
-                      />
-                    </div>
-                  </div>
-                  {/* ================= Assigned User ================= */}
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="bg-card border border-border rounded-lg p-4 space-y-4">
+
+                  {/* ================= Assignment ================= */}
+                  <div className={FORM_CARD}>
+                    <h3 className={FORM_HEADING}>Assignment</h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Select
                         label="Assigned User"
                         icon="UserCheck"
+                        className={SELECT_FIELD}
                         value={formData.assignedUserId || ""}
                         options={userOptions} // 👉 later API se users
                         onChange={(value) =>
@@ -976,11 +1016,10 @@ const DealDrawer = ({
                         }
                         searchable
                       />
-                    </div>
-                    <div className="bg-card border border-border rounded-lg p-4 space-y-4">
                       <Select
                         label="Teams"
                         icon="Network"
+                        className={SELECT_FIELD}
                         value={formData.teamId || ""}
                         options={teamOptions} // 👉 later API se teams
                         onChange={(value) =>
@@ -991,29 +1030,33 @@ const DealDrawer = ({
                   </div>
 
                   {/* ================= Details ================= */}
-                  <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                    <h3 className="font-medium text-foreground">Question</h3>
-                    <div className="col-span-2">
+                  <div className={FORM_CARD}>
+                    <h3 className={FORM_HEADING}>Additional Details</h3>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">
+                        Question
+                      </label>
                       <textarea
-                        className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        className={TEXTAREA}
                         rows={4}
                         value={formData.cQuestion || ""}
-                        placeholder="Question"
+                        placeholder="What is the lead asking about?"
                         onChange={(e) =>
                           handleChange("cQuestion", e.target.value)
                         }
                       />
                     </div>
-                    <h3 className="font-medium text-foreground">Details</h3>
 
-
-                    <div className="col-span-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">
+                        Description
+                      </label>
                       <textarea
-                        className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                        label="Description"
+                        className={TEXTAREA}
                         rows={4}
                         value={formData.description || ""}
-                        placeholder="Description"
+                        placeholder="Any additional context about this lead"
                         onChange={(e) =>
                           handleChange("description", e.target.value)
                         }
@@ -1022,8 +1065,18 @@ const DealDrawer = ({
                   </div>
 
                   {/* ================= Actions ================= */}
-                  <div className="flex justify-end gap-3">
-                    <Button type="submit">Save Lead</Button>
+                  <div className="flex justify-end gap-3 pt-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={onClose}
+                      className="h-11 rounded-xl px-5"
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="h-11 rounded-xl px-6">
+                      Save Lead
+                    </Button>
                   </div>
                 </form>
               </div>
