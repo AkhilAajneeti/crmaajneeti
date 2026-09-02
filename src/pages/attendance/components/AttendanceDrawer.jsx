@@ -42,6 +42,16 @@ const CELL = "flex items-start gap-3.5 px-5 py-4";
 const CELL_LABEL = "text-[13px] leading-5 text-muted-foreground";
 const CELL_VALUE = "mt-1 text-[15px] font-semibold text-foreground";
 
+// Start / End / Duration tiles. The date spans the full card width and never
+// wraps, so a three-across row stays on one line.
+const TILE_SM =
+  "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg";
+const DATE_TILE =
+  "rounded-2xl border border-border bg-card p-4 shadow-sm";
+const DATE_VALUE =
+  "mt-2.5 whitespace-nowrap text-[17px] font-bold leading-tight text-foreground";
+const DATE_SUB = "mt-1 text-[13px] text-muted-foreground";
+
 const toDate = (value) => {
   if (!value) return null;
   const date = new Date(String(value).replace(" ", "T"));
@@ -1485,48 +1495,52 @@ const AttendanceDrawer = ({
                         </div>
                       </div>
 
-                      {/* ── Start / End / Duration tiles ── */}
+                      {/* ── Start / End / Duration tiles ──
+                          Icon sits on its own row with the label so the date
+                          gets the card's full width — at three-across the
+                          leftover column was too narrow and "Sep 2, 2026"
+                          broke onto a second line. */}
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <div className="flex items-start gap-3.5 rounded-2xl border border-border bg-card p-5 shadow-sm">
-                          <span className={`${TILE_BASE} ${TILE.rose}`}>
-                            <Icon name="CalendarDays" size={18} />
-                          </span>
-                          <div className="min-w-0">
+                        <div className={DATE_TILE}>
+                          <div className="flex items-center gap-2.5">
+                            <span className={`${TILE_SM} ${TILE.rose}`}>
+                              <Icon name="CalendarDays" size={16} />
+                            </span>
                             <p className={CELL_LABEL}>Start Date</p>
-                            <p className="mt-1 text-[17px] font-bold text-foreground">
-                              {formatDate(account?.startDate)}
-                            </p>
-                            <p className="mt-0.5 text-[13px] text-muted-foreground">
-                              {formatWeekday(account?.startDate)}
-                            </p>
                           </div>
+                          <p className={DATE_VALUE}>
+                            {formatDate(account?.startDate)}
+                          </p>
+                          <p className={DATE_SUB}>
+                            {formatWeekday(account?.startDate)}
+                          </p>
                         </div>
 
-                        <div className="flex items-start gap-3.5 rounded-2xl border border-border bg-card p-5 shadow-sm">
-                          <span className={`${TILE_BASE} ${TILE.sky}`}>
-                            <Icon name="CalendarCheck" size={18} />
-                          </span>
-                          <div className="min-w-0">
+                        <div className={DATE_TILE}>
+                          <div className="flex items-center gap-2.5">
+                            <span className={`${TILE_SM} ${TILE.sky}`}>
+                              <Icon name="CalendarCheck" size={16} />
+                            </span>
                             <p className={CELL_LABEL}>End Date</p>
-                            <p className="mt-1 text-[17px] font-bold text-foreground">
-                              {formatDate(account?.endDate)}
-                            </p>
-                            <p className="mt-0.5 text-[13px] text-muted-foreground">
-                              {formatWeekday(account?.endDate)}
-                            </p>
                           </div>
+                          <p className={DATE_VALUE}>
+                            {formatDate(account?.endDate)}
+                          </p>
+                          <p className={DATE_SUB}>
+                            {formatWeekday(account?.endDate)}
+                          </p>
                         </div>
 
-                        <div className="flex items-start gap-3.5 rounded-2xl border border-border bg-card p-5 shadow-sm">
-                          <span className={`${TILE_BASE} ${TILE.violet}`}>
-                            <Icon name="Clock" size={18} />
-                          </span>
-                          <div className="min-w-0">
+                        <div className={DATE_TILE}>
+                          <div className="flex items-center gap-2.5">
+                            <span className={`${TILE_SM} ${TILE.violet}`}>
+                              <Icon name="Clock" size={16} />
+                            </span>
                             <p className={CELL_LABEL}>Duration</p>
-                            <p className="mt-1 text-[17px] font-bold text-rose-600">
-                              {formatDuration(account)}
-                            </p>
                           </div>
+                          <p className={`${DATE_VALUE} text-rose-600`}>
+                            {formatDuration(account)}
+                          </p>
                         </div>
                       </div>
 
