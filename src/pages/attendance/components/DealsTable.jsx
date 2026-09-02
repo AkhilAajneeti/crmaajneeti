@@ -145,15 +145,17 @@ const DealsTable = ({
     if (deal && typeof action === "function") action(deal);
   };
 
-  const currentUserId = JSON.parse(localStorage.getItem("login_object"))?.id;
-
-  const canEditDeal = (deal) =>
-    canEditRecord("CAttendanceRequest", deal) &&
-    deal?.assignedUserId === currentUserId;
+  // Let the ACL decide on its own. It already resolves the grant level:
+  //   own  -> record.assignedUserId === current user
+  //   team -> own, or the record shares one of the user's teams
+  //   all  -> every record
+  // The previous version ANDed in a hardcoded assignedUserId check, which
+  // forced "own" behaviour on everyone and silently downgraded an "all"
+  // grant (HR) or a "team" grant to owner-only.
+  const canEditDeal = (deal) => canEditRecord("CAttendanceRequest", deal);
 
   const canDeleteDeal = (deal) =>
-    canDeleteRecord("CAttendanceRequest", deal) &&
-    deal?.assignedUserId === currentUserId;
+    canDeleteRecord("CAttendanceRequest", deal);
   const formatDate = (date) => {
     if (!date) return "—"; // null / undefined / empty
 
