@@ -24,6 +24,67 @@ import { useCalenderById, useCalenderStream } from "hooks/useCalender";
 import { createNewAttendance, updateAttendance } from "services/calender.service";
 import AttendanceSuccessModal from "./AttendanceSuccessModal";
 
+// ── Presentation helpers for the request detail view ──────────────────────
+// Pure formatters; they read the same fields the view already displayed.
+
+// Soft tile colours behind each field icon.
+const TILE = {
+  rose: "bg-rose-50 text-rose-500",
+  emerald: "bg-emerald-50 text-emerald-500",
+  amber: "bg-amber-50 text-amber-500",
+  sky: "bg-sky-50 text-sky-500",
+  violet: "bg-violet-50 text-violet-500",
+};
+
+const TILE_BASE =
+  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl";
+const CELL = "flex items-start gap-3.5 px-5 py-4";
+const CELL_LABEL = "text-[13px] leading-5 text-muted-foreground";
+const CELL_VALUE = "mt-1 text-[15px] font-semibold text-foreground";
+
+const toDate = (value) => {
+  if (!value) return null;
+  const date = new Date(String(value).replace(" ", "T"));
+  return isNaN(date.getTime()) ? null : date;
+};
+
+// "Tuesday" — the weekday shown under each date tile.
+const formatWeekday = (value) =>
+  toDate(value)?.toLocaleDateString("en-US", { weekday: "long" }) || "";
+
+// "Sep 2, 2026 • 09:45 AM"
+const formatRequestedOn = (value) => {
+  const date = toDate(value);
+  if (!date) return "—";
+
+  return `${date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })} • ${date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  })}`;
+};
+
+// Same minute/day split the view already used, with correct pluralisation.
+const formatDuration = (record) => {
+  if (["Short Leave", "SLC"].includes(record?.requestType)) {
+    const minutes = Number(record?.durationInMinutes) || 0;
+    return `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  }
+
+  const days = Number(record?.leaveConsumed) || 0;
+  return `${days} ${days === 1 ? "day" : "days"}`;
+};
+
+const formatLeaveBalance = (value) => {
+  const days = Number(value);
+  if (!Number.isFinite(days)) return "0 days";
+  return `${days} ${Math.abs(days) === 1 ? "day" : "days"}`;
+};
+
 const AttendanceDrawer = ({
   data,
   isOpen,
@@ -1310,8 +1371,8 @@ const AttendanceDrawer = ({
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <div className="bg-gradient-to-br from-background to-muted/30 border border-border rounded-2xl p-6 shadow-sm space-y-6">
+                    <div className="space-y-3">
+                      <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-5 overflow-hidden">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-xs text-muted-foreground">
@@ -1330,92 +1391,171 @@ const AttendanceDrawer = ({
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-1">
-                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Icon name="Building2" size={13} />
-                              Department
-                            </p>
-                            <p className="font-medium text-foreground">
-                              {account?.department || "None"}
-                            </p>
-                          </div>
+                        {/* ── Field grid: two columns, hairline dividers ── */}
+                        <div className="-mx-6 -mb-2 border-t border-border/70">
+                          <div className="grid grid-cols-1 sm:grid-cols-2">
+                            {/* Department */}
+                            <div className={`${CELL} border-b border-border/70 sm:border-r`}>
+                              <span className={`${TILE_BASE} ${TILE.rose}`}>
+                                <Icon name="Building2" size={18} />
+                              </span>
+                              <div className="min-w-0">
+                                <p className={CELL_LABEL}>Department</p>
+                                <p className={CELL_VALUE}>
+                                  {account?.department || "None"}
+                                </p>
+                              </div>
+                            </div>
 
-                          <div className="space-y-1">
-                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Icon name="Hash" size={13} />
-                              Employee Code
-                            </p>
-                            <p className="font-medium text-foreground">
-                              {account?.employeeCode || "0"}
-                            </p>
-                          </div>
+                            {/* Leave Balance */}
+                            <div className={`${CELL} border-b border-border/70`}>
+                              <span className={`${TILE_BASE} ${TILE.emerald}`}>
+                                <Icon name="Wallet" size={18} />
+                              </span>
+                              <div className="min-w-0">
+                                <p className={CELL_LABEL}>Leave Balance</p>
+                                <p
+                                  className={`${CELL_VALUE} ${
+                                    Number(account?.leaveBalance) < 0
+                                      ? "text-rose-600"
+                                      : ""
+                                  }`}
+                                >
+                                  {formatLeaveBalance(account?.leaveBalance)}
+                                </p>
+                              </div>
+                            </div>
 
-                          <div className="space-y-1">
-                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Icon name="Tag" size={13} />
-                              Request Type
-                            </p>
-                            <p className="font-medium text-foreground">
-                              {account?.requestType || "None"}
-                            </p>
-                          </div>
+                            {/* Request Type */}
+                            <div className={`${CELL} border-b border-border/70 sm:border-r`}>
+                              <span className={`${TILE_BASE} ${TILE.rose}`}>
+                                <Icon name="Tag" size={18} />
+                              </span>
+                              <div className="min-w-0">
+                                <p className={CELL_LABEL}>Request Type</p>
+                                <p className={CELL_VALUE}>
+                                  {account?.requestType || "None"}
+                                </p>
+                              </div>
+                            </div>
 
-                          <div className="space-y-1">
-                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Icon name="Wallet" size={13} />
-                              Leave Balance
-                            </p>
-                            <p className="font-medium text-foreground">
-                              {account?.leaveBalance || "0"}
-                            </p>
+                            {/* Status */}
+                            <div className={`${CELL} border-b border-border/70`}>
+                              <span className={`${TILE_BASE} ${TILE.amber}`}>
+                                <Icon name="CircleDot" size={18} />
+                              </span>
+                              <div className="min-w-0">
+                                <p className={CELL_LABEL}>Status</p>
+                                <span
+                                  className={`mt-1.5 inline-block rounded-md px-2.5 py-1 text-[13px] font-semibold ${getStageColor(
+                                    account?.status,
+                                  )}`}
+                                >
+                                  {account?.status || "Pending"}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Employee Code */}
+                            <div className={`${CELL} sm:border-r`}>
+                              <span className={`${TILE_BASE} ${TILE.rose}`}>
+                                <Icon name="ContactRound" size={18} />
+                              </span>
+                              <div className="min-w-0">
+                                <p className={CELL_LABEL}>Employee Code</p>
+                                <p className={CELL_VALUE}>
+                                  {account?.employeeCode || "0"}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Requested On */}
+                            <div className={CELL}>
+                              <span className={`${TILE_BASE} ${TILE.sky}`}>
+                                <Icon name="CalendarDays" size={18} />
+                              </span>
+                              <div className="min-w-0">
+                                <p className={CELL_LABEL}>Requested On</p>
+                                <p className={CELL_VALUE}>
+                                  {formatRequestedOn(account?.createdAt)}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
+                      </div>
 
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Icon name="Calendar" size={13} />
-                              Start Date
-                            </p>
-                            <p className="font-semibold text-foreground">
+                      {/* ── Start / End / Duration tiles ── */}
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <div className="flex items-start gap-3.5 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                          <span className={`${TILE_BASE} ${TILE.rose}`}>
+                            <Icon name="CalendarDays" size={18} />
+                          </span>
+                          <div className="min-w-0">
+                            <p className={CELL_LABEL}>Start Date</p>
+                            <p className="mt-1 text-[17px] font-bold text-foreground">
                               {formatDate(account?.startDate)}
                             </p>
-                          </div>
-
-                          <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Icon name="CalendarCheck" size={13} />
-                              End Date
+                            <p className="mt-0.5 text-[13px] text-muted-foreground">
+                              {formatWeekday(account?.startDate)}
                             </p>
-                            <p className="font-semibold text-foreground">
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3.5 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                          <span className={`${TILE_BASE} ${TILE.sky}`}>
+                            <Icon name="CalendarCheck" size={18} />
+                          </span>
+                          <div className="min-w-0">
+                            <p className={CELL_LABEL}>End Date</p>
+                            <p className="mt-1 text-[17px] font-bold text-foreground">
                               {formatDate(account?.endDate)}
                             </p>
-                          </div>
-
-                          <div className="p-4 bg-primary/10 rounded-xl border border-primary/20 text-center">
-                            <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                              <Icon name="Clock" size={13} />
-                              Duration
-                            </p>
-                            <p className="text-lg font-bold text-primary">
-                              {["Short Leave", "SLC"].includes(account?.requestType)
-                                ? `${account?.durationInMinutes || 0} minutes`
-                                : `${account?.leaveConsumed || 0} days`}
+                            <p className="mt-0.5 text-[13px] text-muted-foreground">
+                              {formatWeekday(account?.endDate)}
                             </p>
                           </div>
                         </div>
 
-                        <div className="bg-muted/40 border border-border rounded-xl p-4">
-                          <p className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
-                            <Icon name="FileText" size={13} />
+                        <div className="flex items-start gap-3.5 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                          <span className={`${TILE_BASE} ${TILE.violet}`}>
+                            <Icon name="Clock" size={18} />
+                          </span>
+                          <div className="min-w-0">
+                            <p className={CELL_LABEL}>Duration</p>
+                            <p className="mt-1 text-[17px] font-bold text-rose-600">
+                              {formatDuration(account)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ── Description ── */}
+                      <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm">
+                        {/* Decorative quote + arc, matching the reference */}
+                        <span
+                          aria-hidden="true"
+                          className="pointer-events-none absolute right-7 top-3 select-none font-serif text-[86px] leading-none text-rose-100"
+                        >
+                          &rdquo;
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          className="pointer-events-none absolute -bottom-24 -right-16 h-56 w-56 rounded-full border border-rose-100"
+                        />
+
+                        <div className="relative flex items-center gap-3">
+                          <span className={`${TILE_BASE} ${TILE.rose}`}>
+                            <Icon name="FileText" size={18} />
+                          </span>
+                          <h3 className="text-[16px] font-bold text-foreground">
                             Description
-                          </p>
-                          <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
-                            {account?.description || "No description provided"}
-                          </p>
+                          </h3>
                         </div>
 
+                        <p className="relative mt-4 whitespace-pre-line text-[14px] leading-7 text-foreground/90">
+                          {account?.description || "No description provided"}
+                        </p>
                       </div>
                     </div>
                   )}
