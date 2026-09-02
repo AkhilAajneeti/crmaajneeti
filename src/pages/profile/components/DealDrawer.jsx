@@ -733,7 +733,7 @@ IFSC: ${bankData.ifsc}`;
                           {/* Description */}
                           <div className="">
                             <p className="text-sm text-muted-foreground">
-                              Jioning
+                            Joining
                             </p>
 
                             {isEditing ? (
