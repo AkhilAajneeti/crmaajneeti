@@ -398,7 +398,8 @@ IFSC: ${bankData.ifsc}`;
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Name */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="AtSign" size={14} className="text-sky-500" />
                               User Name
                             </p>
                             {isEditing ? (
@@ -417,7 +418,8 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Phone */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Wallet" size={14} className="text-emerald-500" />
                               Leave Balance
                             </p>
 
@@ -439,7 +441,8 @@ IFSC: ${bankData.ifsc}`;
                           {/* Email */}
 
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="UserRound" size={14} className="text-violet-500" />
                               Name
                             </p>
                             {isEditing ? (
@@ -459,7 +462,8 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* WhatsApp */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="VenusAndMars" size={14} className="text-pink-500" />
                               Gender
                             </p>
 
@@ -480,7 +484,8 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* City */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Award" size={14} className="text-amber-500" />
                               Designation
                             </p>
                             {isEditing ? (
@@ -500,7 +505,8 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Next Contact */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Hash" size={14} className="text-slate-500" />
                               Emp Code
                             </p>
                             {isEditing ? (
@@ -521,7 +527,8 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Project Name */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Building2" size={14} className="text-indigo-500" />
                               Department
                             </p>
                             {isEditing ? (
@@ -541,7 +548,8 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Preference */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Network" size={14} className="text-cyan-500" />
                               Sub Department
                             </p>
 
@@ -561,7 +569,8 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Preference */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="MapPin" size={14} className="text-rose-500" />
                               Branch
                             </p>
                             {isEditing ? (
@@ -580,7 +589,8 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Preference */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Laptop" size={14} className="text-teal-500" />
                               Mode
                             </p>
                             {isEditing ? (
@@ -613,7 +623,8 @@ IFSC: ${bankData.ifsc}`;
                               mirror of the linked User record, so it can never
                               be written from here. Change it on the User. */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Mail" size={14} className="text-sky-500" />
                               Official Email
                             </p>
                             {user?.email ? (
@@ -630,7 +641,8 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Official Gmail — the writable counterpart */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="AtSign" size={14} className="text-red-500" />
                               Official Gmail
                             </p>
                             {isEditing ? (
@@ -655,7 +667,8 @@ IFSC: ${bankData.ifsc}`;
                           {/* Official Mobile — readOnly foreign mirror, same
                               as Official Email above. */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Phone" size={14} className="text-blue-500" />
                               Official Mobile
                             </p>
                             {user?.phone ? (
@@ -671,7 +684,8 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Status */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="MailOpen" size={14} className="text-violet-500" />
                               Personal Email
                             </p>
 
@@ -692,7 +706,8 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Source */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Smartphone" size={14} className="text-emerald-500" />
                               Personal Mobile
                             </p>
 
@@ -721,7 +736,8 @@ IFSC: ${bankData.ifsc}`;
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="CalendarCheck" size={14} className="text-amber-500" />
                               Last Appraisal Date
                             </p>
 
@@ -747,7 +763,8 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Description */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="CalendarClock" size={14} className="text-orange-500" />
                               Next Appraisal Date
                             </p>
 
@@ -772,7 +789,8 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Description */}
                           <div className="">
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <Icon name="CalendarPlus" size={14} className="text-emerald-500" />
                             Joining Date
                             </p>
 
@@ -792,7 +810,8 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Description */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Clock" size={14} className="text-indigo-500" />
                               Shift Timings
                             </p>
 
@@ -827,7 +846,8 @@ IFSC: ${bankData.ifsc}`;
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="">
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="House" size={14} className="text-teal-500" />
                               Local Address
                             </p>
 
@@ -846,7 +866,8 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Description */}
                           <div className="">
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="MapPinHouse" size={14} className="text-rose-500" />
                               Permanent Address
                             </p>
 
@@ -865,7 +886,8 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Description */}
                           <div className="">
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Cake" size={14} className="text-pink-500" />
                               Celebration Birthday
                             </p>
 
@@ -889,7 +911,8 @@ IFSC: ${bankData.ifsc}`;
                               existing record it is display-only; EspoCRM
                               renders it as plain text in edit mode too. */}
                           <div className="">
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="FileBadge" size={14} className="text-slate-500" />
                               Document Birthday
                             </p>
                             <p className="text-medium font-medium">
@@ -899,7 +922,8 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Description */}
                           <div className="">
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Heart" size={14} className="text-rose-500" />
                               Wedding Anniversary
                             </p>
 
@@ -928,7 +952,8 @@ IFSC: ${bankData.ifsc}`;
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="">
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="UserRoundCheck" size={14} className="text-red-500" />
                               Emergency Contact Person
 
                             </p>
@@ -947,7 +972,8 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Description */}
                           <div className="">
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="PhoneCall" size={14} className="text-red-500" />
                               Emergency Contact Number
                             </p>
                             {isEditing ? (
@@ -975,7 +1001,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* UPI ID */}
                           <div>
-                            <p className="text-sm text-muted-foreground">UPI ID</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="QrCode" size={14} className="text-violet-500" />
+                              UPI ID
+                            </p>
                             {isEditing ? (
                               <Input
                                 value={bankData.upiId}
@@ -993,7 +1022,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* UAN No */}
                           <div>
-                            <p className="text-sm text-muted-foreground">UAN No</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Hash" size={14} className="text-indigo-500" />
+                              UAN No
+                            </p>
                             {isEditing ? (
                               <Input
                                 value={bankData.uanNo}
@@ -1011,7 +1043,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Name */}
                           <div>
-                            <p className="text-sm text-muted-foreground">Name</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="UserRound" size={14} className="text-violet-500" />
+                              Name
+                            </p>
                             {isEditing ? (
                               <Input
                                 value={bankData.name}
@@ -1029,7 +1064,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Bank Name */}
                           <div>
-                            <p className="text-sm text-muted-foreground">Bank Name</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Landmark" size={14} className="text-emerald-500" />
+                              Bank Name
+                            </p>
                             {isEditing ? (
                               <Input
                                 value={bankData.bankName}
@@ -1047,7 +1085,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Account Number */}
                           <div>
-                            <p className="text-sm text-muted-foreground">Account Number</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="CreditCard" size={14} className="text-sky-500" />
+                              Account Number
+                            </p>
 
                             {canReadField(ENTITY, "accountNumber") &&
                               (isEditing &&
@@ -1072,7 +1113,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* IFSC */}
                           <div>
-                            <p className="text-sm text-muted-foreground">IFSC</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Building2" size={14} className="text-amber-500" />
+                              IFSC
+                            </p>
                             {isEditing ? (
                               <Input
                                 value={bankData.ifsc}
@@ -1099,35 +1143,48 @@ IFSC: ${bankData.ifsc}`;
                       <div className="border border-border rounded-xl p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
-                            <p className="text-sm text-muted-foreground">Month</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="CalendarRange" size={14} className="text-indigo-500" />
+                              Month
+                            </p>
                             <p className="text-foreground font-medium">
                               {attendance.month || "None"}
                             </p>
                           </div>
 
                           <div>
-                            <p className="text-sm text-muted-foreground">Leaves Taken</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="CalendarMinus" size={14} className="text-orange-500" />
+                              Leaves Taken
+                            </p>
                             <p className="text-foreground font-medium">
                               {attendance.leavesTaken || "—"}
                             </p>
                           </div>
 
                           <div>
-                            <p className="text-sm text-muted-foreground">Salary Deduction</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="IndianRupee" size={14} className="text-red-500" />
+                              Salary Deduction
+                            </p>
                             <p className="text-foreground font-medium">
                               {attendance.salaryDeduction || "—"}
                             </p>
                           </div>
 
                           <div>
-                            <p className="text-sm text-muted-foreground">Contribution Credit</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="CalendarPlus" size={14} className="text-emerald-500" />
+                              Contribution Credit
+                            </p>
                             <p className="text-foreground font-medium">
                               {attendance.contribution || "—"}
                             </p>
                           </div>
 
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Wallet" size={14} className="text-emerald-500" />
                               New Leave Balance for Next Month
                             </p>
                             <p className="text-foreground font-medium">
@@ -1156,7 +1213,8 @@ IFSC: ${bankData.ifsc}`;
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Assigned User */}
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="UserCog" size={14} className="text-violet-500" />
                               Assigned User:
                             </p>
                             <p className="text-foreground font-medium">
@@ -1165,7 +1223,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Assigned User */}
                           <div>
-                            <p className="text-sm text-muted-foreground">Teams:</p>
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="Users" size={14} className="text-sky-500" />
+                              Teams:
+                            </p>
 
                             {Object.keys(user?.teamsNames || {}).length > 0 ? (
                               <div className="flex flex-wrap gap-2">
@@ -1183,7 +1244,8 @@ IFSC: ${bankData.ifsc}`;
                             )}
                           </div>
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="CalendarPlus" size={14} className="text-emerald-500" />
                               Created
                             </p>
                             <p className="text-foreground font-medium">
@@ -1193,7 +1255,8 @@ IFSC: ${bankData.ifsc}`;
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Icon name="History" size={14} className="text-slate-500" />
                               Last Modified
                             </p>
                             <p className="text-foreground font-medium">
