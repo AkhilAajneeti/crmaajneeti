@@ -388,8 +388,13 @@ IFSC: ${bankData.ifsc}`;
                 <div className="flex-1 overflow-y-auto p-6">
                   {activeTab === "overview" && (
                     <div className="space-y-6">
-                      {/* ================= Overview ================= */}
+                      {/* ================= Employment ================= */}
                       <div className="border border-border rounded-xl p-6">
+                        <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+                          <Icon name="BriefcaseBusiness" size={17} className="text-primary" />
+                          Employment
+                        </h3>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Name */}
                           <div>
@@ -595,11 +600,13 @@ IFSC: ${bankData.ifsc}`;
                         </div>
                       </div>
 
-                      {/* ================= Details ================= */}
+                      {/* ================= Contact ================= */}
                       <div className="border border-border rounded-xl p-6">
-                        <h3 className="text-base font-semibold text-foreground mb-6">
-                          Details
+                        <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+                          <Icon name="Contact" size={17} className="text-primary" />
+                          Contact
                         </h3>
+
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           {/* Official Email — `email` is a readOnly foreign
@@ -676,8 +683,9 @@ IFSC: ${bankData.ifsc}`;
                                 }
                               />
                             ) : (
-                              <p className="inline-flex px-3 py-1 rounded-full text-medium font-medium bg-success/10 text-success">
-                                {user?.personalEmail || "None"}</p>
+                              <p className="text-medium font-medium break-words">
+                                {user?.personalEmail || "None"}
+                              </p>
 
                             )}
                           </div>
@@ -701,7 +709,17 @@ IFSC: ${bankData.ifsc}`;
 
                             )}
                           </div>
-                          {/* Source */}
+                        </div>
+                      </div>
+
+                      {/* ================= Leave &amp; Appraisal ================= */}
+                      <div className="border border-border rounded-xl p-6">
+                        <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+                          <Icon name="CalendarCheck" size={17} className="text-primary" />
+                          Leave &amp; Appraisal
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div>
                             <p className="text-sm text-muted-foreground">
                               Last Appraisal Date
@@ -797,7 +815,17 @@ IFSC: ${bankData.ifsc}`;
                                 </p>
                               ))}
                           </div>
-                          {/* Description */}
+                        </div>
+                      </div>
+
+                      {/* ================= Personal ================= */}
+                      <div className="border border-border rounded-xl p-6">
+                        <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+                          <Icon name="UserRound" size={17} className="text-primary" />
+                          Personal
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="">
                             <p className="text-sm text-muted-foreground">
                               Local Address
@@ -888,7 +916,17 @@ IFSC: ${bankData.ifsc}`;
 
                             )}
                           </div>
-                          {/* Description */}
+                        </div>
+                      </div>
+
+                      {/* ================= Emergency Contact ================= */}
+                      <div className="border border-border rounded-xl p-6">
+                        <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+                          <Icon name="ShieldAlert" size={17} className="text-primary" />
+                          Emergency Contact
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="">
                             <p className="text-sm text-muted-foreground">
                               Emergency Contact Person
