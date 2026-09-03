@@ -398,8 +398,10 @@ IFSC: ${bankData.ifsc}`;
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Name */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="AtSign" size={14} className="text-sky-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
+                                <Icon name="AtSign" size={15} />
+                              </span>
                               User Name
                             </p>
                             {isEditing ? (
@@ -418,8 +420,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Phone */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Wallet" size={14} className="text-emerald-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                                <Icon name="Wallet" size={15} />
+                              </span>
                               Leave Balance
                             </p>
 
@@ -441,8 +445,10 @@ IFSC: ${bankData.ifsc}`;
                           {/* Email */}
 
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="UserRound" size={14} className="text-violet-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                                <Icon name="UserRound" size={15} />
+                              </span>
                               Name
                             </p>
                             {isEditing ? (
@@ -462,8 +468,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* WhatsApp */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="VenusAndMars" size={14} className="text-pink-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-pink-50 text-pink-600 ring-pink-200/70">
+                                <Icon name="VenusAndMars" size={15} />
+                              </span>
                               Gender
                             </p>
 
@@ -484,8 +492,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* City */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Award" size={14} className="text-amber-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-amber-50 text-amber-600 ring-amber-200/70">
+                                <Icon name="Award" size={15} />
+                              </span>
                               Designation
                             </p>
                             {isEditing ? (
@@ -505,8 +515,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Next Contact */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Hash" size={14} className="text-slate-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-slate-50 text-slate-600 ring-slate-200/70">
+                                <Icon name="Hash" size={15} />
+                              </span>
                               Emp Code
                             </p>
                             {isEditing ? (
@@ -527,8 +539,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Project Name */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Building2" size={14} className="text-indigo-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
+                                <Icon name="Building2" size={15} />
+                              </span>
                               Department
                             </p>
                             {isEditing ? (
@@ -548,8 +562,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Preference */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Network" size={14} className="text-cyan-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-cyan-50 text-cyan-600 ring-cyan-200/70">
+                                <Icon name="Network" size={15} />
+                              </span>
                               Sub Department
                             </p>
 
@@ -569,8 +585,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Preference */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="MapPin" size={14} className="text-rose-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
+                                <Icon name="MapPin" size={15} />
+                              </span>
                               Branch
                             </p>
                             {isEditing ? (
@@ -589,8 +607,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Preference */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Laptop" size={14} className="text-teal-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-teal-50 text-teal-600 ring-teal-200/70">
+                                <Icon name="Laptop" size={15} />
+                              </span>
                               Mode
                             </p>
                             {isEditing ? (
@@ -623,8 +643,10 @@ IFSC: ${bankData.ifsc}`;
                               mirror of the linked User record, so it can never
                               be written from here. Change it on the User. */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Mail" size={14} className="text-sky-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
+                                <Icon name="Mail" size={15} />
+                              </span>
                               Official Email
                             </p>
                             {user?.email ? (
@@ -641,8 +663,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Official Gmail — the writable counterpart */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="AtSign" size={14} className="text-red-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-red-50 text-red-600 ring-red-200/70">
+                                <Icon name="AtSign" size={15} />
+                              </span>
                               Official Gmail
                             </p>
                             {isEditing ? (
@@ -667,8 +691,10 @@ IFSC: ${bankData.ifsc}`;
                           {/* Official Mobile — readOnly foreign mirror, same
                               as Official Email above. */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Phone" size={14} className="text-blue-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-blue-50 text-blue-600 ring-blue-200/70">
+                                <Icon name="Phone" size={15} />
+                              </span>
                               Official Mobile
                             </p>
                             {user?.phone ? (
@@ -684,8 +710,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Status */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="MailOpen" size={14} className="text-violet-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                                <Icon name="MailOpen" size={15} />
+                              </span>
                               Personal Email
                             </p>
 
@@ -706,8 +734,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Source */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Smartphone" size={14} className="text-emerald-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                                <Icon name="Smartphone" size={15} />
+                              </span>
                               Personal Mobile
                             </p>
 
@@ -736,8 +766,10 @@ IFSC: ${bankData.ifsc}`;
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="CalendarCheck" size={14} className="text-amber-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-amber-50 text-amber-600 ring-amber-200/70">
+                                <Icon name="CalendarCheck" size={15} />
+                              </span>
                               Last Appraisal Date
                             </p>
 
@@ -763,8 +795,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Description */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="CalendarClock" size={14} className="text-orange-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-orange-50 text-orange-600 ring-orange-200/70">
+                                <Icon name="CalendarClock" size={15} />
+                              </span>
                               Next Appraisal Date
                             </p>
 
@@ -789,8 +823,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Description */}
                           <div className="">
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <Icon name="CalendarPlus" size={14} className="text-emerald-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                              <Icon name="CalendarPlus" size={15} />
+                            </span>
                             Joining Date
                             </p>
 
@@ -810,8 +846,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Description */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Clock" size={14} className="text-indigo-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
+                                <Icon name="Clock" size={15} />
+                              </span>
                               Shift Timings
                             </p>
 
@@ -846,8 +884,10 @@ IFSC: ${bankData.ifsc}`;
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="">
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="House" size={14} className="text-teal-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-teal-50 text-teal-600 ring-teal-200/70">
+                                <Icon name="House" size={15} />
+                              </span>
                               Local Address
                             </p>
 
@@ -866,8 +906,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Description */}
                           <div className="">
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="MapPinHouse" size={14} className="text-rose-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
+                                <Icon name="MapPinHouse" size={15} />
+                              </span>
                               Permanent Address
                             </p>
 
@@ -886,8 +928,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Description */}
                           <div className="">
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Cake" size={14} className="text-pink-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-pink-50 text-pink-600 ring-pink-200/70">
+                                <Icon name="Cake" size={15} />
+                              </span>
                               Celebration Birthday
                             </p>
 
@@ -911,8 +955,10 @@ IFSC: ${bankData.ifsc}`;
                               existing record it is display-only; EspoCRM
                               renders it as plain text in edit mode too. */}
                           <div className="">
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="FileBadge" size={14} className="text-slate-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-slate-50 text-slate-600 ring-slate-200/70">
+                                <Icon name="FileBadge" size={15} />
+                              </span>
                               Document Birthday
                             </p>
                             <p className="text-medium font-medium">
@@ -922,8 +968,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Description */}
                           <div className="">
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Heart" size={14} className="text-rose-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
+                                <Icon name="Heart" size={15} />
+                              </span>
                               Wedding Anniversary
                             </p>
 
@@ -952,8 +1000,10 @@ IFSC: ${bankData.ifsc}`;
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="">
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="UserRoundCheck" size={14} className="text-red-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-red-50 text-red-600 ring-red-200/70">
+                                <Icon name="UserRoundCheck" size={15} />
+                              </span>
                               Emergency Contact Person
 
                             </p>
@@ -972,8 +1022,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Description */}
                           <div className="">
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="PhoneCall" size={14} className="text-red-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-red-50 text-red-600 ring-red-200/70">
+                                <Icon name="PhoneCall" size={15} />
+                              </span>
                               Emergency Contact Number
                             </p>
                             {isEditing ? (
@@ -1001,8 +1053,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* UPI ID */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="QrCode" size={14} className="text-violet-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                                <Icon name="QrCode" size={15} />
+                              </span>
                               UPI ID
                             </p>
                             {isEditing ? (
@@ -1022,8 +1076,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* UAN No */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Hash" size={14} className="text-indigo-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
+                                <Icon name="Hash" size={15} />
+                              </span>
                               UAN No
                             </p>
                             {isEditing ? (
@@ -1043,8 +1099,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Name */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="UserRound" size={14} className="text-violet-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                                <Icon name="UserRound" size={15} />
+                              </span>
                               Name
                             </p>
                             {isEditing ? (
@@ -1064,8 +1122,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Bank Name */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Landmark" size={14} className="text-emerald-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                                <Icon name="Landmark" size={15} />
+                              </span>
                               Bank Name
                             </p>
                             {isEditing ? (
@@ -1085,8 +1145,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* Account Number */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="CreditCard" size={14} className="text-sky-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
+                                <Icon name="CreditCard" size={15} />
+                              </span>
                               Account Number
                             </p>
 
@@ -1113,8 +1175,10 @@ IFSC: ${bankData.ifsc}`;
 
                           {/* IFSC */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Building2" size={14} className="text-amber-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-amber-50 text-amber-600 ring-amber-200/70">
+                                <Icon name="Building2" size={15} />
+                              </span>
                               IFSC
                             </p>
                             {isEditing ? (
@@ -1143,8 +1207,10 @@ IFSC: ${bankData.ifsc}`;
                       <div className="border border-border rounded-xl p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="CalendarRange" size={14} className="text-indigo-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
+                                <Icon name="CalendarRange" size={15} />
+                              </span>
                               Month
                             </p>
                             <p className="text-foreground font-medium">
@@ -1153,8 +1219,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
 
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="CalendarMinus" size={14} className="text-orange-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-orange-50 text-orange-600 ring-orange-200/70">
+                                <Icon name="CalendarMinus" size={15} />
+                              </span>
                               Leaves Taken
                             </p>
                             <p className="text-foreground font-medium">
@@ -1163,8 +1231,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
 
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="IndianRupee" size={14} className="text-red-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-red-50 text-red-600 ring-red-200/70">
+                                <Icon name="IndianRupee" size={15} />
+                              </span>
                               Salary Deduction
                             </p>
                             <p className="text-foreground font-medium">
@@ -1173,8 +1243,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
 
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="CalendarPlus" size={14} className="text-emerald-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                                <Icon name="CalendarPlus" size={15} />
+                              </span>
                               Contribution Credit
                             </p>
                             <p className="text-foreground font-medium">
@@ -1183,8 +1255,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
 
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Wallet" size={14} className="text-emerald-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                                <Icon name="Wallet" size={15} />
+                              </span>
                               New Leave Balance for Next Month
                             </p>
                             <p className="text-foreground font-medium">
@@ -1213,8 +1287,10 @@ IFSC: ${bankData.ifsc}`;
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Assigned User */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="UserCog" size={14} className="text-violet-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                                <Icon name="UserCog" size={15} />
+                              </span>
                               Assigned User:
                             </p>
                             <p className="text-foreground font-medium">
@@ -1223,8 +1299,10 @@ IFSC: ${bankData.ifsc}`;
                           </div>
                           {/* Assigned User */}
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="Users" size={14} className="text-sky-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
+                                <Icon name="Users" size={15} />
+                              </span>
                               Teams:
                             </p>
 
@@ -1244,8 +1322,10 @@ IFSC: ${bankData.ifsc}`;
                             )}
                           </div>
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="CalendarPlus" size={14} className="text-emerald-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                                <Icon name="CalendarPlus" size={15} />
+                              </span>
                               Created
                             </p>
                             <p className="text-foreground font-medium">
@@ -1255,8 +1335,10 @@ IFSC: ${bankData.ifsc}`;
                             </p>
                           </div>
                           <div>
-                            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Icon name="History" size={14} className="text-slate-500" />
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-slate-50 text-slate-600 ring-slate-200/70">
+                                <Icon name="History" size={15} />
+                              </span>
                               Last Modified
                             </p>
                             <p className="text-foreground font-medium">
