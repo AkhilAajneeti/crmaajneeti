@@ -397,13 +397,12 @@ IFSC: ${bankData.ifsc}`;
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Name */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
-                                <Icon name="AtSign" size={15} />
-                              </span>
-                              User Name
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
+                              <Icon name="AtSign" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">User Name</p>
                             {isEditing ? (
                               <Input
                                 value={formData.name || user.name}
@@ -416,16 +415,16 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.name || "None"}
                               </p>
                             )}
+                            </div>
                           </div>
 
                           {/* Phone */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
-                                <Icon name="Wallet" size={15} />
-                              </span>
-                              Leave Balance
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                              <Icon name="Wallet" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Leave Balance</p>
 
                             {isEditing ? (
                               <Input
@@ -440,17 +439,17 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.leaveBalance || "None"}
                               </p>
                             )}
+                            </div>
                           </div>
 
                           {/* Email */}
 
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
-                                <Icon name="UserRound" size={15} />
-                              </span>
-                              Name
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                              <Icon name="UserRound" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Name</p>
                             {isEditing ? (
                               <Input
                                 value={formData.name || user.name}
@@ -464,16 +463,16 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.name || "None"}</p>
 
                             )}
+                            </div>
                           </div>
 
                           {/* WhatsApp */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-pink-50 text-pink-600 ring-pink-200/70">
-                                <Icon name="VenusAndMars" size={15} />
-                              </span>
-                              Gender
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-pink-50 text-pink-600 ring-pink-200/70">
+                              <Icon name="VenusAndMars" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Gender</p>
 
                             {isEditing ? (
                               <Input
@@ -488,16 +487,16 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.gender || "None"}</p>
 
                             )}
+                            </div>
                           </div>
 
                           {/* City */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-amber-50 text-amber-600 ring-amber-200/70">
-                                <Icon name="Award" size={15} />
-                              </span>
-                              Designation
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-amber-50 text-amber-600 ring-amber-200/70">
+                              <Icon name="Award" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Designation</p>
                             {isEditing ? (
                               <Input
                                 value={formData.designation || user?.designation}
@@ -511,16 +510,16 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.designation || "None"}</p>
 
                             )}
+                            </div>
                           </div>
 
                           {/* Next Contact */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-slate-50 text-slate-600 ring-slate-200/70">
-                                <Icon name="Hash" size={15} />
-                              </span>
-                              Emp Code
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-slate-50 text-slate-600 ring-slate-200/70">
+                              <Icon name="Hash" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Emp Code</p>
                             {isEditing ? (
                               <Input
                                 value={formData.empCode || user?.empCode}
@@ -535,16 +534,16 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.empCode || "None"}</p>
 
                             )}
+                            </div>
                           </div>
 
                           {/* Project Name */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
-                                <Icon name="Building2" size={15} />
-                              </span>
-                              Department
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
+                              <Icon name="Building2" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Department</p>
                             {isEditing ? (
                               <Input
                                 value={formData.department || user?.department}
@@ -558,16 +557,16 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.department || "None"}</p>
 
                             )}
+                            </div>
                           </div>
 
                           {/* Preference */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-cyan-50 text-cyan-600 ring-cyan-200/70">
-                                <Icon name="Network" size={15} />
-                              </span>
-                              Sub Department
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-cyan-50 text-cyan-600 ring-cyan-200/70">
+                              <Icon name="Network" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Sub Department</p>
 
                             {isEditing ? (
                               <Input
@@ -582,15 +581,15 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.subDepartment || "None"}</p>
 
                             )}
+                            </div>
                           </div>
                           {/* Preference */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
-                                <Icon name="MapPin" size={15} />
-                              </span>
-                              Branch
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
+                              <Icon name="MapPin" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Branch</p>
                             {isEditing ? (
                               <Input
                                 value={formData.branch || user?.branch}
@@ -604,15 +603,15 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.branch || "None"}</p>
 
                             )}
+                            </div>
                           </div>
                           {/* Preference */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-teal-50 text-teal-600 ring-teal-200/70">
-                                <Icon name="Laptop" size={15} />
-                              </span>
-                              Mode
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-teal-50 text-teal-600 ring-teal-200/70">
+                              <Icon name="Laptop" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Mode</p>
                             {isEditing ? (
                               <Input
                                 value={formData.mode || user?.mode}
@@ -626,6 +625,7 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.mode || "None"}</p>
 
                             )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -642,13 +642,12 @@ IFSC: ${bankData.ifsc}`;
                           {/* Official Email — `email` is a readOnly foreign
                               mirror of the linked User record, so it can never
                               be written from here. Change it on the User. */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
-                                <Icon name="Mail" size={15} />
-                              </span>
-                              Official Email
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
+                              <Icon name="Mail" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Official Email</p>
                             {user?.email ? (
                               <a
                                 href={`mailto:${user.email}`}
@@ -659,16 +658,16 @@ IFSC: ${bankData.ifsc}`;
                             ) : (
                               <p className="text-medium font-medium">None</p>
                             )}
+                            </div>
                           </div>
 
                           {/* Official Gmail — the writable counterpart */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-red-50 text-red-600 ring-red-200/70">
-                                <Icon name="AtSign" size={15} />
-                              </span>
-                              Official Gmail
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-red-50 text-red-600 ring-red-200/70">
+                              <Icon name="AtSign" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Official Gmail</p>
                             {isEditing ? (
                               <Input
                                 value={
@@ -686,17 +685,17 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.officialGmail || "None"}
                               </p>
                             )}
+                            </div>
                           </div>
 
                           {/* Official Mobile — readOnly foreign mirror, same
                               as Official Email above. */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-blue-50 text-blue-600 ring-blue-200/70">
-                                <Icon name="Phone" size={15} />
-                              </span>
-                              Official Mobile
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-blue-50 text-blue-600 ring-blue-200/70">
+                              <Icon name="Phone" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Official Mobile</p>
                             {user?.phone ? (
                               <a
                                 href={`tel:${user.phone}`}
@@ -707,15 +706,15 @@ IFSC: ${bankData.ifsc}`;
                             ) : (
                               <p className="text-medium font-medium">None</p>
                             )}
+                            </div>
                           </div>
                           {/* Status */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
-                                <Icon name="MailOpen" size={15} />
-                              </span>
-                              Personal Email
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                              <Icon name="MailOpen" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Personal Email</p>
 
                             {isEditing ? (
                               <Input
@@ -730,16 +729,16 @@ IFSC: ${bankData.ifsc}`;
                               </p>
 
                             )}
+                            </div>
                           </div>
 
                           {/* Source */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
-                                <Icon name="Smartphone" size={15} />
-                              </span>
-                              Personal Mobile
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                              <Icon name="Smartphone" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Personal Mobile</p>
 
                             {isEditing ? (
                               <Input
@@ -753,6 +752,7 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.personalMobile || "None"}</p>
 
                             )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -765,13 +765,12 @@ IFSC: ${bankData.ifsc}`;
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-amber-50 text-amber-600 ring-amber-200/70">
-                                <Icon name="CalendarCheck" size={15} />
-                              </span>
-                              Last Appraisal Date
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-amber-50 text-amber-600 ring-amber-200/70">
+                              <Icon name="CalendarCheck" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Last Appraisal Date</p>
 
                             {canReadField("CProfileDetails", "lastAppraisalDate") &&
                               (isEditing &&
@@ -791,16 +790,16 @@ IFSC: ${bankData.ifsc}`;
                                   {user?.lastAppraisalDate || "None"}
                                 </p>
                               ))}
+                            </div>
                           </div>
 
                           {/* Description */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-orange-50 text-orange-600 ring-orange-200/70">
-                                <Icon name="CalendarClock" size={15} />
-                              </span>
-                              Next Appraisal Date
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-orange-50 text-orange-600 ring-orange-200/70">
+                              <Icon name="CalendarClock" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Next Appraisal Date</p>
 
                             {canReadField("CProfileDetails", "nextAppraisalDate") &&
                               (isEditing &&
@@ -820,15 +819,15 @@ IFSC: ${bankData.ifsc}`;
                                   {user?.nextAppraisalDate || "None"}
                                 </p>
                               ))}
+                            </div>
                           </div>
                           {/* Description */}
-                          <div className="">
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
-                              <Icon name="CalendarPlus" size={15} />
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                              <Icon name="CalendarPlus" size={18} />
                             </span>
-                            Joining Date
-                            </p>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Joining Date</p>
 
                             {isEditing ? (
                               <Input
@@ -843,15 +842,15 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.joiningDate || "None"}</p>
 
                             )}
+                            </div>
                           </div>
                           {/* Description */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
-                                <Icon name="Clock" size={15} />
-                              </span>
-                              Shift Timings
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
+                              <Icon name="Clock" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Shift Timings</p>
 
                             {canReadField("CProfileDetails", "shiftTimings") &&
                               (isEditing &&
@@ -871,6 +870,7 @@ IFSC: ${bankData.ifsc}`;
                                   {user?.shiftTimings || "None"}
                                 </p>
                               ))}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -883,13 +883,12 @@ IFSC: ${bankData.ifsc}`;
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          <div className="">
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-teal-50 text-teal-600 ring-teal-200/70">
-                                <Icon name="House" size={15} />
-                              </span>
-                              Local Address
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-teal-50 text-teal-600 ring-teal-200/70">
+                              <Icon name="House" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Local Address</p>
 
                             {isEditing ? (
                               <Input
@@ -903,15 +902,15 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.localAddress || "None"}</p>
 
                             )}
+                            </div>
                           </div>
                           {/* Description */}
-                          <div className="">
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
-                                <Icon name="MapPinHouse" size={15} />
-                              </span>
-                              Permanent Address
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
+                              <Icon name="MapPinHouse" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Permanent Address</p>
 
                             {isEditing ? (
                               <Input
@@ -925,15 +924,15 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.permanentAddress || "None"}</p>
 
                             )}
+                            </div>
                           </div>
                           {/* Description */}
-                          <div className="">
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-pink-50 text-pink-600 ring-pink-200/70">
-                                <Icon name="Cake" size={15} />
-                              </span>
-                              Celebration Birthday
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-pink-50 text-pink-600 ring-pink-200/70">
+                              <Icon name="Cake" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Celebration Birthday</p>
 
                             {isEditing ? (
                               <Input
@@ -947,6 +946,7 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.birthday || "None"}</p>
 
                             )}
+                            </div>
                           </div>
 
                           {/* Document Birthday — separate field from the
@@ -954,26 +954,25 @@ IFSC: ${bankData.ifsc}`;
                               readOnlyAfterCreate on the backend, so on an
                               existing record it is display-only; EspoCRM
                               renders it as plain text in edit mode too. */}
-                          <div className="">
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-slate-50 text-slate-600 ring-slate-200/70">
-                                <Icon name="FileBadge" size={15} />
-                              </span>
-                              Document Birthday
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-slate-50 text-slate-600 ring-slate-200/70">
+                              <Icon name="FileBadge" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Document Birthday</p>
                             <p className="text-medium font-medium">
                               {user?.documentBirthday || "None"}
                             </p>
+                            </div>
                           </div>
 
                           {/* Description */}
-                          <div className="">
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
-                                <Icon name="Heart" size={15} />
-                              </span>
-                              Wedding Anniversary
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
+                              <Icon name="Heart" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Wedding Anniversary</p>
 
                             {isEditing ? (
                               <Input
@@ -987,6 +986,7 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.weddingAnniversary || "None"}</p>
 
                             )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -999,14 +999,12 @@ IFSC: ${bankData.ifsc}`;
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          <div className="">
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-red-50 text-red-600 ring-red-200/70">
-                                <Icon name="UserRoundCheck" size={15} />
-                              </span>
-                              Emergency Contact Person
-
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-red-50 text-red-600 ring-red-200/70">
+                              <Icon name="UserRoundCheck" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Emergency Contact Person</p>
                             {isEditing ? (
                               <Input
                                 value={formData.emergencyContactPerson || user?.emergencyContactPerson}
@@ -1019,15 +1017,15 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.emergencyContactPerson || "None"}</p>
 
                             )}
+                            </div>
                           </div>
                           {/* Description */}
-                          <div className="">
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-red-50 text-red-600 ring-red-200/70">
-                                <Icon name="PhoneCall" size={15} />
-                              </span>
-                              Emergency Contact Number
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-red-50 text-red-600 ring-red-200/70">
+                              <Icon name="PhoneCall" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Emergency Contact Number</p>
                             {isEditing ? (
                               <Input
                                 value={formData.emergencyContactNumber || user?.emergencyContactNumber}
@@ -1040,6 +1038,7 @@ IFSC: ${bankData.ifsc}`;
                                 {user?.emergencyContactNumber || "None"}</p>
 
                             )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1052,13 +1051,12 @@ IFSC: ${bankData.ifsc}`;
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                           {/* UPI ID */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
-                                <Icon name="QrCode" size={15} />
-                              </span>
-                              UPI ID
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                              <Icon name="QrCode" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">UPI ID</p>
                             {isEditing ? (
                               <Input
                                 value={bankData.upiId}
@@ -1072,16 +1070,16 @@ IFSC: ${bankData.ifsc}`;
                                 {getValue(bankData.upiId)}
                               </p>
                             )}
+                            </div>
                           </div>
 
                           {/* UAN No */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
-                                <Icon name="Hash" size={15} />
-                              </span>
-                              UAN No
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
+                              <Icon name="Hash" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">UAN No</p>
                             {isEditing ? (
                               <Input
                                 value={bankData.uanNo}
@@ -1095,16 +1093,16 @@ IFSC: ${bankData.ifsc}`;
                                 {getValue(bankData.uanNo)}
                               </p>
                             )}
+                            </div>
                           </div>
 
                           {/* Name */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
-                                <Icon name="UserRound" size={15} />
-                              </span>
-                              Name
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                              <Icon name="UserRound" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Name</p>
                             {isEditing ? (
                               <Input
                                 value={bankData.name}
@@ -1118,16 +1116,16 @@ IFSC: ${bankData.ifsc}`;
                                 {getValue(bankData.name)}
                               </p>
                             )}
+                            </div>
                           </div>
 
                           {/* Bank Name */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
-                                <Icon name="Landmark" size={15} />
-                              </span>
-                              Bank Name
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                              <Icon name="Landmark" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Bank Name</p>
                             {isEditing ? (
                               <Input
                                 value={bankData.bankName}
@@ -1141,16 +1139,16 @@ IFSC: ${bankData.ifsc}`;
                                 {getValue(bankData.bankName)}
                               </p>
                             )}
+                            </div>
                           </div>
 
                           {/* Account Number */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
-                                <Icon name="CreditCard" size={15} />
-                              </span>
-                              Account Number
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
+                              <Icon name="CreditCard" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Account Number</p>
 
                             {canReadField(ENTITY, "accountNumber") &&
                               (isEditing &&
@@ -1171,16 +1169,16 @@ IFSC: ${bankData.ifsc}`;
                                   {getValue(bankData.accountNumber)}
                                 </p>
                               ))}
+                            </div>
                           </div>
 
                           {/* IFSC */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-amber-50 text-amber-600 ring-amber-200/70">
-                                <Icon name="Building2" size={15} />
-                              </span>
-                              IFSC
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-amber-50 text-amber-600 ring-amber-200/70">
+                              <Icon name="Building2" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">IFSC</p>
                             {isEditing ? (
                               <Input
                                 value={bankData.ifsc}
@@ -1194,6 +1192,7 @@ IFSC: ${bankData.ifsc}`;
                                 {getValue(bankData.ifsc)}
                               </p>
                             )}
+                            </div>
                           </div>
 
                         </div>
@@ -1206,64 +1205,64 @@ IFSC: ${bankData.ifsc}`;
                       {/* ================= Assigned User ================= */}
                       <div className="border border-border rounded-xl p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
-                                <Icon name="CalendarRange" size={15} />
-                              </span>
-                              Month
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-indigo-50 text-indigo-600 ring-indigo-200/70">
+                              <Icon name="CalendarRange" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Month</p>
                             <p className="text-foreground font-medium">
                               {attendance.month || "None"}
                             </p>
+                            </div>
                           </div>
 
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-orange-50 text-orange-600 ring-orange-200/70">
-                                <Icon name="CalendarMinus" size={15} />
-                              </span>
-                              Leaves Taken
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-orange-50 text-orange-600 ring-orange-200/70">
+                              <Icon name="CalendarMinus" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Leaves Taken</p>
                             <p className="text-foreground font-medium">
                               {attendance.leavesTaken || "—"}
                             </p>
+                            </div>
                           </div>
 
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-red-50 text-red-600 ring-red-200/70">
-                                <Icon name="IndianRupee" size={15} />
-                              </span>
-                              Salary Deduction
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-red-50 text-red-600 ring-red-200/70">
+                              <Icon name="IndianRupee" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Salary Deduction</p>
                             <p className="text-foreground font-medium">
                               {attendance.salaryDeduction || "—"}
                             </p>
+                            </div>
                           </div>
 
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
-                                <Icon name="CalendarPlus" size={15} />
-                              </span>
-                              Contribution Credit
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                              <Icon name="CalendarPlus" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Contribution Credit</p>
                             <p className="text-foreground font-medium">
                               {attendance.contribution || "—"}
                             </p>
+                            </div>
                           </div>
 
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
-                                <Icon name="Wallet" size={15} />
-                              </span>
-                              New Leave Balance for Next Month
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                              <Icon name="Wallet" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">New Leave Balance for Next Month</p>
                             <p className="text-foreground font-medium">
                               {attendance.nextBalance || "—"}
                             </p>
+                            </div>
                           </div>
                           <div className="col-span-2">
                             <p className="text-medium text-muted-foreground">
@@ -1286,25 +1285,24 @@ IFSC: ${bankData.ifsc}`;
                       <div className="border border-border rounded-xl p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Assigned User */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
-                                <Icon name="UserCog" size={15} />
-                              </span>
-                              Assigned User:
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                              <Icon name="UserCog" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Assigned User:</p>
                             <p className="text-foreground font-medium">
                               {user?.assignedUserName || "—"}
                             </p>
+                            </div>
                           </div>
                           {/* Assigned User */}
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
-                                <Icon name="Users" size={15} />
-                              </span>
-                              Teams:
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-sky-50 text-sky-600 ring-sky-200/70">
+                              <Icon name="Users" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Teams:</p>
 
                             {Object.keys(user?.teamsNames || {}).length > 0 ? (
                               <div className="flex flex-wrap gap-2">
@@ -1320,32 +1318,33 @@ IFSC: ${bankData.ifsc}`;
                             ) : (
                               <span>None</span>
                             )}
+                            </div>
                           </div>
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
-                                <Icon name="CalendarPlus" size={15} />
-                              </span>
-                              Created
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-emerald-50 text-emerald-600 ring-emerald-200/70">
+                              <Icon name="CalendarPlus" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Created</p>
                             <p className="text-foreground font-medium">
                               {deal?.createdAt
                                 ? `${formatDateTime(deal.createdAt)} by ${deal?.createdByName || "—"}`
                                 : "—"}
                             </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 bg-slate-50 text-slate-600 ring-slate-200/70">
-                                <Icon name="History" size={15} />
-                              </span>
-                              Last Modified
-                            </p>
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-slate-50 text-slate-600 ring-slate-200/70">
+                              <Icon name="History" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Last Modified</p>
                             <p className="text-foreground font-medium">
                               {deal?.modifiedAt
                                 ? `${formatDateTime(deal.modifiedAt)} by ${deal?.modifiedByName || "—"}`
                                 : "—"}
                             </p>
+                            </div>
                           </div>
                         </div>
 
