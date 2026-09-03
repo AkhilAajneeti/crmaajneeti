@@ -236,8 +236,8 @@ IFSC: ${bankData.ifsc}`;
 
       // ✅ Overview fields (ONLY override if changed)
       name: formData.name || user.name,
-      email: formData.email || user.email,
-      phone: formData.phone || user.phone,
+      // `email` / `phone` are readOnly foreign fields — not overridden here.
+      officialGmail: formData.officialGmail ?? user.officialGmail,
       gender: formData.gender || user.gender,
       designation: formData.designation || user.designation,
       empCode: formData.empCode || user.empCode,
@@ -602,42 +602,64 @@ IFSC: ${bankData.ifsc}`;
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          {/* Status */}
+                          {/* Official Email — `email` is a readOnly foreign
+                              mirror of the linked User record, so it can never
+                              be written from here. Change it on the User. */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              Email
+                              Official Email
                             </p>
-                            {isEditing ? (
-                              <Input
-                                value={formData.email || user?.email}
-                                onChange={(e) =>
-                                  setFormData({ ...formData, email: e.target.value })
-                                }
-                                disabled={!isAdmin}
-                              />
+                            {user?.email ? (
+                              <a
+                                href={`mailto:${user.email}`}
+                                className="text-primary hover:underline break-words"
+                              >
+                                {user.email}
+                              </a>
                             ) : (
-                              <p className="inline-flex px-3 py-1 rounded-full text-medium font-medium bg-success/10 text-success">
-                                {user?.email || "None"}</p>
-
+                              <p className="text-medium font-medium">None</p>
                             )}
                           </div>
 
-                          {/* Source */}
+                          {/* Official Gmail — the writable counterpart */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              Phone
+                              Official Gmail
                             </p>
                             {isEditing ? (
                               <Input
-                                value={formData.phone || user?.phone}
+                                value={
+                                  formData.officialGmail ?? user?.officialGmail ?? ""
+                                }
                                 onChange={(e) =>
-                                  setFormData({ ...formData, phone: e.target.value })
+                                  setFormData({
+                                    ...formData,
+                                    officialGmail: e.target.value,
+                                  })
                                 }
                               />
                             ) : (
-                              <p className=" text-medium font-medium">
-                                {user?.phone || "None"}</p>
+                              <p className="text-medium font-medium">
+                                {user?.officialGmail || "None"}
+                              </p>
+                            )}
+                          </div>
 
+                          {/* Official Mobile — readOnly foreign mirror, same
+                              as Official Email above. */}
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Official Mobile
+                            </p>
+                            {user?.phone ? (
+                              <a
+                                href={`tel:${user.phone}`}
+                                className="text-primary hover:underline"
+                              >
+                                {user.phone}
+                              </a>
+                            ) : (
+                              <p className="text-medium font-medium">None</p>
                             )}
                           </div>
                           {/* Status */}
@@ -663,7 +685,7 @@ IFSC: ${bankData.ifsc}`;
                           {/* Source */}
                           <div>
                             <p className="text-sm text-muted-foreground">
-                              Personal Phone
+                              Personal Mobile
                             </p>
 
                             {isEditing ? (
@@ -733,7 +755,7 @@ IFSC: ${bankData.ifsc}`;
                           {/* Description */}
                           <div className="">
                             <p className="text-sm text-muted-foreground">
-                            Joining
+                            Joining Date
                             </p>
 
                             {isEditing ? (
@@ -816,7 +838,7 @@ IFSC: ${bankData.ifsc}`;
                           {/* Description */}
                           <div className="">
                             <p className="text-sm text-muted-foreground">
-                              Birthday
+                              Celebration Birthday
                             </p>
 
                             {isEditing ? (
@@ -832,10 +854,25 @@ IFSC: ${bankData.ifsc}`;
 
                             )}
                           </div>
+
+                          {/* Document Birthday — separate field from the
+                              celebration birthday above. It is
+                              readOnlyAfterCreate on the backend, so on an
+                              existing record it is display-only; EspoCRM
+                              renders it as plain text in edit mode too. */}
+                          <div className="">
+                            <p className="text-sm text-muted-foreground">
+                              Document Birthday
+                            </p>
+                            <p className="text-medium font-medium">
+                              {user?.documentBirthday || "None"}
+                            </p>
+                          </div>
+
                           {/* Description */}
                           <div className="">
                             <p className="text-sm text-muted-foreground">
-                              Wedding Aniversary
+                              Wedding Anniversary
                             </p>
 
                             {isEditing ? (
