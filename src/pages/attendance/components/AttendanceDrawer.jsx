@@ -1467,7 +1467,9 @@ const AttendanceDrawer = ({
                             </div>
 
                             {/* Employee Code */}
-                            <div className={`${CELL} sm:border-r`}>
+                            <div
+                              className={`${CELL} border-b border-border/70 sm:border-r`}
+                            >
                               <span className={`${TILE_BASE} ${TILE.rose}`}>
                                 <Icon name="ContactRound" size={18} />
                               </span>
@@ -1480,7 +1482,7 @@ const AttendanceDrawer = ({
                             </div>
 
                             {/* Requested On */}
-                            <div className={CELL}>
+                            <div className={`${CELL} border-b border-border/70`}>
                               <span className={`${TILE_BASE} ${TILE.sky}`}>
                                 <Icon name="CalendarDays" size={18} />
                               </span>
@@ -1489,6 +1491,30 @@ const AttendanceDrawer = ({
                                 <p className={CELL_VALUE}>
                                   {formatRequestedOn(account?.createdAt)}
                                 </p>
+                              </div>
+                            </div>
+
+                            {/* Created By — spans the full width so the grid
+                                doesn't end on a lone empty half-row. */}
+                            <div className={`${CELL} sm:col-span-2`}>
+                              <span className={`${TILE_BASE} ${TILE.violet}`}>
+                                <Icon name="UserRound" size={18} />
+                              </span>
+                              <div className="min-w-0">
+                                <p className={CELL_LABEL}>Created By</p>
+                                <div className="mt-1 flex items-center gap-2">
+                                  {account?.createdByName && (
+                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-100 text-[11px] font-semibold text-violet-700">
+                                      {account.createdByName
+                                        .trim()
+                                        .charAt(0)
+                                        .toUpperCase()}
+                                    </span>
+                                  )}
+                                  <p className="truncate text-[15px] font-semibold text-foreground">
+                                    {account?.createdByName || "—"}
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           </div>
