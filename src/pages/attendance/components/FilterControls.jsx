@@ -321,11 +321,16 @@ const FilterControls = ({
           onChange={(value) => handleFilterChange("assignedUserId", value)}
           searchable
         />
+        {/* Outlined, not filled: this toggles a view rather than creating
+            anything, so it shouldn't compete with "Create Attendance Request"
+            for the one solid primary button on the page. */}
         <Button
+          variant="outline"
           onClick={toggleAnalytics}
-          className="linearbg-1 text-white hover:text-white"
+          className="h-11 gap-2 rounded-xl border-primary/25 bg-card px-4 font-medium text-primary hover:bg-primary/5 hover:text-primary"
         >
-          Calender
+          <Icon name="CalendarDays" size={18} className="text-primary" />
+          Calendar View
         </Button>
       </div>
 

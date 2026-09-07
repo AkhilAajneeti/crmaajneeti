@@ -430,7 +430,7 @@ const DealsTable = ({
                               onEdit(deal);
                             }}
                           >
-                            <Icon name="Edit" size={16} />
+                            <Icon name="Pencil" size={16} />
                           </Button>
                         )}
                         {canDeleteDeal(deal) && (
@@ -451,15 +451,19 @@ const DealsTable = ({
                     <td className="p-4" onClick={(e) => e?.stopPropagation()}>
                       <div className="flex items-center space-x-1">
 
+                        {/* View — was an ArrowUpRight styled `text-destructive`,
+                            i.e. a read-only action painted the same red as
+                            Delete. Eye, in the neutral muted tone. */}
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-destructive hover:bg-red-50"
+                          title="View"
+                          className="text-muted-foreground hover:text-foreground"
                           onClick={(e) => {
                             e.stopPropagation();
                             onDealClick(deal);
                           }}>
-                          <Icon name="ArrowUpRight" size={20} />
+                          <Icon name="Eye" size={16} />
                         </Button>
                       </div>
                     </td>
@@ -597,7 +601,7 @@ const DealsTable = ({
                   className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-sm text-foreground transition-colors active:bg-muted hover:bg-muted"
                 >
                   <Icon
-                    name="Edit"
+                    name="Pencil"
                     size={16}
                     className="text-muted-foreground"
                   />
