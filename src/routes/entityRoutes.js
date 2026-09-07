@@ -64,3 +64,22 @@ export const ENTITY_REGISTRY = {
 };
 
 export const getEntityConfig = (entity) => ENTITY_REGISTRY[entity];
+
+// The notification dropdown can't import this file — it would create a cycle
+// (this module pulls in every page, and pages render Header, which renders the
+// dropdown). It reads ./linkableEntities.js instead. Warn in dev if the two
+// drift apart, so a newly registered entity doesn't quietly stay unclickable.
+if (import.meta.env?.DEV) {
+  import("./linkableEntities.js").then(({ LINKABLE_ENTITIES }) => {
+    const registered = Object.keys(ENTITY_REGISTRY);
+    const missing = registered.filter((e) => !LINKABLE_ENTITIES.includes(e));
+    const extra = LINKABLE_ENTITIES.filter((e) => !registered.includes(e));
+
+    if (missing.length || extra.length) {
+      console.warn(
+        "[entityRoutes] linkableEntities.js is out of sync with ENTITY_REGISTRY.",
+        { missingFromLinkable: missing, notRegistered: extra },
+      );
+    }
+  });
+}

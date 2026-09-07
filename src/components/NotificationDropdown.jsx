@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNotification } from "NotificationContext";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getEntityConfig } from "routes/entityRoutes";
+import { isLinkableEntity } from "routes/linkableEntities";
 import Button from "./ui/Button";
 
 const PAGE_SIZE = 5;
@@ -188,7 +188,7 @@ const NotificationDropdown = () => {
       // the route registry, so a row never links somewhere that 404s.
       entityId: note.parentId || n.relatedParentId || "",
       canOpen: Boolean(
-        (note.parentId || n.relatedParentId) && getEntityConfig(entityType),
+        (note.parentId || n.relatedParentId) && isLinkableEntity(entityType),
       ),
       changes: getChanges(note),
       post: note.post || "",
