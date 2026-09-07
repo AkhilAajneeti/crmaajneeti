@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useNotification } from "NotificationContext";
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { getEntityConfig } from "routes/entityRoutes";
 import Button from "./ui/Button";
 
 const PAGE_SIZE = 5;
@@ -115,6 +117,7 @@ const NotificationDropdown = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const { open, notifications, setNotifications, setOpen } = useNotification();
+  const navigate = useNavigate();
 
   // Used to decide between "assigned to you" and "assigned to <name>".
   const currentUserId = (() => {
@@ -181,6 +184,12 @@ const NotificationDropdown = () => {
       // An "Assign" note already says "assigned", so the tail is just "to X" —
       // otherwise it reads "assigned lead X assigned to Y".
       assignedPrefix: note.type === "Assign" ? "to" : "assigned to",
+      // Target record for click-through. Only offered when the entity is in
+      // the route registry, so a row never links somewhere that 404s.
+      entityId: note.parentId || n.relatedParentId || "",
+      canOpen: Boolean(
+        (note.parentId || n.relatedParentId) && getEntityConfig(entityType),
+      ),
       changes: getChanges(note),
       post: note.post || "",
       message: n.message || "",
@@ -219,6 +228,18 @@ const NotificationDropdown = () => {
 
   const handleMarkAll = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
+  // Open the record the notification is about: /<EntityType>/view/<id>, which
+  // the entity router resolves to the right page with its drawer in view mode.
+  const handleOpen = (item) => {
+    if (!item.canOpen) return;
+
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === item.id ? { ...n, read: true } : n)),
+    );
+    setOpen(false);
+    navigate(`/${item.entity}/view/${item.entityId}`);
   };
 
   return (
@@ -286,9 +307,20 @@ const NotificationDropdown = () => {
                     key={item.id}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className={`flex gap-3 px-4 py-3 border-b cursor-pointer hover:bg-gray-50 ${
-                      isUnread ? "bg-gray-50" : ""
-                    }`}
+                    role={item.canOpen ? "button" : undefined}
+                    tabIndex={item.canOpen ? 0 : undefined}
+                    onClick={() => handleOpen(item)}
+                    onKeyDown={(e) => {
+                      if (item.canOpen && (e.key === "Enter" || e.key === " ")) {
+                        e.preventDefault();
+                        handleOpen(item);
+                      }
+                    }}
+                    className={`group flex gap-3 px-4 py-3 border-b ${
+                      item.canOpen
+                        ? "cursor-pointer hover:bg-gray-50"
+                        : "cursor-default"
+                    } ${isUnread ? "bg-gray-50" : ""}`}
                   >
                     {/* Avatar — the person who acted */}
                     <div className="relative shrink-0">
@@ -379,6 +411,11 @@ const NotificationDropdown = () => {
                         <span className="text-xs text-gray-400">
                           {formatTime(item.time)}
                         </span>
+                        {item.canOpen && (
+                          <span className="ml-auto text-[11px] font-medium text-blue-600 opacity-0 transition-opacity group-hover:opacity-100">
+                            Open →
+                          </span>
+                        )}
                       </div>
                     </div>
 
