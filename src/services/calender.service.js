@@ -254,7 +254,6 @@ export const fetchcalenderDetails = async ({ limit, page, filters }) => {
     });
 
     if (!res.ok) {
-        console.log("STATUS:", res.status);
 
         if (res.status === 401 || res.status === 403) {
             localStorage.clear();
@@ -280,7 +279,6 @@ export const fetchAttendanceById = async (id) => {
     });
 
     if (!res.ok) {
-        console.log("STATUS:", res.status);
 
         if (res.status === 401 || res.status === 403) {
             localStorage.clear();
@@ -367,7 +365,6 @@ export const fetchAttendStreamById = async (id) => {
         },
     );
     if (!res.ok) {
-        console.log("STATUS:", res.status);
         if (res.status === 401 || res.status === 403) {
             localStorage.clear();
             window.location.href = "/login";

@@ -145,7 +145,6 @@ export const fetchreportLeads = async ({ limit, page, filters = {} }) => {
 
   const url = query ? `${baseUrl}&${query}` : baseUrl;
 
-  console.log("FINAL REPORT API:", url);
 
   const res = await fetch(url, {
     headers: {

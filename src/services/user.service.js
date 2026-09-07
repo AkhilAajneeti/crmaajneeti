@@ -8,7 +8,6 @@ export const fetchUser = async () => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -27,7 +26,6 @@ export const fetchUserById = async (id) => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -40,7 +38,6 @@ export const fetchUserById = async (id) => {
 
 export const updateUser = async (id, payload) => {
   const token = localStorage.getItem("auth_token");
-  console.log(id, payload);
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/User/${id}`,
     {
@@ -55,7 +52,6 @@ export const updateUser = async (id, payload) => {
   );
 
   const text = await res.text();
-  console.log("response from User.service.js", res);
   if (!res.ok) {
     throw new Error(text || "User update failed");
   }
@@ -82,7 +78,6 @@ export const deleteUser = async (id) => {
 // upload attachment
 export const attachment = async (payload) => {
   const token = localStorage.getItem("auth_token");
-  console.log(payload);
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/User/Attachment`,
     {
@@ -117,7 +112,6 @@ export const fetchProfiles = async () => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -137,7 +131,6 @@ export const fetchProfileDetail = async (id) => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";

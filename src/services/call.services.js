@@ -8,7 +8,6 @@ export const fetchCall = async () => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -27,7 +26,6 @@ export const fetchCallById = async (id) => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -38,7 +36,6 @@ export const fetchCallById = async (id) => {
 };
 
 export const createCall = async (payload) => {
-  console.log(payload);
   const token = localStorage.getItem("auth_token");
   const res = await fetch("https://gateway.aajneetiadvertising.com/Call", {
     method: "POST",
@@ -57,7 +54,6 @@ export const createCall = async (payload) => {
 
 export const updateCall = async (id, payload) => {
   const token = localStorage.getItem("auth_token");
-  console.log(id, payload);
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Call/${id}`,
     {
@@ -72,7 +68,6 @@ export const updateCall = async (id, payload) => {
   );
 
   const text = await res.text();
-  console.log("response from Call.service.js", res);
   if (!res.ok) {
     throw new Error(text || "Call update failed");
   }
@@ -101,7 +96,6 @@ export const bulkDeleteCall = async (ids = []) => {
 // --------------Stream-----------
 //fetch by Streams
 export const CallStreamById = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Call/${id}/stream`,
@@ -115,9 +109,7 @@ export const CallStreamById = async (id) => {
     },
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -145,7 +137,6 @@ export const deleteActivity = async (id) => {
 
 //create strean
 export const createCallStream = async (payload) => {
-  console.log(payload);
   const token = localStorage.getItem("auth_token");
   const res = await fetch("https://gateway.aajneetiadvertising.com/Note", {
     method: "POST",
@@ -165,7 +156,6 @@ export const createCallStream = async (payload) => {
 // Meet call related Activities
 
 export const leadActivitesById = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Activities/Lead/${id}/activities`,
@@ -179,9 +169,7 @@ export const leadActivitesById = async (id) => {
     },
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";

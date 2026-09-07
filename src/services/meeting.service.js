@@ -8,7 +8,6 @@ export const fetchMeeting = async () => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -226,7 +225,6 @@ export const fetchAllMeeting = async ({ limit, page, filters }) => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -247,7 +245,6 @@ export const fetchMeetingById = async (id) => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -258,7 +255,6 @@ export const fetchMeetingById = async (id) => {
 };
 
 export const createMeeting = async (payload) => {
-  console.log(payload);
   const token = localStorage.getItem("auth_token");
   const res = await fetch("https://gateway.aajneetiadvertising.com/Meeting", {
     method: "POST",
@@ -291,7 +287,6 @@ export const updateMeeting = async (id, payload) => {
   );
 
 
-  console.log("response from meeting.service.js", res);
   if (!res.ok) {
     throw new Error(text || "Meeting update failed");
   }
@@ -320,7 +315,6 @@ export const bulkDeleteMeeting = async (ids = []) => {
 // --------------Stream-----------
 //fetch by Streams
 export const meetingStreamById = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Meeting/${id}/stream`,
@@ -334,9 +328,7 @@ export const meetingStreamById = async (id) => {
     },
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -364,7 +356,6 @@ export const deleteActivity = async (id) => {
 
 //create strean
 export const createMeetingStream = async (payload) => {
-  console.log(payload);
   const token = localStorage.getItem("auth_token");
   const res = await fetch("https://gateway.aajneetiadvertising.com/Note", {
     method: "POST",
@@ -384,7 +375,6 @@ export const createMeetingStream = async (payload) => {
 // Meet call related Activities
 
 export const leadActivitesById = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Activities/Lead/${id}/activities`,
@@ -398,9 +388,7 @@ export const leadActivitesById = async (id) => {
     },
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";

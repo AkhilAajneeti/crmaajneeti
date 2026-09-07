@@ -131,7 +131,6 @@ export const fetchLeads = async () => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -297,7 +296,6 @@ export const fetchNewLeads = async ({ limit, page, filters = {}, sort }) => {
 
   const url = query ? `${baseUrl}&${query}` : baseUrl;
 
-  console.log("FINAL API:", url);
 
   const res = await fetch(url, {
     headers: {
@@ -324,7 +322,6 @@ export const fetchLeadsById = async (id) => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -335,7 +332,6 @@ export const fetchLeadsById = async (id) => {
 };
 
 export const createLead = async (payload) => {
-  console.log(payload);
   const token = localStorage.getItem("auth_token");
   const res = await fetch("https://gateway.aajneetiadvertising.com/Lead", {
     method: "POST",
@@ -370,7 +366,6 @@ export const updateLead = async (id, payload) => {
   );
 
   
-  console.log("response from contact.service.js", res);
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text || "Lead update failed");
@@ -400,7 +395,6 @@ export const bulkDeleteleads = async (ids = []) => {
 // --------------Stream-----------
 //fetch by Streams
 export const leadStreamById = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Lead/${id}/stream`,
@@ -414,9 +408,7 @@ export const leadStreamById = async (id) => {
     }
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -426,7 +418,6 @@ export const leadStreamById = async (id) => {
   return await res.json();
 };
 export const updateStream = async (id, payload) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Lead/${id}/stream`,
@@ -440,9 +431,7 @@ export const updateStream = async (id, payload) => {
     }
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -470,7 +459,6 @@ export const deleteActivity = async (id) => {
 
 //create strean
 export const createLeadActivity = async (payload) => {
-  console.log(payload);
   const token = localStorage.getItem("auth_token");
   const res = await fetch("https://gateway.aajneetiadvertising.com/Note", {
     method: "POST",
@@ -489,7 +477,6 @@ export const createLeadActivity = async (payload) => {
 // Meet call related Activities
 
 export const leadActivitesById = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
 
   const res = await fetch(
@@ -504,9 +491,7 @@ export const leadActivitesById = async (id) => {
     }
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";

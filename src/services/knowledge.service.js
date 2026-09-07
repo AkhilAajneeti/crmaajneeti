@@ -160,7 +160,6 @@ export const fetchKnowledge = async ({ limit, page, filters = {} }) => {
     const url = `https://gateway.aajneetiadvertising.com/KnowledgeBaseArticle?maxSize=${limit}&offset=${offset}&orderBy=createdAt&order=desc${query ? `&${query}` : ""
         }`;
 
-    console.log("🔥 FINAL API URL:", url);
 
     const res = await fetch(url, {
         headers: {
@@ -189,7 +188,6 @@ export const fetchKnowledgeById = async (id) => {
     });
 
     if (!res.ok) {
-        console.log("STATUS:", res.status);
 
         if (res.status === 401 || res.status === 403) {
             localStorage.clear();
@@ -222,7 +220,6 @@ export const createArticle = async (payload) => {
 /* UPDATE */
 export const updateArticle = async (id, payload, versionNumber) => {
     const token = localStorage.getItem("auth_token");
-    console.log(id, payload, versionNumber);
     const res = await fetch(
         `https://gateway.aajneetiadvertising.com/KnowledgeBaseArticle/${id}`,
         {
@@ -238,7 +235,6 @@ export const updateArticle = async (id, payload, versionNumber) => {
     );
 
     const text = await res.text();
-    console.log("response front servicejs", res);
     if (!res.ok) {
         throw new Error(text || "Account update failed");
     }

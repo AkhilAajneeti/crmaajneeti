@@ -8,9 +8,7 @@ export const fetchSources = async () => {
             token: token
         }
     });
-    console.log(res);
     if (!res.ok) {
-        console.log('status', res.status);
         if (res.status == 401 && res.status == 403) {
             localStorage.clear();
             window.location.href = '/login';
@@ -31,9 +29,7 @@ export const fetchStatus = async () => {
             token: token
         }
     });
-    console.log(res);
     if (!res.ok) {
-        console.log('status', res.status);
         if (res.status == 401 && res.status == 403) {
             localStorage.clear();
             window.location.href = '/login';
@@ -54,9 +50,7 @@ export const fetchAccountType = async () => {
             token: token
         }
     });
-    console.log(res);
     if (!res.ok) {
-        console.log('status', res.status);
         if (res.status == 401 && res.status == 403) {
             localStorage.clear();
             window.location.href = '/login';

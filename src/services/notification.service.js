@@ -13,7 +13,6 @@ export const fetchNotifications = async (limit = 20) => {
   });
 
   if (!res.ok) {
-    console.log("STATUS:", res.status);
 
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
@@ -41,12 +40,10 @@ export const fetchUnreadCount = async () => {
       },
     }
   );
-  console.log("STATUS:", res.status);
   if (!res.ok) {
     throw new Error("Failed to fetch notifications Count");
   }
   const data = await res.json(); // 🔥 FIX HERE
-  console.log("COUNT DATA:", data);
 
   return data; // ✅ return actual data
 };

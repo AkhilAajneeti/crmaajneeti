@@ -206,7 +206,6 @@ export const fetchWorkPlace = async ({ limit, page, filters }) => {
 
     const url = query ? `${baseUrl}&${query}` : baseUrl;
 
-    console.log("FINAL API:", url);
     // console.log("AUTH TOKEN:", token); // 🔍 debug
 
     const res = await fetch(url, {
@@ -218,7 +217,6 @@ export const fetchWorkPlace = async ({ limit, page, filters }) => {
     });
 
     if (!res.ok) {
-        console.log("STATUS:", res.status);
 
         if (res.status === 401 || res.status === 403) {
             localStorage.clear();
@@ -243,7 +241,6 @@ export const fetchWorkPlaceById = async ({ id }) => {
     });
 
     if (!res.ok) {
-        console.log("STATUS:", res.status);
 
         if (res.status === 401 || res.status === 403) {
             localStorage.clear();
@@ -268,7 +265,6 @@ export const workPlaceSubscription = async ({ id }) => {
     });
 
     if (!res.ok) {
-        console.log("STATUS:", res.status);
 
         if (res.status === 401 || res.status === 403) {
             localStorage.clear();
@@ -293,7 +289,6 @@ export const workPlaceUnsubscribe = async ({ id }) => {
     });
 
     if (!res.ok) {
-        console.log("STATUS:", res.status);
 
         if (res.status === 401 || res.status === 403) {
             localStorage.clear();
@@ -359,7 +354,6 @@ export const updateWorkplace = async (id, payload) => {
 };
 // --------------Stream-----------
 export const workplaceStreamById = async (id) => {
-    console.log(id);
     const token = localStorage.getItem("auth_token");
     const res = await fetch(
         `https://gateway.aajneetiadvertising.com/CWorkplaceNotes/${id}/stream`,
@@ -373,9 +367,7 @@ export const workplaceStreamById = async (id) => {
         }
     );
 
-    console.log(res);
     if (!res.ok) {
-        console.log("STATUS:", res.status);
         if (res.status === 401 || res.status === 403) {
             localStorage.clear();
             window.location.href = "/login";
@@ -385,7 +377,6 @@ export const workplaceStreamById = async (id) => {
     return await res.json();
 };
 export const updateworkplaceStream = async (id, payload) => {
-    console.log(id);
     const token = localStorage.getItem("auth_token");
     const res = await fetch(
         `https://gateway.aajneetiadvertising.com/CWorkplaceNotes/${id}/stream`,
@@ -399,9 +390,7 @@ export const updateworkplaceStream = async (id, payload) => {
         }
     );
 
-    console.log(res);
     if (!res.ok) {
-        console.log("STATUS:", res.status);
         if (res.status === 401 || res.status === 403) {
             localStorage.clear();
             window.location.href = "/login";

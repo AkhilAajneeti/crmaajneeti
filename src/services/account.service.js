@@ -162,7 +162,6 @@ export const fetchAccounts = async ({ limit, page, filters = {} }) => {
 
   const url = `https://gateway.aajneetiadvertising.com/Account?maxSize=${limit}&offset=${offset}&orderBy=createdAt&order=desc${query ? `&${query}` : ""}`;
 
-  console.log("🔥 API URL:", url); // DEBUG
 
   const res = await fetch(url, {
     headers: {
@@ -191,7 +190,6 @@ export const fetchAccountById = async (id) => {
   });
 
   if (!res.ok) {
-    console.log("STATUS:", res.status);
 
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
@@ -229,7 +227,6 @@ export const createAccount = async (payload) => {
 /* UPDATE */
 export const updateAccount = async (id, payload, versionNumber) => {
   const token = localStorage.getItem("auth_token");
-  console.log(id, payload, versionNumber);
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Account/${id}`,
     {
@@ -245,7 +242,6 @@ export const updateAccount = async (id, payload, versionNumber) => {
   );
 
   const text = await res.text();
-  console.log("response front servicejs", res);
   if (!res.ok) {
     throw new Error(text || "Account update failed");
   }
@@ -270,7 +266,6 @@ export const deleteAccount = async (id) => {
 // --------------Stream-----------
 //fetch by Streams
 export const fetchAccStreamById = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Account/${id}/stream`,
@@ -284,9 +279,7 @@ export const fetchAccStreamById = async (id) => {
     },
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -314,7 +307,6 @@ export const deleteAccStream = async (id) => {
 
 //create stream
 export const createAccStream = async (payload) => {
-  console.log(payload);
   const token = localStorage.getItem("auth_token");
   const res = await fetch("https://gateway.aajneetiadvertising.com/Note", {
     method: "POST",
@@ -334,7 +326,6 @@ export const createAccStream = async (payload) => {
 // Meet call related Activities
 
 export const accActivitesById = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Activities/Account/${id}/activities`,
@@ -348,9 +339,7 @@ export const accActivitesById = async (id) => {
     },
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -362,7 +351,6 @@ export const accActivitesById = async (id) => {
 
 // finding task related to accounts
 export const fetchTaskByAccount = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Account/${id}/tasksPrimary`,
@@ -376,9 +364,7 @@ export const fetchTaskByAccount = async (id) => {
     },
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -389,7 +375,6 @@ export const fetchTaskByAccount = async (id) => {
 };
 // finding task related to accounts
 export const fetchContactByAccount = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Contact?accountId=${id}`,
@@ -403,9 +388,7 @@ export const fetchContactByAccount = async (id) => {
     },
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";

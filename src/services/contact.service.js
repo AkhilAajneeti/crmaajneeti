@@ -8,7 +8,6 @@ export const fetchContacts = async () => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -28,14 +27,12 @@ export const fetchContactById = async (id) => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
     }
     throw new Error("Failed to fetch Contacts By ID's");
   }
-  console.log(res);
   return await res.json();
 };
 
@@ -75,7 +72,6 @@ export const bulkDeleteContacts = async (ids = []) => {
 
 export const updateContact = async (id, payload) => {
   const token = localStorage.getItem("auth_token");
-  console.log(id, payload);
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Contact/${id}`,
     {
@@ -90,7 +86,6 @@ export const updateContact = async (id, payload) => {
   );
 
   const text = await res.text();
-  console.log("response from contact.service.js", res);
   if (!res.ok) {
     throw new Error(text || "Contact update failed");
   }
@@ -101,7 +96,6 @@ export const updateContact = async (id, payload) => {
 // --------------Stream-----------
 //fetch by Streams
 export const fetchContactStreamById = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Contact/${id}/stream`,
@@ -115,9 +109,7 @@ export const fetchContactStreamById = async (id) => {
     }
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -145,7 +137,6 @@ export const deleteContactStream = async (id) => {
 
 //create strean
 export const createContactStream = async (payload) => {
-  console.log(payload);
   const token = localStorage.getItem("auth_token");
   const res = await fetch("https://gateway.aajneetiadvertising.com/Note", {
     method: "POST",
@@ -165,7 +156,6 @@ export const createContactStream = async (payload) => {
 // Meet call related Activities
 
 export const contactActivitesById = async (id) => {
-  console.log(id);
   const token = localStorage.getItem("auth_token");
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Activities/Contact/${id}/activities`,
@@ -179,9 +169,7 @@ export const contactActivitesById = async (id) => {
     }
   );
 
-  console.log(res);
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";

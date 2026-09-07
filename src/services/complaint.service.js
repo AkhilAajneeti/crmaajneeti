@@ -10,7 +10,6 @@ export const fetchComplainById = async (id) => {
         },
     });
     if (!res.ok) {
-        console.log("STATUS:", res.status);
         if (res.status === 401 || res.status === 403) {
             localStorage.clear();
             window.location.href = "/login";
@@ -21,7 +20,6 @@ export const fetchComplainById = async (id) => {
 };
 
 export const createComplaint = async (payload) => {
-    console.log(payload);
     const token = localStorage.getItem("auth_token");
     const res = await fetch("https://gateway.aajneetiadvertising.com/Case", {
         method: "POST",
@@ -41,7 +39,6 @@ export const createComplaint = async (payload) => {
 
 export const updateComplaint = async (id, payload) => {
     const token = localStorage.getItem("auth_token");
-    console.log(id, payload);
     const res = await fetch(
         `https://gateway.aajneetiadvertising.com/Case/${id}`,
         {

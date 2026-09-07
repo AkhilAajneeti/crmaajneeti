@@ -8,7 +8,6 @@ export const fetchTeam = async () => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -30,7 +29,6 @@ export const fetchTeamById = async (id) => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -49,7 +47,6 @@ export const fetchTeamUser = async (id) => {
     },
   });
   if (!res.ok) {
-    console.log("STATUS:", res.status);
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
       window.location.href = "/login";
@@ -60,7 +57,6 @@ export const fetchTeamUser = async (id) => {
 }
 
 export const createTeam = async (payload) => {
-  console.log(payload);
   const token = localStorage.getItem("auth_token");
   const res = await fetch("https://gateway.aajneetiadvertising.com/team", {
     method: "POST",
@@ -79,7 +75,6 @@ export const createTeam = async (payload) => {
 
 export const updateTeam = async (id, payload) => {
   const token = localStorage.getItem("auth_token");
-  console.log(id, payload);
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/team/${id}`,
     {
@@ -94,7 +89,6 @@ export const updateTeam = async (id, payload) => {
   );
 
   const text = await res.text();
-  console.log("response from team.service.js", res);
   if (!res.ok) {
     throw new Error(text || "User update failed");
   }

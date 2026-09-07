@@ -12,7 +12,6 @@ export const fetchIntegrationAcc = async () => {
   });
 
   if (!res.ok) {
-    console.log("STATUS:", res.status);
 
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
@@ -39,7 +38,6 @@ export const fetchIntegrationAccById = async (id) => {
   });
 
   if (!res.ok) {
-    console.log("STATUS:", res.status);
 
     if (res.status === 401 || res.status === 403) {
       localStorage.clear();
@@ -69,7 +67,6 @@ export const integrateAcc = async (payload) => {
   const data = await res.json();
 
   if (!res.ok) {
-    console.log("ERROR RESPONSE:", data);
     throw new Error(data?.message || "Failed to submit lead");
   }
 
@@ -93,7 +90,6 @@ export const updateIntergrateAcc = async (id, payload) => {
   );
 
   const text = await res.text();
-  console.log("response from integration.servicejs", res);
   if (!res.ok) {
     throw new Error(text || "Integrated Account updation failed");
   }
