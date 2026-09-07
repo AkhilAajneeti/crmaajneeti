@@ -1,9 +1,10 @@
-export const fetchNotifications = async () => {
+// The dropdown pages through the result client-side, so fetch a useful window
+// rather than a single page's worth — `maxSize=5` meant the Prev/Next controls
+// could never move off page 1.
+export const fetchNotifications = async (limit = 20) => {
   const token = localStorage.getItem("auth_token");
 
-  console.log("AUTH TOKEN:", token); // 🔍 debug
-
-  const res = await fetch("https://gateway.aajneetiadvertising.com/Notification?maxSize=5&offset=0&orderBy=number&order=desc", {
+  const res = await fetch(`https://gateway.aajneetiadvertising.com/Notification?maxSize=${limit}&offset=0&orderBy=number&order=desc`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
