@@ -5,6 +5,109 @@ import Button from "./ui/Button";
 
 const PAGE_SIZE = 5;
 
+// What happened — read from `noteData.type`, not the outer `type` (which is
+// almost always just "Note").
+const NOTE_VERBS = {
+  Create: "created",
+  CreateRelated: "created",
+  Assign: "assigned",
+  Update: "updated",
+  Status: "changed the status of",
+  Post: "posted on",
+  EmailReceived: "received an email on",
+  EmailSent: "sent an email on",
+  Relate: "linked",
+  MentionInPost: "mentioned you in",
+};
+
+// Entity type → the words a person would actually use.
+const ENTITY_LABELS = {
+  CAttendanceRequest: "attendance request",
+  CWorkplaceNotes: "workplace note",
+  CProfileDetails: "profile",
+  KnowledgeBaseArticle: "knowledge base article",
+  KnowledgeBaseCategory: "knowledge base category",
+  Case: "complaint",
+  Lead: "lead",
+  Task: "task",
+  Meeting: "meeting",
+  Call: "call",
+  Account: "account",
+  Contact: "contact",
+  Opportunity: "opportunity",
+  Document: "document",
+  TargetList: "target list",
+  User: "user",
+};
+
+// Small coloured badge per entity so the kind is scannable at a glance.
+const ENTITY_BADGES = {
+  CAttendanceRequest: { icon: "📋", tone: "bg-amber-50 text-amber-700" },
+  CWorkplaceNotes: { icon: "📝", tone: "bg-violet-50 text-violet-700" },
+  KnowledgeBaseArticle: { icon: "📚", tone: "bg-sky-50 text-sky-700" },
+  Case: { icon: "🎫", tone: "bg-rose-50 text-rose-700" },
+  Lead: { icon: "👤", tone: "bg-blue-50 text-blue-700" },
+  Task: { icon: "✅", tone: "bg-emerald-50 text-emerald-700" },
+  Meeting: { icon: "📅", tone: "bg-indigo-50 text-indigo-700" },
+  Account: { icon: "🏢", tone: "bg-slate-100 text-slate-700" },
+  Contact: { icon: "📇", tone: "bg-teal-50 text-teal-700" },
+  Opportunity: { icon: "💼", tone: "bg-purple-50 text-purple-700" },
+};
+
+// "CAttendanceRequest" → "attendance request" for anything not mapped above.
+const formatEntityName = (type) =>
+  type
+    ? type
+        .replace(/^C(?=[A-Z])/, "")
+        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+        .toLowerCase()
+    : "record";
+
+// "assignedUser" → "Assigned User"
+const formatFieldName = (field) =>
+  String(field || "")
+    .replace(/Id$/, "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/^./, (c) => c.toUpperCase());
+
+const displayValue = (value) => {
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (Array.isArray(value)) return value.join(", ") || "—";
+  if (typeof value === "object") return "—";
+  return String(value);
+};
+
+// Field-level changes, so a status flip reads "Status  Pending → Approved"
+// exactly like the old CRM did.
+//   Update note → data.fields + data.attributes.was / .became
+//   Status note → data.field + data.value (no previous value is sent)
+const getChanges = (note) => {
+  const data = note?.data || {};
+
+  if (Array.isArray(data.fields) && data.attributes) {
+    return data.fields
+      .filter((field) => !/Id$/.test(field))
+      .map((field) => ({
+        field: formatFieldName(field),
+        from: displayValue(data.attributes.was?.[field]),
+        to: displayValue(data.attributes.became?.[field]),
+      }));
+  }
+
+  if (note?.type === "Status" && data.field) {
+    return [
+      {
+        field: formatFieldName(data.field),
+        from: null,
+        to: displayValue(data.value),
+      },
+    ];
+  }
+
+  return [];
+};
+
 const NotificationDropdown = () => {
   const audioRef = useRef(null);
   const prevCountRef = useRef(0);
@@ -12,6 +115,15 @@ const NotificationDropdown = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const { open, notifications, setNotifications, setOpen } = useNotification();
+
+  // Used to decide between "assigned to you" and "assigned to <name>".
+  const currentUserId = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("login_object"))?.id || null;
+    } catch {
+      return null;
+    }
+  })();
   useEffect(() => {
     if (notifications.length > prevCountRef.current) {
       audioRef.current?.play();
@@ -33,50 +145,48 @@ const NotificationDropdown = () => {
 
   if (!open) return null;
 
-  const getMessage = (n) => {
-    switch (n.type) {
-      case "EventAttendee":
-        return "invited you";
-      case "LeadUpdate":
-        return "updated lead";
-      case "Task":
-        return "assigned task";
-      case "Comment":
-        return "commented on";
-      case "Like":
-        return "liked";
-      case "Generated":
-        return "is generated";
-      default:
-        return "performed an action";
-    }
-  };
-
   const parseNotification = (n) => {
-    const entityType =
-      n.data?.entityType ||
-      n.entityType ||
-      n.noteData?.parentType ||
-      n.relatedParentType ||
-      n.relatedType ||
-      "";
+    const note = n.noteData || {};
 
-    const title =
-      n.data?.entityName || n.entityName || n.noteData?.parentName || "";
+    const entityType = note.parentType || n.relatedParentType || "";
 
-    const subtitle =
-      n.data?.status || n.noteData?.data?.value || n.message || "";
+    // The actor is the person who did the thing (noteData.createdByName).
+    // `n.userName` is the *recipient* — i.e. the logged-in user — so using it
+    // here made every row read "You performed an action".
+    const actor = note.createdByName || n.userName || "Someone";
+
+    // `noteData.type` is what actually happened; `n.type` is almost always
+    // just "Note" and tells us nothing on its own.
+    const action = NOTE_VERBS[note.type] || NOTE_VERBS[n.type] || "updated";
+
+    const assignedUserId = note.data?.assignedUserId;
+    const assignedUserName = note.data?.assignedUserName;
+
+    // "assigned to you" when the record landed on the current user, otherwise
+    // name the person — this is the detail the old CRM showed.
+    let assignedTo = "";
+    if (assignedUserId) {
+      assignedTo =
+        assignedUserId === currentUserId ? "you" : assignedUserName || "";
+    }
 
     return {
-      user: n.userName,
-      action: getMessage(n),
-      title,
-      subtitle,
+      id: n.id,
+      actor,
+      action,
       entity: entityType,
+      entityLabel: ENTITY_LABELS[entityType] || formatEntityName(entityType),
+      title: note.parentName || n.data?.entityName || "",
+      assignedTo,
+      // An "Assign" note already says "assigned", so the tail is just "to X" —
+      // otherwise it reads "assigned lead X assigned to Y".
+      assignedPrefix: note.type === "Assign" ? "to" : "assigned to",
+      changes: getChanges(note),
+      post: note.post || "",
+      message: n.message || "",
+      groupedCount: n.groupedCount || 0,
       time: n.createdAt,
       read: n.read,
-      id: n.id,
-      type: n.type,
     };
   };
 
@@ -90,20 +200,6 @@ const NotificationDropdown = () => {
     if (diff < 86400) return `${Math.floor(diff / 3600)} hrs ago`;
 
     return d.toLocaleDateString();
-  };
-  const formatEntity = (type) => {
-    switch (type) {
-      case "Meeting":
-        return "📅 Meeting";
-      case "Lead":
-        return "👤 Lead";
-      case "Task":
-        return "✅ Task";
-      case "Note":
-        return "📝 Update";
-      default:
-        return "";
-    }
   };
   // notification filter
   const filterNotification =
@@ -194,45 +290,96 @@ const NotificationDropdown = () => {
                       isUnread ? "bg-gray-50" : ""
                     }`}
                   >
-                    {/* Avatar */}
-                    <div className="relative">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-semibold">
-                        {item.user?.[0]}
+                    {/* Avatar — the person who acted */}
+                    <div className="relative shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-700">
+                        {item.actor?.[0]?.toUpperCase()}
                       </div>
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1">
-                      {/* Line 1 */}
-                      <p className="text-sm text-gray-800">
-                        <span className="font-semibold">{item.user}</span>{" "}
-                        <span className="text-gray-600">{item.action}</span>{" "}
+                    <div className="flex-1 min-w-0">
+                      {/* One readable sentence:
+                          "Sushil Kumar Singh created attendance request
+                           Woke up late this morning assigned to you" */}
+                      <p className="text-sm leading-5 text-gray-700">
+                        <span className="font-semibold text-gray-900">
+                          {item.actor}
+                        </span>{" "}
+                        {item.action}
+                        {item.entityLabel ? ` ${item.entityLabel}` : ""}{" "}
+                        {item.title && (
+                          <span className="font-semibold text-gray-900">
+                            {item.title}
+                          </span>
+                        )}
+                        {item.assignedTo && (
+                          <>
+                            {" "}
+                            {item.assignedPrefix}{" "}
+                            <span className="font-medium text-gray-900">
+                              {item.assignedTo}
+                            </span>
+                          </>
+                        )}
                       </p>
 
-                      {/* Line 2 */}
-                      {item.entity && (
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                          {formatEntity(item.entity)}
-                        </p>
+                      {/* Field changes: "Status  Pending → Approved" */}
+                      {item.changes.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {item.changes.map((change) => (
+                            <div
+                              key={change.field}
+                              className="flex items-center gap-2 text-xs"
+                            >
+                              <span className="text-gray-500 shrink-0">
+                                {change.field}
+                              </span>
+                              {change.from && (
+                                <>
+                                  <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 line-through decoration-gray-400">
+                                    {change.from}
+                                  </span>
+                                  <span className="text-gray-400">→</span>
+                                </>
+                              )}
+                              <span className="px-1.5 py-0.5 rounded bg-emerald-50 font-medium text-emerald-700">
+                                {change.to}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       )}
-                      {/* Title */}
-                      {item.title && (
-                        <p className="text-sm font-medium text-gray-900 mt-1">
-                          {item.title}
+
+                      {/* Post body / system message */}
+                      {(item.post || item.message) && (
+                        <p className="mt-1.5 text-sm text-gray-600 line-clamp-2">
+                          {item.post || item.message}
                         </p>
                       )}
 
-                      {/* Subtitle */}
-                      {item.subtitle && (
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                          {item.subtitle}
-                        </p>
-                      )}
-
-                      {/* Time */}
-                      <p className="text-xs text-gray-400 mt-1">
-                        {formatTime(item.time)}
-                      </p>
+                      {/* Entity badge + time */}
+                      <div className="mt-1.5 flex items-center gap-2">
+                        {item.entity && (
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                              ENTITY_BADGES[item.entity]?.tone ||
+                              "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            <span>{ENTITY_BADGES[item.entity]?.icon || "🔔"}</span>
+                            {item.entityLabel}
+                          </span>
+                        )}
+                        {item.groupedCount > 1 && (
+                          <span className="text-[11px] text-gray-500">
+                            +{item.groupedCount - 1} more
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-400">
+                          {formatTime(item.time)}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Unread dot */}
