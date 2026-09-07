@@ -327,9 +327,12 @@ const FilterControls = ({
         <Button
           variant="outline"
           onClick={toggleAnalytics}
-          className="h-11 gap-2 rounded-xl border-primary/25 bg-card px-4 font-medium text-primary hover:bg-primary/5 hover:text-primary"
+          className="group h-11 gap-2.5 rounded-xl border-primary/20 bg-[linear-gradient(135deg,#fff6f7_0%,#ffffff_45%,#fdecef_100%)] px-4 font-medium text-primary shadow-[0_1px_2px_rgba(172,35,52,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-[linear-gradient(135deg,#ffe9ed_0%,#fff5f6_50%,#ffdfe5_100%)] hover:text-primary hover:shadow-[0_8px_18px_-8px_rgba(172,35,52,0.45)]"
         >
-          <Icon name="CalendarDays" size={18} className="text-primary" />
+          {/* Icon on its own tinted chip, matching the metric cards above */}
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 transition-colors group-hover:bg-primary/15">
+            <Icon name="CalendarDays" size={15} className="text-primary" />
+          </span>
           Calendar View
         </Button>
       </div>
