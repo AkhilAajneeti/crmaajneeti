@@ -1,6 +1,5 @@
 export const fetchCall = async () => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch("https://gateway.aajneetiadvertising.com/Call", {
     method: "GET",
     headers: {
@@ -20,7 +19,6 @@ export const fetchCall = async () => {
 };
 export const fetchCallById = async (id) => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Call/${id}`, {
     method: "GET",
     headers: {
@@ -105,7 +103,6 @@ export const bulkDeleteCall = async (ids = []) => {
 export const CallStreamById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Call/${id}/stream`,
     {
@@ -170,7 +167,6 @@ export const createCallStream = async (payload) => {
 export const leadActivitesById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Activities/Lead/${id}/activities`,
     {

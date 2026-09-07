@@ -361,7 +361,6 @@ export const updateWorkplace = async (id, payload) => {
 export const workplaceStreamById = async (id) => {
     console.log(id);
     const token = localStorage.getItem("auth_token");
-    console.log("AUTH TOKEN:", token); // 🔍 debug
     const res = await fetch(
         `https://gateway.aajneetiadvertising.com/CWorkplaceNotes/${id}/stream`,
         {
@@ -388,7 +387,6 @@ export const workplaceStreamById = async (id) => {
 export const updateworkplaceStream = async (id, payload) => {
     console.log(id);
     const token = localStorage.getItem("auth_token");
-    console.log("AUTH TOKEN:", token); // 🔍 debug
     const res = await fetch(
         `https://gateway.aajneetiadvertising.com/CWorkplaceNotes/${id}/stream`,
         {

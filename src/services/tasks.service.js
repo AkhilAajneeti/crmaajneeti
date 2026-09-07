@@ -1,6 +1,5 @@
 export const fetchTasks = async () => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch("https://gateway.aajneetiadvertising.com/Task", {
     method: "GET",
     headers: {
@@ -193,7 +192,6 @@ export const fetchAllTasks = async ({ limit, page, filters = {} }) => {
 export const fetchTasksById = async (id) => {
   const token = localStorage.getItem("auth_token");
 
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Task/${id}`, {
     method: "GET",
     headers: {
@@ -278,7 +276,6 @@ export const bulkDeleteTasks = async (ids = []) => {
 export const taskStreamById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Task/${id}/stream`,
     {
@@ -342,7 +339,6 @@ export const createLeadActivity = async (payload) => {
 export const TaskActivitesById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Activities/Task/${id}/activities`,
     {

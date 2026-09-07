@@ -123,7 +123,6 @@ export const fetchLeads = async () => {
   const token = localStorage.getItem("auth_token");
   const user = JSON.parse(localStorage.getItem("login_object"));
 
-  console.log("AUTH TOKEN:", token);
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Lead`, {
     method: "GET",
     headers: {
@@ -317,7 +316,6 @@ export const fetchNewLeads = async ({ limit, page, filters = {}, sort }) => {
 
 export const fetchLeadsById = async (id) => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Lead/${id}`, {
     method: "GET",
     headers: {
@@ -404,7 +402,6 @@ export const bulkDeleteleads = async (ids = []) => {
 export const leadStreamById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Lead/${id}/stream`,
     {
@@ -431,7 +428,6 @@ export const leadStreamById = async (id) => {
 export const updateStream = async (id, payload) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Lead/${id}/stream`,
     {

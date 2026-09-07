@@ -2,7 +2,6 @@
 
 export const fetchComplainById = async (id) => {
     const token = localStorage.getItem("auth_token");
-    console.log("AUTH TOKEN:", token); // 🔍 debug
     const res = await fetch(`https://gateway.aajneetiadvertising.com/Case/${id}`, {
         method: "GET",
         headers: {

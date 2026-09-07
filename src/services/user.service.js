@@ -1,6 +1,5 @@
 export const fetchUser = async () => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch("https://gateway.aajneetiadvertising.com/User", {
     method: "GET",
     headers: {
@@ -20,7 +19,6 @@ export const fetchUser = async () => {
 }
 export const fetchUserById = async (id) => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(`https://gateway.aajneetiadvertising.com/User/${id}`, {
     method: "GET",
     headers: {
@@ -111,7 +109,6 @@ export const attachment = async (payload) => {
 // profiles data
 export const fetchProfiles = async () => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch("https://gateway.aajneetiadvertising.com/CProfileDetails", {
     method: "GET",
     headers: {
@@ -132,7 +129,6 @@ export const fetchProfiles = async () => {
 
 export const fetchProfileDetail = async (id) => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(`https://gateway.aajneetiadvertising.com/CProfileDetails/${id}`, {
     method: "GET",
     headers: {

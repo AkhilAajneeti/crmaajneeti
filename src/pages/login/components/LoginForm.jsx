@@ -73,7 +73,6 @@ const LoginForm = () => {
       });
 
       const data = await res.json();
-      console.log("LOGIN RESPONSE:", data);
 
       if (!res.ok) {
         throw new Error(data?.message || "Invalid credentials");

@@ -1,6 +1,5 @@
 export const fetchContacts = async () => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch("https://gateway.aajneetiadvertising.com/Contact", {
     method: "GET",
     headers: {
@@ -21,7 +20,6 @@ export const fetchContacts = async () => {
 
 export const fetchContactById = async (id) => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Contact/${id}`, {
     method: "GET",
     headers: {
@@ -105,7 +103,6 @@ export const updateContact = async (id, payload) => {
 export const fetchContactStreamById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Contact/${id}/stream`,
     {
@@ -170,7 +167,6 @@ export const createContactStream = async (payload) => {
 export const contactActivitesById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Activities/Contact/${id}/activities`,
     {

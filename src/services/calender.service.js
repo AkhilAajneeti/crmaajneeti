@@ -356,7 +356,6 @@ export const deleteAttendance = async (id) => {
 //fetch by Streams
 export const fetchAttendStreamById = async (id) => {
     const token = localStorage.getItem("auth_token");
-    console.log("AUTH TOKEN:", token); // 🔍 debug
     const res = await fetch(
         `https://gateway.aajneetiadvertising.com/CAttendanceRequest/${id}/stream`,
         {

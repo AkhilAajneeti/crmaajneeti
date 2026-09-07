@@ -1,6 +1,5 @@
 export const fetchMeeting = async () => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch("https://gateway.aajneetiadvertising.com/Meeting", {
     method: "GET",
     headers: {
@@ -213,7 +212,6 @@ export const fetchAllMeeting = async ({ limit, page, filters }) => {
     })
     .join("&");
 
-  console.log("AUTH TOKEN:", token); // 🔍 debug
 
   const baseUrl = `https://gateway.aajneetiadvertising.com/Meeting?maxSize=${limit}&offset=${offset}&orderBy=createdAt&order=desc`;
 
@@ -241,7 +239,6 @@ export const fetchAllMeeting = async ({ limit, page, filters }) => {
 };
 export const fetchMeetingById = async (id) => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(`https://gateway.aajneetiadvertising.com/Meeting/${id}`, {
     method: "GET",
     headers: {
@@ -325,7 +322,6 @@ export const bulkDeleteMeeting = async (ids = []) => {
 export const meetingStreamById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Meeting/${id}/stream`,
     {
@@ -390,7 +386,6 @@ export const createMeetingStream = async (payload) => {
 export const leadActivitesById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Activities/Lead/${id}/activities`,
     {

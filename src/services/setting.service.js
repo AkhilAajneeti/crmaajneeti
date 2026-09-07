@@ -1,6 +1,5 @@
 export const fetchRoles=async()=>{
     const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch("https://gateway.aajneetiadvertising.com/role", {
     method: "GET",
     headers: {

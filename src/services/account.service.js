@@ -272,7 +272,6 @@ export const deleteAccount = async (id) => {
 export const fetchAccStreamById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Account/${id}/stream`,
     {
@@ -337,7 +336,6 @@ export const createAccStream = async (payload) => {
 export const accActivitesById = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Activities/Account/${id}/activities`,
     {
@@ -366,7 +364,6 @@ export const accActivitesById = async (id) => {
 export const fetchTaskByAccount = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Account/${id}/tasksPrimary`,
     {
@@ -394,7 +391,6 @@ export const fetchTaskByAccount = async (id) => {
 export const fetchContactByAccount = async (id) => {
   console.log(id);
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(
     `https://gateway.aajneetiadvertising.com/Contact?accountId=${id}`,
     {

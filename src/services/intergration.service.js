@@ -2,7 +2,6 @@
 export const fetchIntegrationAcc = async () => {
   const token = localStorage.getItem("auth_token");
 
-  console.log("AUTH TOKEN:", token); // 🔍 debug
 
   const res = await fetch("https://gateway.aajneetiadvertising.com/LeadCapture", {
     method: "GET",
@@ -30,7 +29,6 @@ export const fetchIntegrationAcc = async () => {
 export const fetchIntegrationAccById = async (id) => {
   const token = localStorage.getItem("auth_token");
 
-  console.log("AUTH TOKEN:", token); // 🔍 debug
 
   const res = await fetch(`https://gateway.aajneetiadvertising.com/LeadCapture/${id}`, {
     method: "GET",
@@ -58,7 +56,6 @@ export const fetchIntegrationAccById = async (id) => {
 export const integrateAcc = async (payload) => {
   const token = localStorage.getItem("auth_token");
 
-  console.log("AUTH TOKEN:", token); // 🔍 debug
 
   const res = await fetch("https://gateway.aajneetiadvertising.com/LeadCapture", {
     method: "POST",

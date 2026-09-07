@@ -1,6 +1,5 @@
 export const fetchActivity=async()=>{
     const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch("https://gateway.aajneetiadvertising.com/Note", {
     method: "GET",
     headers: {

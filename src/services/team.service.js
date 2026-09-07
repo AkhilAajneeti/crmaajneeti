@@ -1,6 +1,5 @@
 export const fetchTeam = async () => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch("https://gateway.aajneetiadvertising.com/Team", {
     method: "GET",
     headers: {
@@ -23,7 +22,6 @@ export const fetchTeam = async () => {
 
 export const fetchTeamById = async (id) => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(`https://gateway.aajneetiadvertising.com/team/${id}`, {
     method: "GET",
     headers: {
@@ -43,7 +41,6 @@ export const fetchTeamById = async (id) => {
 }
 export const fetchTeamUser = async (id) => {
   const token = localStorage.getItem("auth_token");
-  console.log("AUTH TOKEN:", token); // 🔍 debug
   const res = await fetch(`https://gateway.aajneetiadvertising.com/team/${id}/users`, {
     method: "GET",
     headers: {
