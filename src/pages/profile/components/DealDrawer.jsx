@@ -75,10 +75,16 @@ const DealDrawer = ({
     }));
   };
 
-  const parseAttendance = (summary = "") => {
+  // A default parameter only fills in for `undefined`. The API sends `null`
+  // for an empty monthlyAttendanceSummary, which sailed past `= ""` and made
+  // `summary.match()` throw — blanking the whole profile page for any record
+  // that has no summary yet. Normalise the value instead of defaulting it.
+  const parseAttendance = (summary) => {
+    const text = typeof summary === "string" ? summary : "";
+
     const getValue = (label) => {
       const regex = new RegExp(`${label}:\\s*([^\\n]*)`);
-      const match = summary.match(regex);
+      const match = text.match(regex);
       return match ? match[1].trim() : "—";
     };
 
@@ -169,10 +175,14 @@ const DealDrawer = ({
     return value.replace("T", " ") + ":00";
   };
 
-  const parseBankDetails = (description = "") => {
+  // Same null-vs-undefined trap as parseAttendance above: `description` comes
+  // back null for a profile with no bank details, and `= ""` doesn't catch it.
+  const parseBankDetails = (description) => {
+    const text = typeof description === "string" ? description : "";
+
     const getValue = (label) => {
       const regex = new RegExp(`${label}:\\s*([^\\n]*)`);
-      const match = description.match(regex);
+      const match = text.match(regex);
       const value = match ? match[1].trim() : "";
 
       // prevent picking next label
