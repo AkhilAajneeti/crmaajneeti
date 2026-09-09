@@ -102,9 +102,16 @@ export const attachment = async (payload) => {
 };
 
 // profiles data
-export const fetchProfiles = async () => {
+//
+// The staff directory is a bounded list, so the page pulls the whole set once
+// and filters/paginates client-side. Without an explicit maxSize EspoCRM caps
+// the response at recordsPerPage (20), which silently hid members from the
+// table once the team grew past that.
+export const fetchProfiles = async (limit = 200) => {
   const token = localStorage.getItem("auth_token");
-  const res = await fetch("https://gateway.aajneetiadvertising.com/CProfileDetails", {
+  const res = await fetch(
+    `https://gateway.aajneetiadvertising.com/CProfileDetails?maxSize=${limit}&offset=0&orderBy=name&order=asc`,
+    {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

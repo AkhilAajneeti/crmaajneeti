@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../../components/ui/Header";
 import Sidebar from "../../components/ui/Sidebar";
@@ -8,6 +8,8 @@ import ChangePassword from "./components/changePassword";
 import { useProfiles, useUserById, useUsers } from "hooks/useUsers";
 import DealDrawer from "./components/DealDrawer";
 import { updateprofile } from "services/user.service";
+import Input from "../../components/ui/Input";
+import TablePagination from "./components/TablePagination";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -24,7 +26,59 @@ const Profile = () => {
   const UserId = loginUser?.id;
   const [drawerMode, setDrawerMode] = useState("view");
   const { data: profiles, isLoading } = useProfiles();
-  const profilesData = profiles?.list || [];
+  const allProfiles = profiles?.list || [];
+
+  // ── Filtering + pagination ───────────────────────────────────────────────
+  // The directory is fetched whole (see fetchProfiles), so both are done here
+  // rather than round-tripping the API on every keystroke.
+  const [filters, setFilters] = useState({
+    name: "",
+    email: "",
+    department: "",
+    employeeCode: "",
+  });
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+
+  // Only worth showing the filter bar once the list is long enough to search.
+  const FILTER_THRESHOLD = 5;
+  const showFilters = allProfiles.length > FILTER_THRESHOLD;
+
+  const hasActiveFilter = Object.values(filters).some((v) => v.trim() !== "");
+
+  const filteredProfiles = useMemo(() => {
+    const match = (value, term) =>
+      !term.trim() ||
+      String(value ?? "")
+        .toLowerCase()
+        .includes(term.trim().toLowerCase());
+
+    return allProfiles.filter(
+      (p) =>
+        match(p?.name, filters.name) &&
+        match(p?.email, filters.email) &&
+        match(p?.department, filters.department) &&
+        match(p?.employeeCode, filters.employeeCode),
+    );
+  }, [allProfiles, filters]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProfiles.length / perPage));
+  // Clamp so narrowing the filter can't strand you on a page that no longer exists.
+  const safePage = Math.min(page, totalPages);
+  const profilesData = filteredProfiles.slice(
+    (safePage - 1) * perPage,
+    safePage * perPage,
+  );
+
+  const handleFilterChange = (field, value) => {
+    setFilters((prev) => ({ ...prev, [field]: value }));
+    setPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({ name: "", email: "", department: "", employeeCode: "" });
+    setPage(1);
+  };
 
   // Drawer state derived from URL — single source of truth.
   // /profile                          → drawer closed
@@ -46,14 +100,16 @@ const Profile = () => {
   // Promote the {id} placeholder into the full record once the list resolves,
   // so the drawer header (which reads deal?.name) populates instantly.
   useEffect(() => {
-    if (!urlId || !profilesData.length) return;
-    const fullDeal = profilesData.find((d) => d.id === urlId);
+    // Search the full directory, not the current page — a deep link can point
+    // at a record that pagination or an active filter has scrolled past.
+    if (!urlId || !allProfiles.length) return;
+    const fullDeal = allProfiles.find((d) => d.id === urlId);
     if (!fullDeal) return;
     setSelectedId((current) => {
       if (current?.id === urlId && !current.name) return fullDeal;
       return current;
     });
-  }, [profilesData, urlId]);
+  }, [allProfiles, urlId]);
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -192,8 +248,8 @@ const Profile = () => {
               </div>
               <div className="hidden md:flex ml-auto items-center gap-2 px-3 py-1.5 rounded-full border border-primary/20 bg-white/60 backdrop-blur-sm text-xs font-medium text-primary">
                 <Icon name="Users" size={14} />
-                {profilesData?.length || 0} member
-                {profilesData?.length === 1 ? "" : "s"}
+                {allProfiles.length} member
+                {allProfiles.length === 1 ? "" : "s"}
               </div>
             </div>
           </div>
@@ -201,6 +257,76 @@ const Profile = () => {
           {/* Settings Content — single card holding the desktop table AND
               the mobile cards as siblings. Cleaned up so loading / empty
               states work in both layouts and no <tr> lives outside a table. */}
+          {/* Filters — only once the directory is long enough to be worth
+              searching, so a small team doesn't get a bar it never needs. */}
+          {showFilters && (
+            <div className="mb-4 bg-card border border-border rounded-2xl p-4 lg:p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <Icon name="ListFilter" size={16} className="text-primary" />
+                  Filter members
+                </h3>
+
+                {hasActiveFilter && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearFilters}
+                    className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    <Icon name="X" size={14} />
+                    Clear all
+                  </Button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                <Input
+                  icon="UserRound"
+                  placeholder="Name"
+                  className="h-10 rounded-xl"
+                  value={filters.name}
+                  onChange={(e) => handleFilterChange("name", e.target.value)}
+                />
+                <Input
+                  icon="AtSign"
+                  placeholder="Email"
+                  className="h-10 rounded-xl"
+                  value={filters.email}
+                  onChange={(e) => handleFilterChange("email", e.target.value)}
+                />
+                <Input
+                  icon="Building2"
+                  placeholder="Department"
+                  className="h-10 rounded-xl"
+                  value={filters.department}
+                  onChange={(e) =>
+                    handleFilterChange("department", e.target.value)
+                  }
+                />
+                <Input
+                  icon="Hash"
+                  placeholder="Employee code"
+                  className="h-10 rounded-xl"
+                  value={filters.employeeCode}
+                  onChange={(e) =>
+                    handleFilterChange("employeeCode", e.target.value)
+                  }
+                />
+              </div>
+
+              {hasActiveFilter && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Showing{" "}
+                  <span className="font-semibold text-foreground">
+                    {filteredProfiles.length}
+                  </span>{" "}
+                  of {allProfiles.length} members
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
 
             {/* ===== Desktop Table ===== */}
@@ -395,6 +521,22 @@ const Profile = () => {
               )}
             </div>
 
+            {/* Pagination — only when there is more than one page to move to. */}
+            {!isLoading && filteredProfiles.length > perPage && (
+              <div className="border-t border-border">
+                <TablePagination
+                  currentPage={safePage}
+                  totalPages={totalPages}
+                  totalItems={filteredProfiles.length}
+                  itemsPerPage={perPage}
+                  onPageChange={setPage}
+                  onItemsPerPageChange={(value) => {
+                    setPerPage(Number(value));
+                    setPage(1);
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           <DealDrawer
