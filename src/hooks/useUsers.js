@@ -12,7 +12,10 @@ export const useUsers = () => {
 export const useProfiles = () => {
   return useQuery({
     queryKey: ["profiles"],
-    queryFn: fetchProfiles,
+    // Wrapped, not passed by reference: react-query calls queryFn with its
+    // QueryFunctionContext, which would land in fetchProfiles' `limit`
+    // parameter and produce `maxSize=[object Object]`.
+    queryFn: () => fetchProfiles(),
     staleTime: 1000 * 60 * 5, // 5 min cache
   });
 };
