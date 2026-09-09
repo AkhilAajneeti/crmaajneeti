@@ -11,7 +11,14 @@ import "react-quill/dist/quill.snow.css";
 import { createLeadActivity, updateStream } from "services/leads.service";
 import { useProfileById, useUserById, useUsers } from "hooks/useUsers";
 import { useQueryClient } from "@tanstack/react-query";
-import { canEdit, canEditField, canEditRecord, canReadField } from "utils/permissions";
+import {
+  canEdit,
+  canEditField,
+  canEditRecord,
+  canReadField,
+  getScopeLevel,
+  hasFieldRule,
+} from "utils/permissions";
 
 // From /Metadata entityDefs.CProfileDetails.fields.shiftTimings.options
 const SHIFT_TIMING_OPTIONS = [
@@ -116,12 +123,56 @@ const DealDrawer = ({
     "assignedUser", "documentBirthday", "empCode", "gender", "joiningDate",
   ];
 
+  // ── Interim front-end-only field rules ───────────────────────────────────
+  // These fields are absent from `acl.fieldTable.CProfileDetails`, and an
+  // absent entry means *permitted* — so the ACL currently lets any employee
+  // edit them on their own record. Until a role restriction exists in Espo,
+  // hold them to HR here.
+  //
+  // "HR" is inferred from the ACL rather than a role name: employees hold
+  // CProfileDetails edit:"own" (their own record only), HR holds "all". If
+  // HR's role turns out to be "team", widen this one predicate.
+  //
+  // Each rule applies ONLY while the ACL is silent about that field —
+  // `hasFieldRule()` hands control back to the backend the moment a role
+  // defines it, so a stale local rule can never override a real grant.
+  // `organisation` is deliberately absent: it already has a backend rule
+  // ({read:"no", edit:"no"} for employees) and needs nothing here.
+  const isHrScope = () => getScopeLevel(ENTITY, "edit") === "all";
+
+  const INTERIM_FIELD_RULES = {
+    // HR authors this, and it is visible on the record — hide it outright.
+    profile: { read: isHrScope, edit: isHrScope },
+    // Employees may see their own dates but must not set them.
+    exitDate: { edit: isHrScope },
+    fNFDate: { edit: isHrScope },
+  };
+
+  const interimRule = (field, action) => {
+    const rule = INTERIM_FIELD_RULES[field]?.[action];
+    // A backend rule always wins over the interim one.
+    if (!rule || hasFieldRule(ENTITY, field)) return null;
+    return rule;
+  };
+
   // Field-level answer, with metadata taking precedence over the ACL: a role
   // can only ever narrow access, never unlock a structurally read-only field.
   const canEditFieldNow = (field) => {
     if (META_READ_ONLY.includes(field)) return false;
     if (META_READ_ONLY_AFTER_CREATE.includes(field) && mode !== "add") return false;
-    return canEditThisRecord && canEditField(ENTITY, field);
+    if (!canEditThisRecord) return false;
+
+    const interim = interimRule(field, "edit");
+    if (interim) return interim();
+
+    return canEditField(ENTITY, field);
+  };
+
+  const canReadFieldNow = (field) => {
+    const interim = interimRule(field, "read");
+    if (interim) return interim();
+
+    return canReadField(ENTITY, field);
   };
 
   // const user = UserData|| [];
@@ -1074,7 +1125,7 @@ IFSC: ${bankData.ifsc}`;
                       </div>
 
                       {/* ================= Profile (rich text) ================= */}
-                      {canReadField(ENTITY, "profile") && (
+                      {canReadFieldNow("profile") && (
                         <div className="border border-border rounded-xl p-6">
                           <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
                             <Icon name="FileText" size={17} className="text-primary" />
