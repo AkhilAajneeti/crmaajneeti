@@ -560,6 +560,11 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, name: e.target.value })
                                 }
+                                // `name` is readOnly: true in metadata (as is the
+                                // real `userName`, a foreign read-through to the
+                                // linked User). Ungated, this accepted typing and
+                                // the server discarded it on save.
+                                disabled={!canEditFieldNow("name")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
