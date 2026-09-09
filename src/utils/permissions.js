@@ -84,6 +84,23 @@ const isTeamRecord = (record, user) => {
   return recordTeamIds.some((teamId) => userTeamIds.includes(teamId));
 };
 
+// Raw scope value for an entity/action: "all" | "team" | "own" | "yes" | "no".
+// Useful when you need to distinguish *how much* access someone has, not just
+// whether they have any — e.g. entity-wide edit ("all") vs owner-only ("own").
+export const getScopeLevel = (entity, action = "edit") =>
+  getEntityActionValue(entity, action);
+
+// Whether the ACL actually says anything about this field. `fieldTable` is a
+// sparse deny list, so "absent" means permitted — which is indistinguishable
+// from "allowed on purpose" unless you ask this question directly.
+//
+// Use it to let a temporary front-end rule apply only while the backend is
+// silent: once a role defines the field, the ACL answer should win.
+export const hasFieldRule = (entity, field) => {
+  const acl = getStoredAcl();
+  return Boolean(acl?.fieldTable?.[entity]?.[field]);
+};
+
 export const canEntityRecord = (entity, action, record) => {
   const rawAccess = getEntityActionValue(entity, action);
   const access = typeof rawAccess === "string" ? rawAccess.toLowerCase() : rawAccess;

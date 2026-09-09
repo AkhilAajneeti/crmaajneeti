@@ -23,7 +23,11 @@ import { useAccountById } from "hooks/useAccounts";
 import { useCalenderById, useCalenderStream } from "hooks/useCalender";
 import { createNewAttendance, updateAttendance } from "services/calender.service";
 import AttendanceSuccessModal from "./AttendanceSuccessModal";
-import { canEditField } from "utils/permissions";
+import {
+  canEditField,
+  getScopeLevel,
+  hasFieldRule,
+} from "utils/permissions";
 
 // ── Presentation helpers for the request detail view ──────────────────────
 // Pure formatters; they read the same fields the view already displayed.
@@ -152,10 +156,36 @@ const AttendanceDrawer = ({
     "createdAt", "createdBy", "modifiedAt", "modifiedBy", "streamUpdatedAt",
   ];
 
+  // ── Interim front-end-only field rules ───────────────────────────────────
+  // The backend has no field rule for these yet — `acl.fieldTable
+  // .CAttendanceRequest` is empty, and an absent entry means *permitted*, so
+  // the ACL would hand them to every manager who passes the record gate.
+  //
+  // Each entry is a predicate that runs ONLY while the ACL is silent about
+  // that field. The moment a role defines it in Espo, `hasFieldRule()` turns
+  // true, the ACL answer wins, and the entry below becomes dead code — so a
+  // backend grant can never be silently overridden by a stale local rule.
+  // Delete the entry once the role exists.
+  const INTERIM_FIELD_RULES = {
+    // Reclassifying a request (Leave ↔ Short Leave ↔ Half Day) changes how
+    // much balance it consumes, so it is HR-only. Managers hold edit:"own"
+    // and can still approve/reject; HR holds entity-wide edit:"all".
+    //
+    // If HR's role turns out to be "team" rather than "all", widen this to
+    // ["all", "team"].includes(...) — that is the only line to change.
+    requestType: () => getScopeLevel("CAttendanceRequest", "edit") === "all",
+  };
+
   const canEditFieldNow = (field) => {
     if (META_READ_ONLY.includes(field)) return false;
+
     // `canEdit` here is the record-level answer already resolved by the page.
-    return canEdit && canEditField("CAttendanceRequest", field);
+    if (!canEdit) return false;
+
+    const interim = INTERIM_FIELD_RULES[field];
+    if (interim && !hasFieldRule("CAttendanceRequest", field)) return interim();
+
+    return canEditField("CAttendanceRequest", field);
   };
   const animatedComponents = makeAnimated();
   const { data: account, isLoading } = useCalenderById(data?.id);
