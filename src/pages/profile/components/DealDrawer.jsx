@@ -141,11 +141,9 @@ const DealDrawer = ({
   const isHrScope = () => getScopeLevel(ENTITY, "edit") === "all";
 
   const INTERIM_FIELD_RULES = {
-    // HR authors this, and it is visible on the record — hide it outright.
     profile: { read: isHrScope, edit: isHrScope },
-    // Employees may see their own dates but must not set them.
-    exitDate: { edit: isHrScope },
-    fNFDate: { edit: isHrScope },
+    exitDate: { read: isHrScope, edit: isHrScope },
+    fNFDate: { read: isHrScope, edit: isHrScope },
   };
 
   const interimRule = (field, action) => {
@@ -1032,16 +1030,18 @@ IFSC: ${bankData.ifsc}`;
                             </div>
                           </div>
 
-                          {/* Exit Date */}
-                          <div className="flex min-w-0 items-start gap-3">
-                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
-                              <Icon name="CalendarX" size={18} />
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm text-muted-foreground">Exit Date</p>
+                          {/* Exit Date — the whole cell is inside the read
+                              guard, otherwise the label and icon still render
+                              above an empty "—" for people who may not see it. */}
+                          {canReadFieldNow("exitDate") && (
+                            <div className="flex min-w-0 items-start gap-3">
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
+                                <Icon name="CalendarX" size={18} />
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm text-muted-foreground">Exit Date</p>
 
-                              {canReadField(ENTITY, "exitDate") &&
-                                (isEditing && canEditFieldNow("exitDate") ? (
+                                {isEditing && canEditFieldNow("exitDate") ? (
                                   <Input
                                     type="date"
                                     value={formData.exitDate ?? user?.exitDate ?? ""}
@@ -1056,22 +1056,23 @@ IFSC: ${bankData.ifsc}`;
                                   <p className="text-medium font-medium pt-2">
                                     {formatDate(user?.exitDate)}
                                   </p>
-                                ))}
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          )}
 
                           {/* F&F Date */}
-                          <div className="flex min-w-0 items-start gap-3">
-                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-teal-50 text-teal-600 ring-teal-200/70">
-                              <Icon name="BadgeCheck" size={18} />
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm text-muted-foreground">
-                                Full &amp; Final Date
-                              </p>
+                          {canReadFieldNow("fNFDate") && (
+                            <div className="flex min-w-0 items-start gap-3">
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-teal-50 text-teal-600 ring-teal-200/70">
+                                <Icon name="BadgeCheck" size={18} />
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm text-muted-foreground">
+                                  Full &amp; Final Date
+                                </p>
 
-                              {canReadField(ENTITY, "fNFDate") &&
-                                (isEditing && canEditFieldNow("fNFDate") ? (
+                                {isEditing && canEditFieldNow("fNFDate") ? (
                                   <Input
                                     type="date"
                                     value={formData.fNFDate ?? user?.fNFDate ?? ""}
@@ -1086,20 +1087,22 @@ IFSC: ${bankData.ifsc}`;
                                   <p className="text-medium font-medium pt-2">
                                     {formatDate(user?.fNFDate)}
                                   </p>
-                                ))}
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          )}
 
-                          {/* Organisation */}
-                          <div className="flex min-w-0 items-start gap-3">
-                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
-                              <Icon name="Building2" size={18} />
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm text-muted-foreground">Organisation</p>
+                          {/* Organisation — read:"no" for employees in the ACL,
+                              so this cell disappears for them entirely. */}
+                          {canReadFieldNow("organisation") && (
+                            <div className="flex min-w-0 items-start gap-3">
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                                <Icon name="Building2" size={18} />
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm text-muted-foreground">Organisation</p>
 
-                              {canReadField(ENTITY, "organisation") &&
-                                (isEditing && canEditFieldNow("organisation") ? (
+                                {isEditing && canEditFieldNow("organisation") ? (
                                   <Select
                                     value={
                                       formData.organisation ??
@@ -1118,9 +1121,10 @@ IFSC: ${bankData.ifsc}`;
                                   <p className="text-medium font-medium pt-2">
                                     {user?.organisation || "None"}
                                   </p>
-                                ))}
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       </div>
 
