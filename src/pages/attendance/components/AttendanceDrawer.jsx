@@ -23,6 +23,7 @@ import { useAccountById } from "hooks/useAccounts";
 import { useCalenderById, useCalenderStream } from "hooks/useCalender";
 import { createNewAttendance, updateAttendance } from "services/calender.service";
 import AttendanceSuccessModal from "./AttendanceSuccessModal";
+import { canEditField } from "utils/permissions";
 
 // ── Presentation helpers for the request detail view ──────────────────────
 // Pure formatters; they read the same fields the view already displayed.
@@ -134,6 +135,28 @@ const AttendanceDrawer = ({
   });
 
   const isMassUpdate = drawerMode === "mass-update";
+
+  // ── Field-level edit permission ──────────────────────────────────────────
+  // Same two-tier model as the profile drawer: the page decides whether this
+  // user may edit the record at all (and so whether Edit/Save appear); this
+  // decides which fields inside the form are writable.
+  //
+  // Mirror of /Metadata entityDefs.CAttendanceRequest — structural flags no
+  // role can override. `department`, `employeeCode` and `leaveBalance` are
+  // `type: "foreign"` read-throughs to the createdBy user, so they are
+  // read-only for everyone including admins and HR.
+  // TODO: replace with a live /Metadata fetch so this can't drift.
+  const META_READ_ONLY = [
+    "applicantEmail", "department", "employeeCode", "leaveBalance",
+    "leaveCreditsDeducted", "reportingManagerEmail", "selfRejected",
+    "createdAt", "createdBy", "modifiedAt", "modifiedBy", "streamUpdatedAt",
+  ];
+
+  const canEditFieldNow = (field) => {
+    if (META_READ_ONLY.includes(field)) return false;
+    // `canEdit` here is the record-level answer already resolved by the page.
+    return canEdit && canEditField("CAttendanceRequest", field);
+  };
   const animatedComponents = makeAnimated();
   const { data: account, isLoading } = useCalenderById(data?.id);
   const {
@@ -851,40 +874,32 @@ const AttendanceDrawer = ({
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Department
-                      {canEditDep ? (
-                        <span className="text-destructive">*</span>
-                      ) : (
-                        <span className="text-muted-foreground text-xs ml-1">
-                          (Read-only)
-                        </span>
-                      )}
+                      <span className="text-muted-foreground text-xs ml-1">
+                        (Auto-filled)
+                      </span>
                     </label>
                     <Input
                       name="department"
                       value={formData.department}
                       onChange={handleInputChange}
-                      disabled={!canEditDep}
-                      placeholder={canEditDep ? "Enter department" : "No access"}
+                      disabled
+                      placeholder="From your user profile"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Employee Code
-                      {canEditEmpCode ? (
-                        <span className="text-destructive">*</span>
-                      ) : (
-                        <span className="text-muted-foreground text-xs ml-1">
-                          (Read-only)
-                        </span>
-                      )}
+                      <span className="text-muted-foreground text-xs ml-1">
+                        (Auto-filled)
+                      </span>
                     </label>
                     <Input
                       name="employeeCode"
                       value={formData.employeeCode}
                       onChange={handleInputChange}
-                      disabled={!canEditEmpCode}
-                      placeholder={canEditEmpCode ? "Enter code" : "No access"}
+                      disabled
+                      placeholder="From your user profile"
                     />
                   </div>
                 </div>
@@ -1164,18 +1179,16 @@ const AttendanceDrawer = ({
                         <div>
                           <label className="text-sm font-medium mb-2 block">
                             Department
-                            {!canEditDep && (
-                              <span className="text-xs text-muted-foreground ml-1">
-                                (Read-only)
-                              </span>
-                            )}
+                            <span className="text-xs text-muted-foreground ml-1">
+                              (Read-only)
+                            </span>
                           </label>
                           <Input
                             name="department"
                             value={formData.department}
                             onChange={handleInputChange}
                             disabled
-                            placeholder={canEditDep ? "" : "-"}
+                            placeholder="-"
 
                           />
                         </div>
@@ -1185,18 +1198,16 @@ const AttendanceDrawer = ({
                           <div>
                             <label className="text-sm font-medium mb-2 block">
                               Employee Code
-                              {!canEditEmpCode && (
-                                <span className="text-xs text-muted-foreground ml-1">
-                                  (Read-only)
-                                </span>
-                              )}
+                              <span className="text-xs text-muted-foreground ml-1">
+                                (Read-only)
+                              </span>
                             </label>
                             <Input
                               name="employeeCode"
                               value={formData.employeeCode}
                               onChange={handleInputChange}
                               disabled
-                              placeholder={canEditEmpCode ? "" : "No edit access"}
+                              placeholder="-"
                             />
                           </div>
 
@@ -1207,7 +1218,11 @@ const AttendanceDrawer = ({
                             <Select
                               value={formData?.requestType}
                               options={requestOption}
-                              disabled={true} // Read-only in edit
+                              // Was hardcoded `disabled={true}`. Metadata has no
+                              // readOnly flag on requestType and no role
+                              // restricts it, so this now follows permissions —
+                              // which is what lets HR change it.
+                              disabled={!canEditFieldNow("requestType")}
                               onChange={(v) => handleChange("requestType", v)}
                             />
                           </div>
