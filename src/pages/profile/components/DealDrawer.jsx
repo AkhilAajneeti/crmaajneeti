@@ -5,11 +5,40 @@ import Select from "../../../components/ui/Select";
 import Input from "components/ui/Input";
 import toast from "react-hot-toast";
 import Avatar from "react-avatar";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 import { createLeadActivity, updateStream } from "services/leads.service";
 import { useProfileById, useUserById, useUsers } from "hooks/useUsers";
 import { useQueryClient } from "@tanstack/react-query";
-import { canEditField, canEditRecord, canReadField } from "utils/permissions";
+import { canEdit, canEditField, canEditRecord, canReadField } from "utils/permissions";
+
+// From /Metadata entityDefs.CProfileDetails.fields.shiftTimings.options
+const SHIFT_TIMING_OPTIONS = [
+  { value: "9 AM", label: "9 AM" },
+  { value: "10 AM", label: "10 AM" },
+  { value: "11 AM", label: "11 AM" },
+];
+
+// From /Metadata entityDefs.CProfileDetails.fields.organisation.options
+const ORGANISATION_OPTIONS = [
+  { value: "ACL", label: "ACL" },
+  { value: "AAJneeti Advertising", label: "AAJneeti Advertising" },
+];
+
+// `profile` is type: "wysiwyg" in metadata, so it stores HTML.
+const PROFILE_EDITOR_MODULES = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline", "strike"],
+    [{ color: [] }, { background: [] }],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ align: [] }],
+    ["blockquote", "code-block"],
+    ["link", "image"],
+    ["clean"],
+  ],
+};
 
 const DealDrawer = ({
   deal,
@@ -55,9 +84,45 @@ const DealDrawer = ({
   });
   const ENTITY = "CProfileDetails";
   const { data: user, isLoading } = useProfileById(deal?.id, isOpen);
-  const isAdmin =
-    String(JSON.parse(localStorage.getItem("login_object"))?.type).toLowerCase() ===
-    "admin";
+
+  // ── Two tiers of edit permission ─────────────────────────────────────────
+  // They answer different questions and must not be collapsed into one flag:
+  //
+  //   1. RECORD level — may this user edit this record at all? Drives whether
+  //      the Edit button appears.
+  //   2. FIELD level  — inside edit mode, which fields may they change?
+  //
+  // Two users can both pass (1) and still differ on (2): HR and an employee
+  // may both edit a profile, while only HR may change the appraisal dates.
+  //
+  // Previously this checked canEditRecord("User", user). `user` is a
+  // CProfileDetails record, so it was resolving against the wrong entity's
+  // ACL — harmless while both happened to be "own", but it blocks HR the
+  // moment their role grants CProfileDetails edit:"all" (they are not the
+  // assignedUser on anyone else's profile).
+  const canEditThisRecord = canEdit(ENTITY) && canEditRecord(ENTITY, user);
+
+  // Mirror of /Metadata entityDefs.CProfileDetails. These are structural
+  // flags from the backend that NO role can override — `readOnly` fields are
+  // `type: "foreign"` mirrors of the linked User record (edit User.cDepartment,
+  // not this), and `readOnlyAfterCreate` locks once the record exists.
+  // TODO: replace with a live /Metadata fetch so this can't drift.
+  const META_READ_ONLY = [
+    "name", "branch", "department", "designation", "email", "employeeCode",
+    "leaveBalance", "mode", "phone", "salutationName", "subDepartment",
+    "userName", "createdAt", "createdBy", "modifiedAt", "modifiedBy",
+  ];
+  const META_READ_ONLY_AFTER_CREATE = [
+    "assignedUser", "documentBirthday", "empCode", "gender", "joiningDate",
+  ];
+
+  // Field-level answer, with metadata taking precedence over the ACL: a role
+  // can only ever narrow access, never unlock a structurally read-only field.
+  const canEditFieldNow = (field) => {
+    if (META_READ_ONLY.includes(field)) return false;
+    if (META_READ_ONLY_AFTER_CREATE.includes(field) && mode !== "add") return false;
+    return canEditThisRecord && canEditField(ENTITY, field);
+  };
 
   // const user = UserData|| [];
   const [massFields, setMassFields] = useState({
@@ -274,12 +339,39 @@ IFSC: ${bankData.ifsc}`;
       emergencyContactNumber:
         formData.emergencyContactNumber || user.emergencyContactNumber,
       leaveBalance: formData.leaveBalance || user.leaveBalance,
+      exitDate: formData.exitDate ?? user.exitDate,
+      fNFDate: formData.fNFDate ?? user.fNFDate,
+      organisation: formData.organisation ?? user.organisation,
+      profile: formData.profile ?? user.profile,
+      monthlyAttendanceSummary:
+        formData.monthlyAttendanceSummary ?? user.monthlyAttendanceSummary,
     };
+  };
+
+  // Send only what this user is actually allowed to change. The builder above
+  // spreads the whole record, so without this a PUT carries back every
+  // read-only and ACL-denied field — the server discards them, but it also
+  // means the request no longer reflects the user's real permissions. Fields
+  // are dropped rather than sent-and-ignored.
+  const stripForbiddenFields = (payload) => {
+    const allowed = {};
+    const dropped = [];
+
+    for (const [field, value] of Object.entries(payload)) {
+      if (canEditFieldNow(field)) allowed[field] = value;
+      else dropped.push(field);
+    }
+
+    if (dropped.length) {
+      console.debug("[profile] not editable, omitted from PUT:", dropped);
+    }
+
+    return allowed;
   };
 
   const handleSave = async () => {
     try {
-      const payload = buildUpdatePayload();
+      const payload = stripForbiddenFields(buildUpdatePayload());
 
       await onUpdate(deal.id, payload);
 
@@ -442,7 +534,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, leaveBalance: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("leaveBalance")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -466,7 +558,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, name: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("name")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -490,7 +582,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, gender: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("gender")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -513,7 +605,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, designation: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("designation")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -537,7 +629,7 @@ IFSC: ${bankData.ifsc}`;
                                   setFormData({ ...formData, empCode: e.target.value })
 
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("empCode")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -560,7 +652,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, department: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("department")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -584,7 +676,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, subDepartment: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("subDepartment")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -606,7 +698,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, branch: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("branch")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -628,7 +720,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, mode: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("mode")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -784,9 +876,9 @@ IFSC: ${bankData.ifsc}`;
 
                             {canReadField("CProfileDetails", "lastAppraisalDate") &&
                               (isEditing &&
-                                canEditField("CProfileDetails", "lastAppraisalDate") &&
-                                canEditRecord("User", user) ? (
+                                canEditFieldNow("lastAppraisalDate") ? (
                                 <Input
+                                  type="date"
                                   value={formData.lastAppraisalDate || user?.lastAppraisalDate}
                                   onChange={(e) =>
                                     setFormData({
@@ -813,9 +905,9 @@ IFSC: ${bankData.ifsc}`;
 
                             {canReadField("CProfileDetails", "nextAppraisalDate") &&
                               (isEditing &&
-                                canEditField("CProfileDetails", "nextAppraisalDate") &&
-                                canEditRecord("User", user) ? (
+                                canEditFieldNow("nextAppraisalDate") ? (
                                 <Input
+                                  type="date"
                                   value={formData.nextAppraisalDate || user?.nextAppraisalDate}
                                   onChange={(e) =>
                                     setFormData({
@@ -845,7 +937,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setFormData({ ...formData, joiningDate: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("joiningDate")}
                               />
                             ) : (
                               <p className=" text-medium font-medium">
@@ -864,14 +956,20 @@ IFSC: ${bankData.ifsc}`;
 
                             {canReadField("CProfileDetails", "shiftTimings") &&
                               (isEditing &&
-                                canEditField("CProfileDetails", "shiftTimings") &&
-                                canEditRecord("User", user) ? (
-                                <Input
-                                  value={formData.shiftTimings || user?.shiftTimings}
-                                  onChange={(e) =>
+                                canEditFieldNow("shiftTimings") ? (
+                                // enum in metadata — a free-text input let any
+                                // value through and the server would reject it.
+                                <Select
+                                  value={
+                                    formData.shiftTimings ||
+                                    user?.shiftTimings ||
+                                    ""
+                                  }
+                                  options={SHIFT_TIMING_OPTIONS}
+                                  onChange={(value) =>
                                     setFormData({
                                       ...formData,
-                                      shiftTimings: e.target.value,
+                                      shiftTimings: value,
                                     })
                                   }
                                 />
@@ -882,8 +980,132 @@ IFSC: ${bankData.ifsc}`;
                               ))}
                             </div>
                           </div>
+
+                          {/* Exit Date */}
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-rose-50 text-rose-600 ring-rose-200/70">
+                              <Icon name="CalendarX" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Exit Date</p>
+
+                              {canReadField(ENTITY, "exitDate") &&
+                                (isEditing && canEditFieldNow("exitDate") ? (
+                                  <Input
+                                    type="date"
+                                    value={formData.exitDate ?? user?.exitDate ?? ""}
+                                    onChange={(e) =>
+                                      setFormData({
+                                        ...formData,
+                                        exitDate: e.target.value,
+                                      })
+                                    }
+                                  />
+                                ) : (
+                                  <p className="text-medium font-medium pt-2">
+                                    {formatDate(user?.exitDate)}
+                                  </p>
+                                ))}
+                            </div>
+                          </div>
+
+                          {/* F&F Date */}
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-teal-50 text-teal-600 ring-teal-200/70">
+                              <Icon name="BadgeCheck" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">
+                                Full &amp; Final Date
+                              </p>
+
+                              {canReadField(ENTITY, "fNFDate") &&
+                                (isEditing && canEditFieldNow("fNFDate") ? (
+                                  <Input
+                                    type="date"
+                                    value={formData.fNFDate ?? user?.fNFDate ?? ""}
+                                    onChange={(e) =>
+                                      setFormData({
+                                        ...formData,
+                                        fNFDate: e.target.value,
+                                      })
+                                    }
+                                  />
+                                ) : (
+                                  <p className="text-medium font-medium pt-2">
+                                    {formatDate(user?.fNFDate)}
+                                  </p>
+                                ))}
+                            </div>
+                          </div>
+
+                          {/* Organisation */}
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 bg-violet-50 text-violet-600 ring-violet-200/70">
+                              <Icon name="Building2" size={18} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground">Organisation</p>
+
+                              {canReadField(ENTITY, "organisation") &&
+                                (isEditing && canEditFieldNow("organisation") ? (
+                                  <Select
+                                    value={
+                                      formData.organisation ??
+                                      user?.organisation ??
+                                      ""
+                                    }
+                                    options={ORGANISATION_OPTIONS}
+                                    onChange={(value) =>
+                                      setFormData({
+                                        ...formData,
+                                        organisation: value,
+                                      })
+                                    }
+                                  />
+                                ) : (
+                                  <p className="text-medium font-medium pt-2">
+                                    {user?.organisation || "None"}
+                                  </p>
+                                ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
+
+                      {/* ================= Profile (rich text) ================= */}
+                      {canReadField(ENTITY, "profile") && (
+                        <div className="border border-border rounded-xl p-6">
+                          <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+                            <Icon name="FileText" size={17} className="text-primary" />
+                            Profile
+                          </h3>
+
+                          {isEditing && canEditFieldNow("profile") ? (
+                            <div className="custom-quill">
+                              <ReactQuill
+                                theme="snow"
+                                value={formData.profile ?? user?.profile ?? ""}
+                                onChange={(value) =>
+                                  setFormData({ ...formData, profile: value })
+                                }
+                                style={{ height: "180px", marginBottom: "48px" }}
+                                modules={PROFILE_EDITOR_MODULES}
+                              />
+                            </div>
+                          ) : user?.profile ? (
+                            // Server-authored HTML from the same wysiwyg field.
+                            <div
+                              className="prose prose-sm max-w-none text-foreground [&_a]:text-primary [&_img]:max-w-full"
+                              dangerouslySetInnerHTML={{ __html: user.profile }}
+                            />
+                          ) : (
+                            <p className="text-medium font-medium text-muted-foreground">
+                              None
+                            </p>
+                          )}
+                        </div>
+                      )}
 
                       {/* ================= Personal ================= */}
                       <div className="border border-border rounded-xl p-6">
@@ -946,6 +1168,7 @@ IFSC: ${bankData.ifsc}`;
 
                             {isEditing ? (
                               <Input
+                                type="date"
                                 value={formData.birthday || user?.birthday}
                                 onChange={(e) =>
                                   setFormData({ ...formData, birthday: e.target.value })
@@ -986,6 +1209,7 @@ IFSC: ${bankData.ifsc}`;
 
                             {isEditing ? (
                               <Input
+                                type="date"
                                 value={formData.weddingAnniversary || user?.weddingAnniversary}
                                 onChange={(e) =>
                                   setFormData({ ...formData, weddingAnniversary: e.target.value })
@@ -1073,7 +1297,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, upiId: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("description")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -1096,7 +1320,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, uanNo: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("description")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -1119,7 +1343,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, name: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("description")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -1142,7 +1366,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, bankName: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("description")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -1162,8 +1386,7 @@ IFSC: ${bankData.ifsc}`;
 
                             {canReadField(ENTITY, "accountNumber") &&
                               (isEditing &&
-                                canEditField(ENTITY, "accountNumber") &&
-                                canEditRecord("User", user) ? (
+                                canEditFieldNow("accountNumber") ? (
                                 <Input
                                   value={bankData.accountNumber}
                                   onChange={(e) =>
@@ -1172,7 +1395,7 @@ IFSC: ${bankData.ifsc}`;
                                       accountNumber: e.target.value,
                                     })
                                   }
-                                  disabled={!isAdmin}
+                                  disabled={!canEditFieldNow("description")}
                                 />
                               ) : (
                                 <p className="text-foreground font-medium">
@@ -1195,7 +1418,7 @@ IFSC: ${bankData.ifsc}`;
                                 onChange={(e) =>
                                   setBankData({ ...bankData, ifsc: e.target.value })
                                 }
-                                disabled={!isAdmin}
+                                disabled={!canEditFieldNow("description")}
                               />
                             ) : (
                               <p className="text-foreground font-medium">
@@ -1285,7 +1508,45 @@ IFSC: ${bankData.ifsc}`;
                         </div>
                       </div>
 
+                      {/* Raw summary — the cards above are parsed out of this
+                          single text field, so editing happens on the source. */}
+                      {canReadField(ENTITY, "monthlyAttendanceSummary") &&
+                        isEditing &&
+                        canEditFieldNow("monthlyAttendanceSummary") && (
+                          <div className="border border-border rounded-xl p-6">
+                            <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-2">
+                              <Icon
+                                name="PencilLine"
+                                size={17}
+                                className="text-primary"
+                              />
+                              Edit Summary
+                            </h3>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              Keep one <code>Label: value</code> per line — the
+                              cards above are read from these labels.
+                            </p>
 
+                            <textarea
+                              rows={8}
+                              className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground font-mono text-[13px] leading-6 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition"
+                              value={
+                                formData.monthlyAttendanceSummary ??
+                                user?.monthlyAttendanceSummary ??
+                                ""
+                              }
+                              placeholder={
+                                "Month: September 2026\nLeaves Taken: 2\nSalary Deduction: 0\nContribution credit: 1\nNew Leave Balance for Next Month: 1.5\nTimeStamp: "
+                              }
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  monthlyAttendanceSummary: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        )}
                     </div>
                   )}
 
