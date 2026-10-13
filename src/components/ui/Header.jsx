@@ -184,7 +184,7 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
                   />
 
                   {/* Dropdown Card */}
-                  <div className="absolute right-0 mt-3 w-72 rounded-xl border border-neutral-200/70 bg-white/90 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 overflow-hidden">
+                  <div className="shine-border absolute right-0 mt-3 w-72 rounded-xl border border-neutral-200/70 bg-white/90 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 overflow-hidden">
 
                     {/* Profile Section */}
                     <div className="px-5 py-4 border-b border-neutral-200/60">
