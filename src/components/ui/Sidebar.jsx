@@ -3,6 +3,30 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Icon from "../AppIcon";
 import Button from "./Button";
 import { canGlobal, canRead, hasAcl } from "utils/permissions";
+
+// Per-item icon tint keyed by route. Full literal class strings so Tailwind's
+// JIT keeps them (a dynamic `border-${x}-200` would get purged).
+const ICON_TONES = {
+  "/dashboard": { border: "border-rose-200", bg: "bg-rose-50", text: "text-rose-500" },
+  "/accounts": { border: "border-blue-200", bg: "bg-blue-50", text: "text-blue-500" },
+  "/leads": { border: "border-emerald-200", bg: "bg-emerald-50", text: "text-emerald-500" },
+  "/pipeline": { border: "border-violet-200", bg: "bg-violet-50", text: "text-violet-500" },
+  "/tasks": { border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-500" },
+  "/meeting": { border: "border-pink-200", bg: "bg-pink-50", text: "text-pink-500" },
+  "/reports": { border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-500" },
+  "/integrations": { border: "border-cyan-200", bg: "bg-cyan-50", text: "text-cyan-500" },
+  "/attendance": { border: "border-red-200", bg: "bg-red-50", text: "text-red-500" },
+  "/profile": { border: "border-sky-200", bg: "bg-sky-50", text: "text-sky-500" },
+  "/workplace": { border: "border-amber-200", bg: "bg-amber-50", text: "text-amber-500" },
+  "/complaints": { border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-500" },
+  "/knowledge-base": { border: "border-blue-200", bg: "bg-blue-50", text: "text-blue-500" },
+  "/settings": { border: "border-slate-200", bg: "bg-slate-50", text: "text-slate-500" },
+};
+const DEFAULT_ICON_TONE = {
+  border: "border-slate-200",
+  bg: "bg-slate-50",
+  text: "text-slate-500",
+};
 const Sidebar = ({ isOpen = false, onClose }) => {
   const user = JSON.parse(localStorage.getItem("login_object") || "{}");
   const isAdmin = String(user?.type).toLowerCase() === "admin";
@@ -146,6 +170,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                   <div className="space-y-1">
                     {group.items.map((item) => {
                       const isActive = location.pathname === item.path;
+                      const tone = ICON_TONES[item.path] || DEFAULT_ICON_TONE;
 
                       return (
                         <div key={item.path}>
@@ -161,10 +186,18 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                                 : "text-gray-600 hover:bg-gray-100"}
                   `}
                           >
-                            <Icon name={item.icon} size={18} className={`
-    transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:rotate-6 group-hover:scale-110 group-active:scale-95
-    ${isActive ? "text-white" : "text-gray-500 group-hover:text-red-600"}
-  `} />
+                            <span className={`
+    flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border
+    transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:scale-110 group-active:scale-95
+    ${isActive
+                                ? "border-white/40 bg-white/15"
+                                : `${tone.border} ${tone.bg} group-hover:shadow-sm`}
+  `}>
+                              <Icon name={item.icon} size={18} className={`
+      transition-all duration-300 ease-out group-hover:rotate-6
+      ${isActive ? "text-white" : tone.text}
+    `} />
+                            </span>
                             <span className={`
     transition-all duration-300 ease-out group-hover:-translate-y-0.1 group-hover:rotate-3 group-hover:scale-110 group-active:scale-95
     ${isActive ? "text-white" : "text-gray-800 group-hover:text-red-600 font-semibold"}`}>{item.label}</span>
