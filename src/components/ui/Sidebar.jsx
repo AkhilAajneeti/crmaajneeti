@@ -258,41 +258,56 @@ const Sidebar = ({ isOpen = false, onClose }) => {
 
           {/* Footer — waved brand card */}
           <div className="p-3">
-            <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(115deg,#2a0a17_0%,#5d1030_48%,#a2123c_100%)] shadow-lg shadow-rose-900/20">
+            <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(100deg,#3a0a1d_0%,#550f28_30%,#8a1134_68%,#b01440_100%)] shadow-lg shadow-rose-900/25">
 
-              {/* Pale crest capping the card */}
-              <svg
-                className="absolute inset-x-0 top-0 h-12 w-full"
-                viewBox="0 0 400 60"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M0,0 H400 V10 C330,20 280,46 180,54 C112,59 54,54 0,42 Z"
-                  fill="#fdeaf0"
-                />
-              </svg>
-
-              {/* Thin contour lines echoing the crest across the dark field */}
+              {/* Pale crest plus the contour lines trailing it, drawn in one
+                  coordinate space so they stay parallel at any width. */}
               <svg
                 className="absolute inset-0 h-full w-full"
-                viewBox="0 0 400 120"
+                viewBox="0 0 320 130"
                 preserveAspectRatio="none"
                 aria-hidden="true"
               >
-                <g fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="1">
-                  <path d="M0,54 C60,66 120,70 190,64 C280,56 330,32 400,22" />
-                  <path d="M0,66 C60,78 120,82 190,76 C280,68 330,44 400,34" />
-                  <path d="M0,78 C60,90 120,94 190,88 C280,80 330,56 400,46" />
-                  <path d="M0,90 C60,102 120,106 190,100 C280,92 330,68 400,58" />
+                <defs>
+                  <linearGradient id="sidebarCrest" x1="0" y1="0" x2="0.3" y2="1">
+                    <stop offset="0%" stopColor="#fffafc" />
+                    <stop offset="100%" stopColor="#f9d2df" />
+                  </linearGradient>
+                  {/* Lines fade out to the left so they read as texture, not stripes */}
+                  <linearGradient id="sidebarContour" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#ffd3e0" stopOpacity="0.04" />
+                    <stop offset="45%" stopColor="#ffd3e0" stopOpacity="0.22" />
+                    <stop offset="100%" stopColor="#ffd3e0" stopOpacity="0.5" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M0,0 L300,0 C268,8 214,42 150,54 C98,64 46,58 0,42 Z"
+                  fill="url(#sidebarCrest)"
+                />
+                <g
+                  fill="none"
+                  stroke="url(#sidebarContour)"
+                  strokeWidth="0.9"
+                  vectorEffect="non-scaling-stroke"
+                >
+                  <path d="M-6,48 C46,64 98,70 150,60 C214,48 268,14 326,-2" />
+                  <path d="M-6,55 C46,71 98,77 150,67 C214,55 268,21 326,5" />
+                  <path d="M-6,62 C46,78 98,84 150,74 C214,62 268,28 326,12" />
+                  <path d="M-6,69 C46,85 98,91 150,81 C214,69 268,35 326,19" />
+                  <path d="M-6,76 C46,92 98,98 150,88 C214,76 268,42 326,26" />
+                  <path d="M-6,83 C46,99 98,105 150,95 C214,83 268,49 326,33" />
+                  <path d="M-6,90 C46,106 98,112 150,102 C214,90 268,56 326,40" />
+                  <path d="M-6,97 C46,113 98,119 150,109 C214,97 268,63 326,47" />
+                  <path d="M-6,104 C46,120 98,126 150,116 C214,104 268,70 326,54" />
+                  <path d="M-6,111 C46,127 98,133 150,123 C214,111 268,77 326,61" />
                 </g>
               </svg>
 
-              <div className="relative px-4 pt-11 pb-4 text-center">
+              <div className="relative px-4 pt-[4.5rem] pb-5 text-center">
                 <p className="text-[11px] font-semibold tracking-wide text-white">
                   Developed by Aajneeti connect ltd.
                 </p>
-                <p className="mt-0.5 text-[11px] text-white/70">
+                <p className="mt-1 text-[11px] text-white/70">
                   © 2026 All rights reserved.
                 </p>
               </div>
