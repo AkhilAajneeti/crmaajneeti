@@ -20,6 +20,66 @@ import { ParentSelectorModal } from "../../../components/ParentSelectorModal";
 import RoleGuard from "components/RoleGuard";
 import { canEditRecord } from "utils/permissions";
 
+// Field-row chrome shared with the leads and account drawers: a coloured icon
+// tile, the label above and the value below, so every drawer reads alike.
+const INLINE_TONES = {
+  violet: "bg-violet-50 text-violet-600 ring-violet-200/70",
+  sky: "bg-sky-50 text-sky-600 ring-sky-200/70",
+  emerald: "bg-emerald-50 text-emerald-600 ring-emerald-200/70",
+  amber: "bg-amber-50 text-amber-600 ring-amber-200/70",
+  indigo: "bg-indigo-50 text-indigo-600 ring-indigo-200/70",
+  teal: "bg-teal-50 text-teal-600 ring-teal-200/70",
+  rose: "bg-rose-50 text-rose-600 ring-rose-200/70",
+};
+
+const FieldIcon = ({ name, tone = "violet" }) => (
+  <span
+    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ${INLINE_TONES[tone] || INLINE_TONES.violet}`}
+  >
+    <Icon name={name} size={18} />
+  </span>
+);
+
+const FieldRow = ({ icon, tone, label, children, className = "" }) => (
+  <div className={`flex min-w-0 items-start gap-3 ${className}`}>
+    <FieldIcon name={icon} tone={tone} />
+
+    <div className="min-w-0 flex-1">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <div className="mt-0.5">{children}</div>
+    </div>
+  </div>
+);
+
+// Section card + heading, so the two tabs stay consistent.
+const SectionCard = ({ icon, title, children }) => (
+  <div className="border border-border rounded-xl p-4 sm:p-6">
+    <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+      <Icon name={icon} size={17} className="text-primary" />
+      {title}
+    </h3>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">{children}</div>
+  </div>
+);
+
+// A task's priority carries the same weight as its status, so it gets a pill
+// of its own rather than plain red text.
+const PRIORITY_PILLS = {
+  Low: "bg-slate-100 text-slate-700",
+  Normal: "bg-sky-100 text-sky-700",
+  High: "bg-amber-100 text-amber-700",
+  Urgent: "bg-red-100 text-red-700",
+};
+
+const Pill = ({ className = "", children }) => (
+  <span
+    className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${className}`}
+  >
+    {children}
+  </span>
+);
+
 const DealDrawer = ({
   deal,
   selectedIds = [],
@@ -632,225 +692,179 @@ const DealDrawer = ({
                   {activeTab === "overview" && (
                     <div className="space-y-6">
                       {/* ================= Overview ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {/* Name */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Name
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.name || "None"}
-                            </p>
-                          </div>
+                      <SectionCard icon="ClipboardList" title="Overview">
+                        {/* Name */}
+                        <FieldRow icon="ClipboardList" tone="violet" label="Name">
+                          <p className="text-foreground font-medium break-words">
+                            {deal?.name || "None"}
+                          </p>
+                        </FieldRow>
 
-                          {/* Phone */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Parent Name
-                            </p>
-                            {deal?.parentName ? (
-                              <p className="text-primary hover:underline">
-                                {deal.parentName}
-                              </p>
-                            ) : (
-                              <p className="text-foreground">None</p>
-                            )}
-                          </div>
+                        {/* Parent */}
+                        <FieldRow icon="Link2" tone="sky" label="Parent Name">
+                          <p
+                            className={
+                              deal?.parentName
+                                ? "text-primary font-medium break-words"
+                                : "text-foreground font-medium"
+                            }
+                          >
+                            {deal?.parentName || "None"}
+                          </p>
+                        </FieldRow>
 
-                          {/* Email */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Status
-                            </p>
-                            {deal?.status ? (
-                              <p className="text-primary hover:underline break-all">
-                                {deal.status}
-                              </p>
-                            ) : (
-                              <p className="text-foreground">None</p>
-                            )}
-                          </div>
+                        {/* Status */}
+                        <FieldRow icon="CircleDot" tone="emerald" label="Status">
+                          {deal?.status ? (
+                            <Pill className={getStatusColor(deal.status)}>
+                              {deal.status}
+                            </Pill>
+                          ) : (
+                            <p className="text-foreground font-medium">None</p>
+                          )}
+                        </FieldRow>
 
-                          {/* WhatsApp */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Priority
-                            </p>
-                            {deal?.priority ? (
-                              <p className="text-primary hover:underline break-all">
-                                {deal.priority}
-                              </p>
-                            ) : (
-                              <p className="text-foreground">None</p>
-                            )}
-                          </div>
+                        {/* Priority */}
+                        <FieldRow icon="Flag" tone="amber" label="Priority">
+                          {deal?.priority ? (
+                            <Pill
+                              className={
+                                PRIORITY_PILLS[deal.priority] ||
+                                "bg-gray-100 text-gray-700"
+                              }
+                            >
+                              {deal.priority}
+                            </Pill>
+                          ) : (
+                            <p className="text-foreground font-medium">None</p>
+                          )}
+                        </FieldRow>
 
-                          {/* Next Contact */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Date Start
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.dateStart
-                                ? formatDate(deal.dateStart)
-                                : "None"}
-                            </p>
-                          </div>
+                        {/* Date Start */}
+                        <FieldRow icon="CalendarClock" tone="indigo" label="Date Start">
+                          <p className="text-foreground font-medium">
+                            {deal?.dateStart ? formatDate(deal.dateStart) : "None"}
+                          </p>
+                        </FieldRow>
 
-                          {/* Next Contact */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Date Complete
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.dateCompleted ? formatDate(deal.dateCompleted) : "None"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                        {/* Date Complete */}
+                        <FieldRow icon="CalendarCheck" tone="teal" label="Date Complete">
+                          <p className="text-foreground font-medium">
+                            {deal?.dateCompleted
+                              ? formatDate(deal.dateCompleted)
+                              : "None"}
+                          </p>
+                        </FieldRow>
+                      </SectionCard>
 
                       {/* ================= Details ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <h3 className="text-base font-semibold text-foreground mb-6">
-                          Details
-                        </h3>
+                      <SectionCard icon="SlidersHorizontal" title="Details">
+                        {/* Created By */}
+                        <FieldRow icon="UserRound" tone="violet" label="Created By">
+                          <p className="text-foreground font-medium">
+                            {deal?.createdByName || "None"}
+                          </p>
+                        </FieldRow>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          {/* Status */}
-                          {/* Project Name */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Created By
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.createdByName || "None"}
-                            </p>
-                          </div>
+                        {/* Created At */}
+                        <FieldRow icon="CalendarPlus" tone="emerald" label="Created At">
+                          <p className="text-foreground font-medium">
+                            {deal?.createdAt ? formatDate(deal.createdAt) : "None"}
+                          </p>
+                        </FieldRow>
 
-                          {/* Preference */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Created At
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.createdAt
-                                ? formatDate(deal.createdAt)
-                                : "None"}
-                            </p>
-                          </div>
-
-                          {/* Description */}
-                          <div className="md:col-span-2">
-                            <p className="text-sm text-muted-foreground">
-                              Description
-                            </p>
-                            <p className="text-foreground leading-relaxed mt-1">
-                              {deal?.description}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                        {/* Description */}
+                        <FieldRow
+                          icon="NotepadText"
+                          tone="indigo"
+                          label="Description"
+                          className="md:col-span-2"
+                        >
+                          <p className="text-foreground leading-relaxed whitespace-pre-line break-words">
+                            {deal?.description || "None"}
+                          </p>
+                        </FieldRow>
+                      </SectionCard>
                     </div>
                   )}
 
                   {activeTab === "AssignedUsers" && (
                     <div className="space-y-6">
                       {/* ================= Assigned User ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {/* Assigned User */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Assigned User
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.assignedUserName || "—"}
-                            </p>
-                          </div>
+                      <SectionCard icon="Users" title="Assigned User">
+                        {/* Assigned User */}
+                        <FieldRow icon="UserCheck" tone="violet" label="Assigned User">
+                          <p className="text-foreground font-medium">
+                            {deal?.assignedUserName || "None"}
+                          </p>
+                        </FieldRow>
 
-                          {/* Followers */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Teams Names
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.teamsNames ? (
-                                <div className="flex flex-wrap gap-2">
-                                  {Object.entries(deal.teamsNames).map(
-                                    ([id, name]) => (
-                                      <span
-                                        key={id}
-                                        className="text-sm text-primary font-medium"
-                                      >
-                                        {name}
-                                      </span>
-                                    ),
-                                  )}
-                                </div>
-                              ) : (
-                                <span>None</span>
+                        {/* Teams */}
+                        <FieldRow icon="Users" tone="teal" label="Teams Names">
+                          {deal?.teamsNames &&
+                            Object.keys(deal.teamsNames).length ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {Object.entries(deal.teamsNames).map(([id, name]) => (
+                                <Pill key={id} className="bg-teal-50 text-teal-700">
+                                  {name}
+                                </Pill>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-foreground font-medium">None</p>
+                          )}
+                        </FieldRow>
+
+                        {/* Collaborators */}
+                        <FieldRow
+                          icon="UsersRound"
+                          tone="sky"
+                          label="Collaborators Names"
+                          className="md:col-span-2"
+                        >
+                          {deal?.collaboratorsNames &&
+                            Object.keys(deal.collaboratorsNames).length ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {Object.entries(deal.collaboratorsNames).map(
+                                ([id, name]) => (
+                                  <Pill key={id} className="bg-sky-50 text-sky-700">
+                                    {name}
+                                  </Pill>
+                                ),
                               )}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Collaborators Names
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.collaboratorsNames ? (
-                                <div className="flex flex-wrap gap-2">
-                                  {Object.entries(deal.collaboratorsNames).map(
-                                    ([id, name]) => (
-                                      <span
-                                        key={id}
-                                        className="text-sm text-primary font-medium"
-                                      >
-                                        {name}
-                                      </span>
-                                    ),
-                                  )}
-                                </div>
-                              ) : (
-                                <span>None</span>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                            </div>
+                          ) : (
+                            <p className="text-foreground font-medium">None</p>
+                          )}
+                        </FieldRow>
+                      </SectionCard>
 
                       {/* ================= Audit Information ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <h3 className="text-base font-semibold text-foreground mb-6">
-                          Audit Information
-                        </h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {/* Created */}
-                          <div>
+                      <SectionCard icon="History" title="Audit Information">
+                        {/* Created */}
+                        <FieldRow icon="CalendarPlus" tone="emerald" label="Created">
+                          <p className="text-foreground font-medium">
+                            {deal?.createdAt ? formatDate(deal.createdAt) : "None"}
+                          </p>
+                          {deal?.createdByName && (
                             <p className="text-sm text-muted-foreground">
-                              Created
+                              by {deal.createdByName}
                             </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.createdAt
-                                ? `${formatDate(deal.createdAt)}  ${deal?.createdByName ? ("by", deal?.createdByName) : ""}`
-                                : "—"}
-                            </p>
-                          </div>
+                          )}
+                        </FieldRow>
 
-                          {/* Modified */}
-                          <div>
+                        {/* Modified */}
+                        <FieldRow icon="CalendarClock" tone="amber" label="Last Modified">
+                          <p className="text-foreground font-medium">
+                            {deal?.modifiedAt ? formatDate(deal.modifiedAt) : "None"}
+                          </p>
+                          {deal?.modifiedByName && (
                             <p className="text-sm text-muted-foreground">
-                              Last Modified
+                              by {deal.modifiedByName}
                             </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.modifiedAt
-                                ? `${formatDate(deal.modifiedAt)} ${deal?.modifiedByName ? ("by", deal?.modifiedByName) : ""}`
-                                : "—"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                          )}
+                        </FieldRow>
+                      </SectionCard>
                     </div>
                   )}
 
