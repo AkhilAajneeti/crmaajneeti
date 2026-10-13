@@ -20,6 +20,57 @@ import { useAccounts } from "hooks/useAccounts";
 import { ParentSelectorModal } from "components/ParentSelectorModal";
 import { canEditRecord } from "utils/permissions";
 
+// Field-row chrome shared with the leads, account and task drawers: a coloured
+// icon tile, the label above and the value below, so every drawer reads alike.
+const INLINE_TONES = {
+  violet: "bg-violet-50 text-violet-600 ring-violet-200/70",
+  sky: "bg-sky-50 text-sky-600 ring-sky-200/70",
+  emerald: "bg-emerald-50 text-emerald-600 ring-emerald-200/70",
+  amber: "bg-amber-50 text-amber-600 ring-amber-200/70",
+  indigo: "bg-indigo-50 text-indigo-600 ring-indigo-200/70",
+  teal: "bg-teal-50 text-teal-600 ring-teal-200/70",
+  rose: "bg-rose-50 text-rose-600 ring-rose-200/70",
+};
+
+const FieldIcon = ({ name, tone = "violet" }) => (
+  <span
+    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ${INLINE_TONES[tone] || INLINE_TONES.violet}`}
+  >
+    <Icon name={name} size={18} />
+  </span>
+);
+
+const FieldRow = ({ icon, tone, label, children, className = "" }) => (
+  <div className={`flex min-w-0 items-start gap-3 ${className}`}>
+    <FieldIcon name={icon} tone={tone} />
+
+    <div className="min-w-0 flex-1">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <div className="mt-0.5">{children}</div>
+    </div>
+  </div>
+);
+
+// Section card + heading, so every tab's cards stay consistent.
+const SectionCard = ({ icon, title, children }) => (
+  <div className="border border-border rounded-xl p-4 sm:p-6">
+    <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+      <Icon name={icon} size={17} className="text-primary" />
+      {title}
+    </h3>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">{children}</div>
+  </div>
+);
+
+const Pill = ({ className = "", children }) => (
+  <span
+    className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${className}`}
+  >
+    {children}
+  </span>
+);
+
 // "15m" / "1h" / "1d" → seconds
 const durationLabelToSeconds = (label) => {
   if (!label) return 0;
@@ -816,323 +867,266 @@ const DealDrawer = ({
                   {activeTab === "overview" && (
                     <div className="space-y-6">
                       {/* ================= Overview ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {/* Name */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Name
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.name || "—"}
-                            </p>
-                          </div>
+                      <SectionCard icon="CalendarDays" title="Overview">
+                        {/* Name */}
+                        <FieldRow icon="CalendarDays" tone="violet" label="Name">
+                          <p className="text-foreground font-medium break-words">
+                            {deal?.name || "None"}
+                          </p>
+                        </FieldRow>
 
-                          {/* Phone */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Parent Name
-                            </p>
-                            {deal?.parentName ? (
-                              <p className="text-primary hover:underline">
-                                {deal.parentName}
-                              </p>
-                            ) : (
-                              <p className="text-foreground">—</p>
-                            )}
-                          </div>
+                        {/* Parent */}
+                        <FieldRow icon="Link2" tone="sky" label="Parent Name">
+                          <p
+                            className={
+                              deal?.parentName
+                                ? "text-primary font-medium break-words"
+                                : "text-foreground font-medium"
+                            }
+                          >
+                            {deal?.parentName || "None"}
+                          </p>
+                        </FieldRow>
 
-                          {/* Email */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Status
-                            </p>
-                            {deal?.status ? (
-                              <p className="text-primary hover:underline break-all">
-                                {deal.status}
-                              </p>
-                            ) : (
-                              <p className="text-foreground">—</p>
-                            )}
-                          </div>
+                        {/* Status */}
+                        <FieldRow icon="CircleDot" tone="emerald" label="Status">
+                          {deal?.status ? (
+                            <Pill className={getStageColor(deal.status)}>
+                              {deal.status}
+                            </Pill>
+                          ) : (
+                            <p className="text-foreground font-medium">None</p>
+                          )}
+                        </FieldRow>
 
-                          {/* Duration */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Duration
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {formatDuration(deal?.duration)}
-                            </p>
-                          </div>
+                        {/* Duration */}
+                        <FieldRow icon="Timer" tone="amber" label="Duration">
+                          <p className="text-foreground font-medium">
+                            {formatDuration(deal?.duration) || "None"}
+                          </p>
+                        </FieldRow>
 
-                          {/* Next Contact */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Date Start
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.dateStart
-                                ? formatDate(deal.dateStart)
-                                : "—"}
-                            </p>
-                          </div>
+                        {/* Date Start */}
+                        <FieldRow icon="CalendarClock" tone="indigo" label="Date Start">
+                          <p className="text-foreground font-medium">
+                            {deal?.dateStart ? formatDate(deal.dateStart) : "None"}
+                          </p>
+                        </FieldRow>
 
-                          {/* Next Contact */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Date Complete
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.dateEnd ? formatDate(deal.dateEnd) : "—"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                        {/* Date Complete */}
+                        <FieldRow icon="CalendarCheck" tone="teal" label="Date Complete">
+                          <p className="text-foreground font-medium">
+                            {deal?.dateEnd ? formatDate(deal.dateEnd) : "None"}
+                          </p>
+                        </FieldRow>
+                      </SectionCard>
 
                       {/* ================= Details ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <h3 className="text-base font-semibold text-foreground mb-6">
-                          Details
-                        </h3>
+                      <SectionCard icon="SlidersHorizontal" title="Details">
+                        {/* Created By */}
+                        <FieldRow icon="UserRound" tone="violet" label="Created By">
+                          <p className="text-foreground font-medium">
+                            {deal?.createdByName || "None"}
+                          </p>
+                        </FieldRow>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          {/* Status */}
-                          {/* Project Name */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Created By
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.createdByName || "—"}
-                            </p>
-                          </div>
+                        {/* Created At */}
+                        <FieldRow icon="CalendarPlus" tone="emerald" label="Created At">
+                          <p className="text-foreground font-medium">
+                            {deal?.createdAt ? formatDate(deal.createdAt) : "None"}
+                          </p>
+                        </FieldRow>
 
-                          {/* Preference */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Created At
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.createdAt
-                                ? formatDate(deal.createdAt)
-                                : "—"}
-                            </p>
-                          </div>
+                        {/* Description */}
+                        <FieldRow
+                          icon="NotepadText"
+                          tone="indigo"
+                          label="Description"
+                          className="md:col-span-2"
+                        >
+                          <p className="text-foreground leading-relaxed whitespace-pre-line break-words">
+                            {deal?.description || "None"}
+                          </p>
+                        </FieldRow>
 
-                          {/* Description */}
-                          <div className="md:col-span-2">
-                            <p className="text-sm text-muted-foreground">
-                              Description
-                            </p>
-                            <p className="text-foreground leading-relaxed mt-1">
-                              {deal?.description}
-                            </p>
-                          </div>
-                          <div className="md:col-span-2">
-                            <p className="text-sm text-muted-foreground mb-1">
-                              Meeting Link
-                            </p>
-
-                            <div className="flex items-center justify-between border rounded-lg p-2 bg-muted/30">
-                              <p className="text-sm text-foreground truncate">
-                                {deal?.joinUrl || "—"}
+                        {/* Meeting link */}
+                        <FieldRow
+                          icon="Video"
+                          tone="rose"
+                          label="Meeting Link"
+                          className="md:col-span-2"
+                        >
+                          <div className="mt-1 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-2">
+                            {deal?.joinUrl ? (
+                              <a
+                                href={deal.joinUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="truncate text-sm text-primary hover:underline"
+                              >
+                                {deal.joinUrl}
+                              </a>
+                            ) : (
+                              <p className="truncate text-sm text-muted-foreground">
+                                No link added
                               </p>
+                            )}
 
-                              {deal?.joinUrl && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(deal.joinUrl);
-                                    toast.success("Link copied!");
-                                  }}
-                                  className="ml-3 text-muted-foreground hover:text-primary transition"
-                                >
-                                  <Icon name="Copy" size={18} />
-                                </button>
-                              )}
-                            </div>
+                            {deal?.joinUrl && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(deal.joinUrl);
+                                  toast.success("Link copied!");
+                                }}
+                                aria-label="Copy meeting link"
+                                title="Copy meeting link"
+                                className="shrink-0 text-muted-foreground transition hover:text-primary"
+                              >
+                                <Icon name="Copy" size={18} />
+                              </button>
+                            )}
                           </div>
-                        </div>
-                      </div>
+                        </FieldRow>
+                      </SectionCard>
                     </div>
                   )}
 
                   {activeTab === "AssignedUsers" && (
                     <div className="space-y-6">
                       {/* ================= Assigned User ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          {/* Assigned User */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Assigned User
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.assignedUserName || "None"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Followers
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.followersNames ? (
-                                <div className="flex flex-wrap gap-2">
-                                  {Object.entries(deal.followersNames).map(
-                                    ([id, name]) => (
-                                      <span
-                                        key={id}
-                                        className="text-sm text-primary font-medium"
-                                      >
+                      <SectionCard icon="Users" title="Assigned User">
+                        {/* Assigned User */}
+                        <FieldRow icon="UserCheck" tone="violet" label="Assigned User">
+                          <p className="text-foreground font-medium">
+                            {deal?.assignedUserName || "None"}
+                          </p>
+                        </FieldRow>
+
+                        {/* Followers */}
+                        <FieldRow icon="UserPlus" tone="sky" label="Followers">
+                          {deal?.followersNames &&
+                            Object.keys(deal.followersNames).length ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {Object.entries(deal.followersNames).map(
+                                ([id, name]) => (
+                                  <Pill key={id} className="bg-sky-50 text-sky-700">
+                                    {name}
+                                  </Pill>
+                                ),
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-foreground font-medium">None</p>
+                          )}
+                        </FieldRow>
+
+                        {/* Attendees */}
+                        <FieldRow
+                          icon="Users"
+                          tone="teal"
+                          label="Attendees"
+                          className="md:col-span-2"
+                        >
+                          {deal?.usersNames &&
+                            Object.keys(deal.usersNames).length ? (
+                            <div className="mt-2 flex flex-wrap gap-3">
+                              {Object.entries(deal.usersNames).map(([id, name]) => {
+                                const status = deal?.usersColumns?.[id]?.status;
+
+                                const statusConfig = {
+                                  Accepted: { dot: "bg-emerald-500" },
+                                  Declined: { dot: "bg-rose-500" },
+                                  Tentative: { dot: "bg-amber-500" },
+                                  "Needs Action": { dot: "bg-gray-400" },
+                                };
+
+                                const config =
+                                  statusConfig[status] ||
+                                  statusConfig["Needs Action"];
+
+                                return (
+                                  <div
+                                    key={id}
+                                    className="flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2 shadow-sm transition-all duration-200 hover:shadow-md"
+                                  >
+                                    <Avatar
+                                      name={name}
+                                      size="32"
+                                      round
+                                      textSizeRatio={2}
+                                      className="!text-sm"
+                                    />
+
+                                    <div className="flex flex-col">
+                                      <span className="text-sm font-semibold leading-tight text-foreground">
                                         {name}
                                       </span>
-                                    ),
-                                  )}
-                                </div>
-                              ) : (
-                                <span>None</span>
-                              )}
-                            </p>
-                          </div>
 
-                          {/* Users */}
-                          <div className="grid-cols-1 col-span-2 ">
-                            <p className="text-sm text-muted-foreground pb-2">
-                              Attendees
-                            </p>
-                            <p className="text-foreground font-medium">
-                              <div className="flex flex-wrap gap-2">
-                                <div className="flex flex-wrap gap-3">
-                                  {deal?.usersNames &&
-                                    Object.entries(deal.usersNames).map(
-                                      ([id, name]) => {
-                                        const status =
-                                          deal?.usersColumns?.[id]?.status;
-
-                                        const statusConfig = {
-                                          Accepted: {
-                                            color:
-                                              "bg-emerald-100 text-emerald-700",
-                                            dot: "bg-emerald-500",
-                                          },
-                                          Declined: {
-                                            color: "bg-rose-100 text-rose-700",
-                                            dot: "bg-rose-500",
-                                          },
-                                          Tentative: {
-                                            color:
-                                              "bg-amber-100 text-amber-700",
-                                            dot: "bg-amber-500",
-                                          },
-                                          "Needs Action": {
-                                            color: "bg-gray-100 text-gray-600",
-                                            dot: "bg-gray-400",
-                                          },
-                                        };
-
-                                        const config =
-                                          statusConfig[status] ||
-                                          statusConfig["Needs Action"];
-
-                                        return (
-                                          <div
-                                            key={id}
-                                            className="group flex items-center gap-3 px-3 py-2 rounded-xl 
-                     bg-white/60 backdrop-blur-md border border-gray-200 
-                     shadow-sm hover:shadow-md transition-all duration-200"
-                                          >
-                                            {/* Avatar */}
-                                            <Avatar
-                                              name={name}
-                                              size="32"
-                                              round
-                                              textSizeRatio={2}
-                                              className="!text-sm"
-                                            />
-
-                                            {/* Name */}
-                                            <div className="flex flex-col">
-                                              <span className="text-sm font-semibold text-gray-800 leading-tight">
-                                                {name}
-                                              </span>
-
-                                              {/* Status */}
-                                              <div className="flex items-center gap-1 mt-0.5">
-                                                <span
-                                                  className={`w-2 h-2 rounded-full ${config.dot}`}
-                                                ></span>
-                                                <span className="text-xs text-gray-500">
-                                                  {status || "No Response"}
-                                                </span>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        );
-                                      },
-                                    )}
-                                </div>
-                              </div>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                                      <span className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                                        <span
+                                          className={`h-2 w-2 rounded-full ${config.dot}`}
+                                        />
+                                        {status || "No Response"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <p className="text-foreground font-medium">None</p>
+                          )}
+                        </FieldRow>
+                      </SectionCard>
 
                       {/* ================= Audit Information ================= */}
-                      <div className="border border-border rounded-xl p-6">
-                        <h3 className="text-base font-semibold text-foreground mb-6">
-                          Audit Information
-                        </h3>
+                      <SectionCard icon="History" title="Audit Information">
+                        {/* Teams */}
+                        <FieldRow
+                          icon="Users"
+                          tone="teal"
+                          label="Teams"
+                          className="md:col-span-2"
+                        >
+                          {deal?.teamsNames &&
+                            Object.keys(deal.teamsNames).length ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {Object.entries(deal.teamsNames).map(([id, name]) => (
+                                <Pill key={id} className="bg-teal-50 text-teal-700">
+                                  {name}
+                                </Pill>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-foreground font-medium">None</p>
+                          )}
+                        </FieldRow>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
+                        {/* Created */}
+                        <FieldRow icon="CalendarPlus" tone="emerald" label="Created">
+                          <p className="text-foreground font-medium">
+                            {deal?.createdAt ? formatDate(deal.createdAt) : "None"}
+                          </p>
+                          {deal?.createdByName && (
                             <p className="text-sm text-muted-foreground">
-                              Teams
+                              by {deal.createdByName}
                             </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.teamsNames ? (
-                                <div className="flex flex-wrap gap-2">
-                                  {Object.entries(deal.teamsNames).map(
-                                    ([id, name]) => (
-                                      <span
-                                        key={id}
-                                        className="text-sm text-primary font-medium"
-                                      >
-                                        {name}
-                                      </span>
-                                    ),
-                                  )}
-                                </div>
-                              ) : (
-                                <span>None</span>
-                              )}
-                            </p>
-                          </div>
-                          {/* Created */}
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Created
-                            </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.createdAt
-                                ? `${formatDate(deal.createdAt)}  ${deal?.createdByName ? (`by ${deal?.createdByName}`) : ""}`
-                                : "—"}
-                            </p>
-                          </div>
+                          )}
+                        </FieldRow>
 
-                          {/* Modified */}
-                          <div>
+                        {/* Modified */}
+                        <FieldRow icon="CalendarClock" tone="amber" label="Last Modified">
+                          <p className="text-foreground font-medium">
+                            {deal?.modifiedAt ? formatDate(deal.modifiedAt) : "None"}
+                          </p>
+                          {deal?.modifiedByName && (
                             <p className="text-sm text-muted-foreground">
-                              Last Modified
+                              by {deal.modifiedByName}
                             </p>
-                            <p className="text-foreground font-medium">
-                              {deal?.modifiedAt
-                                ? `${formatDate(deal.modifiedAt)} ${deal?.modifiedByName ? (`by ${deal?.modifiedByName}`) : ""}`
-                                : "None"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                          )}
+                        </FieldRow>
+                      </SectionCard>
                     </div>
                   )}
 
