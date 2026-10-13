@@ -256,11 +256,46 @@ const Sidebar = ({ isOpen = false, onClose }) => {
             </div>
           </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-border">
-            <div className="text-xs text-muted-foreground text-center">
-              Developed by Aajneeti connect ltd.
-              <br />© 2026 All rights reserved.
+          {/* Footer — waved brand card */}
+          <div className="p-3">
+            <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(115deg,#2a0a17_0%,#5d1030_48%,#a2123c_100%)] shadow-lg shadow-rose-900/20">
+
+              {/* Pale crest capping the card */}
+              <svg
+                className="absolute inset-x-0 top-0 h-12 w-full"
+                viewBox="0 0 400 60"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M0,0 H400 V10 C330,20 280,46 180,54 C112,59 54,54 0,42 Z"
+                  fill="#fdeaf0"
+                />
+              </svg>
+
+              {/* Thin contour lines echoing the crest across the dark field */}
+              <svg
+                className="absolute inset-0 h-full w-full"
+                viewBox="0 0 400 120"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <g fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="1">
+                  <path d="M0,54 C60,66 120,70 190,64 C280,56 330,32 400,22" />
+                  <path d="M0,66 C60,78 120,82 190,76 C280,68 330,44 400,34" />
+                  <path d="M0,78 C60,90 120,94 190,88 C280,80 330,56 400,46" />
+                  <path d="M0,90 C60,102 120,106 190,100 C280,92 330,68 400,58" />
+                </g>
+              </svg>
+
+              <div className="relative px-4 pt-11 pb-4 text-center">
+                <p className="text-[11px] font-semibold tracking-wide text-white">
+                  Developed by Aajneeti connect ltd.
+                </p>
+                <p className="mt-0.5 text-[11px] text-white/70">
+                  © 2026 All rights reserved.
+                </p>
+              </div>
             </div>
           </div>
         </div>
