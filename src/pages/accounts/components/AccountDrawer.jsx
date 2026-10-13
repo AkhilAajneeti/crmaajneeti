@@ -1186,7 +1186,7 @@ const AccountDrawer = ({
                             Overview
                           </h3>
 
-                          <div className="grid grid-cols-1 gap-5">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             {/* Name */}
                             <FieldRow icon="Building2" tone="violet" label="Name">
                               <p className="text-foreground font-medium">
@@ -1319,7 +1319,7 @@ const AccountDrawer = ({
                             Details
                           </h3>
 
-                          <div className="grid grid-cols-1 gap-5">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             {/* Assigned User */}
                             <FieldRow icon="UserCheck" tone="violet" label="Assigned User">
                               <p className="text-foreground font-medium">
@@ -1354,7 +1354,12 @@ const AccountDrawer = ({
                             </FieldRow>
 
                             {/* Description */}
-                            <FieldRow icon="NotepadText" tone="indigo" label="Description">
+                            <FieldRow
+                              icon="NotepadText"
+                              tone="indigo"
+                              label="Description"
+                              className="md:col-span-2"
+                            >
                               <p className="text-foreground leading-relaxed whitespace-pre-line break-words">
                                 {account?.description || "None"}
                               </p>
@@ -1527,7 +1532,7 @@ const AccountDrawer = ({
                   ) : (
                     <div className="flex flex-col items-center justify-center py-10 text-center">
                       <img
-                        src="/public/assets/images/check.png"
+                        src="/assets/images/check.png"
                         alt="No Activities"
                         className="w-40 opacity-80"
                       />
@@ -1665,7 +1670,7 @@ const AccountDrawer = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center py-10 text-center">
                     <img
-                      src="/public/assets/images/comment.png"
+                      src="/assets/images/comment.png"
                       alt="No Activities"
                       className="w-40 opacity-80"
                     />
