@@ -138,41 +138,46 @@
   }
 }
 
-.shine-border {
-  position: relative;
-}
+/* These live in the components layer so a utility like `absolute` on the same
+   element still wins on `position` — otherwise this rule, being later in the
+   sheet at equal specificity, would drop the panel back into normal flow. */
+@layer components {
+  .shine-border {
+    position: relative;
+  }
 
-/* The ring is masked out of a padded box so only the border itself is painted,
-   leaving the panel's own background untouched. */
-.shine-border::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  padding: 1.5px;
-  border-radius: inherit;
-  background: conic-gradient(
-    from var(--shine-angle),
-    transparent 0deg,
-    #4285f4 35deg,
-    #9b72cb 75deg,
-    #d96570 110deg,
-    #f2a60c 140deg,
-    transparent 175deg,
-    transparent 360deg
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  opacity: 0;
-  animation: shine-sweep 1200ms ease-out 1 both;
-}
-
-@media (prefers-reduced-motion: reduce) {
+  /* The ring is masked out of a padded box so only the border itself is painted,
+     leaving the panel's own background untouched. */
   .shine-border::before {
-    animation: none;
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    padding: 1.5px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--shine-angle),
+      transparent 0deg,
+      #4285f4 35deg,
+      #9b72cb 75deg,
+      #d96570 110deg,
+      #f2a60c 140deg,
+      transparent 175deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    animation: shine-sweep 1200ms ease-out 1 both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shine-border::before {
+      animation: none;
+    }
   }
 }
