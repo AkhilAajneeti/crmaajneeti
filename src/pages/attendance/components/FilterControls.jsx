@@ -52,6 +52,20 @@ const FilterControls = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
+  // The month rail overflows on phones, so there we flip it newest-first and
+  // the current month sits at the start instead of scrolled out of view.
+  const [isNarrow, setIsNarrow] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 639px)").matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const onChange = (e) => setIsNarrow(e.matches);
+    setIsNarrow(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
   // Shared cached users query — every filter bar and drawer reads the same
   // entry, so this no longer refetches /User on each mount.
   const { data: usersData } = useUsers();
@@ -110,6 +124,9 @@ const FilterControls = ({
   const monthPills = MONTH_NAMES.slice(0, new Date().getMonth() + 1).map(
     (label, index) => ({ index, label })
   );
+  const orderedMonthPills = isNarrow
+    ? [...monthPills].reverse()
+    : monthPills;
 
   // Status quick-filter: clicking the active status again clears it.
   const handleStatusSelect = (value) => {
@@ -396,7 +413,7 @@ const FilterControls = ({
 
         {/* Horizontally scrollable, snap-aligned pill rail */}
         <div className="flex gap-2.5 overflow-x-auto scrollbar-hide snap-x -mx-1 px-1 py-1">
-          {monthPills.map((m) => {
+          {orderedMonthPills.map((m) => {
             const isActive =
               filters?.dateType === "month" &&
               Number(filters?.month) === m.index;
