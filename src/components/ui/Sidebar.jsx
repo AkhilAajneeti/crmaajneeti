@@ -257,9 +257,10 @@ const Sidebar = ({ isOpen = false, onClose }) => {
           </nav>
 
           {/* Footer — waved brand card. The curve is fitted to the profile
-              card's wave, so the two read as the same family. */}
+              card's wave; everything above it is transparent, so the panel
+              background shows through. */}
           <div className="p-3">
-            <div className="relative overflow-hidden rounded-[22px] bg-[linear-gradient(96deg,#270b2a_0%,#2d0b26_35%,#480d28_55%,#6b102e_76%,#811231_91%,#8d1a3a_100%)] shadow-lg shadow-rose-900/25">
+            <div className="relative overflow-hidden rounded-[22px]">
               <svg
                 className="absolute inset-0 h-full w-full"
                 viewBox="0 0 320 130"
@@ -267,9 +268,13 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                 aria-hidden="true"
               >
                 <defs>
-                  <linearGradient id="sidebarCrest" x1="0" y1="0" x2="0.15" y2="1">
-                    <stop offset="0%" stopColor="#fdeaef" />
-                    <stop offset="100%" stopColor="#fcd5e7" />
+                  <linearGradient id="sidebarWave" x1="0" y1="0" x2="1" y2="0.12">
+                    <stop offset="0%" stopColor="#270b2a" />
+                    <stop offset="35%" stopColor="#2d0b26" />
+                    <stop offset="55%" stopColor="#480d28" />
+                    <stop offset="76%" stopColor="#6b102e" />
+                    <stop offset="91%" stopColor="#811231" />
+                    <stop offset="100%" stopColor="#8d1a3a" />
                   </linearGradient>
                   {/* Strands fade out to the left so they read as texture trailing
                       the crest rather than stripes across the whole card. */}
@@ -278,13 +283,16 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                     <stop offset="40%" stopColor="#ffc9dc" stopOpacity="0.35" />
                     <stop offset="100%" stopColor="#ffd9e6" stopOpacity="1" />
                   </linearGradient>
+                  {/* Keeps the strands inside the wave */}
+                  <clipPath id="sidebarWaveClip">
+                    <path d="M0,50.3 C5.3,46.9 21.3,33.8 32,29.8 C42.7,25.8 53.3,25.9 64,26.3 C74.7,26.7 85.3,29.6 96,32.4 C106.7,35.2 117.3,40.0 128,43.3 C138.7,46.6 149.3,50.2 160,52.1 C170.7,54.0 181.3,55.1 192,54.7 C202.7,54.3 213.3,52.6 224,49.7 C234.7,46.8 245.3,42.6 256,37.4 C266.7,32.2 277.3,24.8 288,18.6 C298.7,12.4 314.7,3.1 320,0.0 V130 H0 Z" />
+                  </clipPath>
                 </defs>
 
-                {/* Pale band: white ribbon first, pink laid over all but its lower edge */}
-                <path d="M0,50.3 C5.3,46.9 21.3,33.8 32,29.8 C42.7,25.8 53.3,25.9 64,26.3 C74.7,26.7 85.3,29.6 96,32.4 C106.7,35.2 117.3,40.0 128,43.3 C138.7,46.6 149.3,50.2 160,52.1 C170.7,54.0 181.3,55.1 192,54.7 C202.7,54.3 213.3,52.6 224,49.7 C234.7,46.8 245.3,42.6 256,37.4 C266.7,32.2 277.3,24.8 288,18.6 C298.7,12.4 314.7,3.1 320,0.0 V0 H0 Z" fill="#fbf7fa" />
-                <path d="M0,41.3 C5.3,37.9 21.3,24.8 32,20.8 C42.7,16.8 53.3,16.9 64,17.3 C74.7,17.7 85.3,20.6 96,23.4 C106.7,26.2 117.3,31.0 128,34.3 C138.7,37.6 149.3,41.2 160,43.1 C170.7,45.0 181.3,46.1 192,45.7 C202.7,45.3 213.3,43.6 224,40.7 C234.7,37.8 245.3,33.6 256,28.4 C266.7,23.2 277.3,15.8 288,9.6 C298.7,3.4 314.7,-5.9 320,-9.0 V0 H0 Z" fill="url(#sidebarCrest)" />
+                <path d="M0,50.3 C5.3,46.9 21.3,33.8 32,29.8 C42.7,25.8 53.3,25.9 64,26.3 C74.7,26.7 85.3,29.6 96,32.4 C106.7,35.2 117.3,40.0 128,43.3 C138.7,46.6 149.3,50.2 160,52.1 C170.7,54.0 181.3,55.1 192,54.7 C202.7,54.3 213.3,52.6 224,49.7 C234.7,46.8 245.3,42.6 256,37.4 C266.7,32.2 277.3,24.8 288,18.6 C298.7,12.4 314.7,3.1 320,0.0 V130 H0 Z" fill="url(#sidebarWave)" />
 
                 <g
+                  clipPath="url(#sidebarWaveClip)"
                   fill="none"
                   stroke="url(#sidebarContour)"
                   strokeWidth="0.8"
