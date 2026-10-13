@@ -21,6 +21,37 @@ import { fetchTeam } from "services/team.service";
 import { fetchAccStreamById } from "services/account.service";
 import { deleteTasks } from "services/tasks.service";
 import { useAccountById } from "hooks/useAccounts";
+
+// Field-row chrome shared with the leads drawer: a coloured icon tile, the
+// label above and the value below, so both drawers read as one system.
+const INLINE_TONES = {
+  violet: "bg-violet-50 text-violet-600 ring-violet-200/70",
+  sky: "bg-sky-50 text-sky-600 ring-sky-200/70",
+  emerald: "bg-emerald-50 text-emerald-600 ring-emerald-200/70",
+  amber: "bg-amber-50 text-amber-600 ring-amber-200/70",
+  indigo: "bg-indigo-50 text-indigo-600 ring-indigo-200/70",
+  teal: "bg-teal-50 text-teal-600 ring-teal-200/70",
+  rose: "bg-rose-50 text-rose-600 ring-rose-200/70",
+};
+
+const FieldIcon = ({ name, tone = "violet" }) => (
+  <span
+    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ${INLINE_TONES[tone] || INLINE_TONES.violet}`}
+  >
+    <Icon name={name} size={18} />
+  </span>
+);
+
+const FieldRow = ({ icon, tone, label, children, className = "" }) => (
+  <div className={`flex min-w-0 items-start gap-3 ${className}`}>
+    <FieldIcon name={icon} tone={tone} />
+
+    <div className="min-w-0 flex-1">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <div className="mt-0.5">{children}</div>
+    </div>
+  </div>
+);
 const AccountDrawer = ({
   accType,
   industry,
@@ -1147,64 +1178,54 @@ const AccountDrawer = ({
 
                       </div>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-6">
                         {/* ================= Overview ================= */}
-                        <div className="border border-border rounded-xl p-6">
-                          <h3 className="text-base font-semibold text-foreground mb-6">
+                        <div className="border border-border rounded-xl p-4 sm:p-6">
+                          <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+                            <Icon name="Building2" size={17} className="text-primary" />
                             Overview
                           </h3>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="grid grid-cols-1 gap-5">
                             {/* Name */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Name
-                              </p>
+                            <FieldRow icon="Building2" tone="violet" label="Name">
                               <p className="text-foreground font-medium">
                                 {account?.name || "None"}
                               </p>
-                            </div>
+                            </FieldRow>
 
                             {/* Website */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Website
-                              </p>
-                              <a
-                                href={account?.website}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline break-all"
-                              >
-                                {account?.website || "None"}
-                              </a>
-                            </div>
+                            <FieldRow icon="Globe" tone="sky" label="Website">
+                              {account?.website ? (
+                                <a
+                                  href={account.website}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline break-all"
+                                >
+                                  {account.website}
+                                </a>
+                              ) : (
+                                <p className="text-foreground font-medium">None</p>
+                              )}
+                            </FieldRow>
 
                             {/* Email */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Email
-                              </p>
-                              <p className="text-foreground">
+                            <FieldRow icon="Mail" tone="rose" label="Email">
+                              <p className="text-foreground font-medium break-all">
                                 {account?.emailAddress || "None"}
                               </p>
-                            </div>
+                            </FieldRow>
 
                             {/* Phone */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Phone
-                              </p>
-                              <p className="text-foreground">
+                            <FieldRow icon="Phone" tone="emerald" label="Phone">
+                              <p className="text-foreground font-medium">
                                 {account?.phoneNumber || "None"}
                               </p>
-                            </div>
+                            </FieldRow>
 
                             {/* Billing Address */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Billing Address
-                              </p>
+                            <FieldRow icon="MapPin" tone="amber" label="Billing Address">
                               <p className="text-foreground leading-relaxed">
                                 {account?.billingAddressStreet ||
                                   account?.billingAddressCity ||
@@ -1237,13 +1258,10 @@ const AccountDrawer = ({
                                   "None"
                                 )}
                               </p>
-                            </div>
+                            </FieldRow>
 
                             {/* Shipping Address */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Shipping Address
-                              </p>
+                            <FieldRow icon="Truck" tone="teal" label="Shipping Address">
                               <p className="text-foreground leading-relaxed">
                                 {account?.shippingAddressStreet ||
                                   account?.shippingAddressCity ||
@@ -1276,49 +1294,41 @@ const AccountDrawer = ({
                                   "None"
                                 )}
                               </p>
-                            </div>
+                            </FieldRow>
 
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Type
-                              </p>
+                            {/* Type */}
+                            <FieldRow icon="Tag" tone="indigo" label="Type">
                               <p className="text-foreground font-medium">
                                 {account?.type || "None"}
                               </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Industry
-                              </p>
+                            </FieldRow>
+
+                            {/* Industry */}
+                            <FieldRow icon="Factory" tone="sky" label="Industry">
                               <p className="text-foreground font-medium">
                                 {account?.industry || "None"}
                               </p>
-                            </div>
+                            </FieldRow>
                           </div>
                         </div>
 
                         {/* ================= Details ================= */}
-                        <div className="border border-border rounded-xl p-6">
-                          <h3 className="text-base font-semibold text-foreground mb-6">
+                        <div className="border border-border rounded-xl p-4 sm:p-6">
+                          <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-6">
+                            <Icon name="SlidersHorizontal" size={17} className="text-primary" />
                             Details
                           </h3>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            {/* Type */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Assigned User
-                              </p>
+                          <div className="grid grid-cols-1 gap-5">
+                            {/* Assigned User */}
+                            <FieldRow icon="UserCheck" tone="violet" label="Assigned User">
                               <p className="text-foreground font-medium">
                                 {account?.assignedUserName || "None"}
                               </p>
-                            </div>
+                            </FieldRow>
 
-                            {/* Industry */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Team Names
-                              </p>
+                            {/* Teams */}
+                            <FieldRow icon="Users" tone="teal" label="Team Names">
                               <p className="text-foreground font-medium">
                                 {account?.teamsIds?.length
                                   ? account.teamsIds
@@ -1327,34 +1337,28 @@ const AccountDrawer = ({
                                     .join(", ")
                                   : "None"}
                               </p>
-                            </div>
-                            {/* Industry */}
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Created
-                              </p>
+                            </FieldRow>
+
+                            {/* Created */}
+                            <FieldRow icon="CalendarPlus" tone="emerald" label="Created">
                               <p className="text-foreground font-medium">
                                 {formatDateTime(account?.createdAt)}{" : "}{account?.createdByName}
                               </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Modified At
-                              </p>
+                            </FieldRow>
+
+                            {/* Modified */}
+                            <FieldRow icon="CalendarClock" tone="amber" label="Modified At">
                               <p className="text-foreground font-medium">
                                 {formatDateTime(account?.modifiedAt)}
                               </p>
-                            </div>
+                            </FieldRow>
 
                             {/* Description */}
-                            <div className="md:col-span-2">
-                              <p className="text-sm text-muted-foreground">
-                                Description
-                              </p>
-                              <p className="text-foreground leading-relaxed">
+                            <FieldRow icon="NotepadText" tone="indigo" label="Description">
+                              <p className="text-foreground leading-relaxed whitespace-pre-line break-words">
                                 {account?.description || "None"}
                               </p>
-                            </div>
+                            </FieldRow>
                           </div>
                         </div>
                       </div>
