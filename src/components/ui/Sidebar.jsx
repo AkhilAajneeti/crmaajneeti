@@ -179,7 +179,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                           <button
                             onClick={() => handleNavigation(item.path)}
                             className={`
-                    group w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm
+                    shine-hover group w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm
                     transition-all duration-200 ease-out
                     ${isActive
                                 ? "bg-gradient-to-r from-black to-[#AC2334] text-white"

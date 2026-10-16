@@ -142,13 +142,16 @@
    element still wins on `position` — otherwise this rule, being later in the
    sheet at equal specificity, would drop the panel back into normal flow. */
 @layer components {
-  .shine-border {
+  .shine-border,
+  .shine-hover {
     position: relative;
   }
 
-  /* The ring is masked out of a padded box so only the border itself is painted,
-     leaving the panel's own background untouched. */
-  .shine-border::before {
+  /* The ring is masked out of a padded box so only the border itself is
+     painted, leaving the element's own background untouched. It sits idle at
+     zero opacity; the rules below are what set it running. */
+  .shine-border::before,
+  .shine-hover::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -172,11 +175,22 @@
     mask-composite: exclude;
     pointer-events: none;
     opacity: 0;
+  }
+
+  /* One sweep as the element mounts — used by panels that open. */
+  .shine-border::before {
+    animation: shine-sweep 1200ms ease-out 1 both;
+  }
+
+  /* One sweep per hover: the animation only exists while hovered, so leaving
+     and returning starts it over rather than resuming mid-orbit. */
+  .shine-hover:hover::before {
     animation: shine-sweep 1200ms ease-out 1 both;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .shine-border::before {
+    .shine-border::before,
+    .shine-hover:hover::before {
       animation: none;
     }
   }
