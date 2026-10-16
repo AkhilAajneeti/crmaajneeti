@@ -136,13 +136,18 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative bg-gray-200"
+                className="orb-button relative rounded-full hover:bg-transparent"
                 aria-label="Notifications"
                 onClick={handleClick}
               >
-                <Icon name="Bell" size={20} />
+                <Icon
+                  name="Bell"
+                  size={18}
+                  strokeWidth={1.75}
+                  className="text-slate-700"
+                />
                 {count > 0 && (
-                  <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">
+                  <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">
                     {count}
                   </span>
                 )}

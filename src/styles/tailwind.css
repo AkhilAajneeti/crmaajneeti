@@ -142,6 +142,40 @@
    element still wins on `position` — otherwise this rule, being later in the
    sheet at equal specificity, would drop the panel back into normal flow. */
 @layer components {
+  /* Soft "orb" surface. Measured off the reference: near-white and flat across
+     the inner half, deepening to a pale blue that peaks around 95% of the
+     radius. The gradient's centre sits above the middle, which is what makes
+     the blue pool along the bottom edge instead of ringing evenly. */
+  .orb-button {
+    background: radial-gradient(
+      ellipse 62.5% 62.5% at 48% 38%,
+      #f6f9fd 0 42%,
+      #e3f0fd 58%,
+      #cee6fe 74%,
+      #bedffe 86%,
+      #aed7fe 100%
+    );
+    transition:
+      filter 220ms ease-out,
+      box-shadow 220ms ease-out,
+      transform 160ms ease-out;
+  }
+
+  .orb-button:hover {
+    filter: saturate(1.25) brightness(1.01);
+    box-shadow: 0 4px 14px -6px rgba(66, 144, 254, 0.55);
+  }
+
+  .orb-button:active {
+    transform: scale(0.95);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orb-button:active {
+      transform: none;
+    }
+  }
+
   .shine-border,
   .shine-hover {
     position: relative;
