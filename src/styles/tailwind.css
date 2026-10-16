@@ -121,6 +121,40 @@
   inherits: false;
 }
 
+/* A bell rings by swinging from where it hangs, so the rotation decays rather
+   than buzzing evenly — that reads as a bell instead of a generic shake. */
+@keyframes bell-swing {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(-14deg);
+  }
+  30% {
+    transform: rotate(11deg);
+  }
+  45% {
+    transform: rotate(-8deg);
+  }
+  60% {
+    transform: rotate(5deg);
+  }
+  78% {
+    transform: rotate(-2deg);
+  }
+}
+
+@keyframes badge-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.18);
+  }
+}
+
 @keyframes shine-sweep {
   0% {
     --shine-angle: 0deg;
@@ -170,9 +204,28 @@
     transform: scale(0.95);
   }
 
+  /* The swing only exists while hovered, so leaving and returning restarts it
+     from the first frame instead of resuming mid-swing. */
+  .bell-swing {
+    transform-origin: 50% 18%;
+  }
+
+  .orb-button:hover .bell-swing {
+    animation: bell-swing 750ms ease-in-out;
+  }
+
+  .orb-button:hover .badge-pop {
+    animation: badge-pop 600ms ease-out;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .orb-button:active {
       transform: none;
+    }
+
+    .orb-button:hover .bell-swing,
+    .orb-button:hover .badge-pop {
+      animation: none;
     }
   }
 

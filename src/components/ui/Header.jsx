@@ -144,10 +144,10 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
                   name="Bell"
                   size={18}
                   strokeWidth={1.75}
-                  className="text-slate-700"
+                  className="bell-swing text-slate-700"
                 />
                 {count > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">
+                  <span className="badge-pop absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">
                     {count}
                   </span>
                 )}
