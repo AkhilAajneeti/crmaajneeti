@@ -121,6 +121,7 @@ const AccountDrawer = ({
     { value: "", label: "All Types" },
     { value: "CPL", label: "CPL" },
     { value: "Retainer", label: "Retainer" },
+    { value: "Hybrid", label: "Hybrid" },
   ];
   const IndustryOptions = [
     { value: "", label: "All Types" },

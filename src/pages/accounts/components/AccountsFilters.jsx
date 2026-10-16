@@ -10,6 +10,7 @@ const AccountsFilters = ({ onFiltersChange, activeFilters, resultCount, total, l
     { value: "", label: "All Types" },
     { value: "CPL", label: "CPL" },
     { value: "Retainer", label: "Retainer" },
+    { value: "Hybrid", label: "Hybrid" },
   ];
 
   const ACTIVITY_DATE_FILTERS = [

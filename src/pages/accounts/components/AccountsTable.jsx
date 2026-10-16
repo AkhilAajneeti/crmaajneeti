@@ -115,6 +115,8 @@ const AccountsTable = ({
         return "bg-blue-100 text-blue-700 ring-1 ring-blue-200";
       case "Retainer":
         return "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200";
+      case "Hybrid":
+        return "bg-violet-100 text-violet-700 ring-1 ring-violet-200";
       default:
         return "bg-muted text-foreground ring-1 ring-border";
     }
@@ -215,6 +217,8 @@ const AccountsTable = ({
       "cpl": "bg-gradient-to-br from-blue-50/70 to-background border-blue-100",
       "retainer":
         "bg-gradient-to-br from-emerald-50/70 to-background border-emerald-100",
+      "hybrid":
+        "bg-gradient-to-br from-violet-50/70 to-background border-violet-100",
     };
 
     return (
