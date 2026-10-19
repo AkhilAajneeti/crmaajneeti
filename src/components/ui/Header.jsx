@@ -20,6 +20,10 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // The banner belongs to the dashboard only — the header is shared, so
+  // without this it would appear on every page.
+  const showFestiveBanner = location.pathname === "/dashboard";
+
   const handleUserDropdownToggle = () => {
     setIsUserDropdownOpen(!isUserDropdownOpen);
     setIsHelpDropdownOpen(false);
@@ -82,26 +86,40 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
   const count = data || 0;
   return (
     <>
-      {/* The bar shows only the top of the banner and clips the rest. The
-          part below the bar is drawn by the page instead, at the same size
-          and anchor, so the two line up — and so it scrolls away with the
-          content rather than hanging over the cards.
+      <header
+        className={`fixed top-0 left-0 right-0 h-16 bg-background z-40 ${
+          showFestiveBanner ? "" : "border-b border-border"
+        }`}
+      >
+        {showFestiveBanner && (
+          <>
+            {/* The bar shows only the top of the banner and clips the rest;
+                the dashboard draws the continuation below, at the same size
+                and anchor, so the two line up.
 
-          The clipping lives on this wrapper, not on <header>: clipping the
-          header itself would also cut off the notification and profile
-          dropdowns, which hang below the bar. */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-background z-40">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 overflow-hidden"
-        >
-          <img
-            src="/assets/festival/festive-banner-wide.webp"
-            alt=""
-            aria-hidden="true"
-            className="pointer-events-none absolute right-0 top-0 hidden h-[260px] w-auto max-w-none select-none [-webkit-mask-composite:source-in] [-webkit-mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] [mask-composite:intersect] [mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] md:block"
-          />
-        </div>
+                The clipping lives on this wrapper, not on <header>: clipping
+                the header itself would also cut off the notification and
+                profile dropdowns, which hang below the bar. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 overflow-hidden"
+            >
+              <img
+                src="/assets/festival/festive-banner-wide.webp"
+                alt=""
+                aria-hidden="true"
+                className="pointer-events-none absolute right-0 top-0 hidden h-[260px] w-auto max-w-none select-none [-webkit-mask-composite:source-in] [-webkit-mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] [mask-composite:intersect] [mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] md:block"
+              />
+            </div>
+
+            {/* The rule fades out to the right rather than cutting across
+                the banner. */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-border via-border to-transparent"
+            />
+          </>
+        )}
 
         {/* Festival greeting, centred in the bar. Live text, so it stays
             sharp at any zoom or pixel density — see FestiveGreeting. Inert,
@@ -109,13 +127,6 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
         <div className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 xl:block">
           <FestiveGreeting />
         </div>
-
-        {/* The rule fades out to the right rather than cutting across the
-            banner, as on the reference. */}
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-border via-border to-transparent"
-        />
 
         <div className="relative flex items-center justify-between h-full px-4 lg:px-6">
           {/* Left Section - Mobile Menu & Logo */}

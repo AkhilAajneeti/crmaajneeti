@@ -129,12 +129,17 @@ const Sidebar = ({ isOpen = false, onClose }) => {
         {/* A single mandala closes the rail. It is a background layer, placed
             before the content so the nav always paints over it, and anchored
             just above the footer card. */}
-        <img
-          src="/assets/festival/festive-mandala-full.png"
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none absolute bottom-[132px] left-1/2 w-[118px] -translate-x-1/2 select-none opacity-25"
-        />
+        {/* The wrapper owns the centring translate and the image owns the
+            spin — both are `transform`, so they would overwrite each other
+            on a single element. */}
+        <div className="pointer-events-none absolute bottom-[132px] left-1/2 w-[118px] -translate-x-1/2">
+          <img
+            src="/assets/festival/festive-mandala-full.png"
+            alt=""
+            aria-hidden="true"
+            className="festive-spin w-full select-none opacity-25"
+          />
+        </div>
 
         <div className="relative flex flex-col h-full">
           {/* Header */}

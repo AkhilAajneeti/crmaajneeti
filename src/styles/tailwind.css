@@ -124,6 +124,14 @@
 
 /* A bell rings by swinging from where it hangs, so the rotation decays rather
    than buzzing evenly — that reads as a bell instead of a generic shake. */
+/* One slow revolution. Only `transform` animates, so it stays on the
+   compositor and costs nothing per frame. */
+@keyframes festive-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes bell-swing {
   0%,
   100% {
@@ -211,6 +219,10 @@
      the inner half, deepening to a pale blue that peaks around 95% of the
      radius. The gradient's centre sits above the middle, which is what makes
      the blue pool along the bottom edge instead of ringing evenly. */
+  .festive-spin {
+    animation: festive-spin 80s linear infinite;
+  }
+
   .orb-button {
     background: radial-gradient(
       ellipse 62.5% 62.5% at 48% 38%,
@@ -256,6 +268,10 @@
 
     .orb-button:hover .bell-swing,
     .orb-button:hover .badge-pop {
+      animation: none;
+    }
+
+    .festive-spin {
       animation: none;
     }
   }
