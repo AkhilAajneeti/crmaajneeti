@@ -126,18 +126,16 @@ const Sidebar = ({ isOpen = false, onClose }) => {
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        {/* Temple skyline at the foot of the rail, scaled up and lifted clear
-            of the footer card so the towers read in full. At 300% only the
-            left third of the art is in frame — temples and trees, no archer —
-            and the raised base keeps its ornamental rule hidden behind the
-            card. The mask runs most of the way down, so the art is strongest
-            in the strip between the last nav item and the card, and all but
-            gone where the nav labels sit. */}
+        {/* Temple skyline behind the whole rail. The art is bottom-anchored
+            and cover-fitted, so its sky fills the upper rail and the towers
+            land at the foot. The mask holds it back through the nav rows —
+            full strength only below them — which keeps every label at 6.4:1
+            while the skyline still reads. */}
         <img
-          src="/assets/festival/festive-archer.png"
+          src="/assets/festival/festive-sidebar.webp"
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-11 left-0 w-[300%] max-w-none select-none opacity-40 [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,#000_62%)] [mask-image:linear-gradient(to_bottom,transparent_0%,#000_62%)]"
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-bottom opacity-85 [-webkit-mask-image:linear-gradient(to_bottom,transparent_50%,#000_85%)] [mask-image:linear-gradient(to_bottom,transparent_50%,#000_85%)]"
         />
 
         <div className="relative flex flex-col h-full">
