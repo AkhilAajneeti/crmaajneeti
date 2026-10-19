@@ -252,6 +252,15 @@ const Dashboard = () => {
       <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
       <main className="relative lg:ml-64 pt-16">
         {/* Festival flourishes — purely decorative, behind the content */}
+        {/* Continues the header's banner below the bar. Same height and
+            right anchor, so the seam at the bar's edge is invisible; it lives
+            in the page so it scrolls instead of covering the cards. */}
+        <img
+          src="/assets/festival/festive-banner-wide.webp"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute right-0 top-0 hidden h-[260px] w-auto max-w-none select-none [-webkit-mask-composite:source-in] [-webkit-mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] [mask-composite:intersect] [mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] md:block"
+        />
         <img
           src="/assets/festival/festive-mandala-full.png"
           alt=""

@@ -81,10 +81,11 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
   const count = data || 0;
   return (
     <>
-      {/* The bar itself must not clip: the festival banner is taller than the
-          header and is meant to spill into the top of the page, as on the
-          reference. It is inert, so the content beneath stays clickable. */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-background z-40">
+      {/* The bar shows only the top of the banner and clips the rest. The
+          part below the bar is drawn by the page instead, at the same size
+          and anchor, so the two line up — and so it scrolls away with the
+          content rather than hanging over the cards. */}
+      <header className="fixed top-0 left-0 right-0 h-16 bg-background z-40 overflow-hidden">
         <img
           src="/assets/festival/festive-banner-wide.webp"
           alt=""
