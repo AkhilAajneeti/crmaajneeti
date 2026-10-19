@@ -103,13 +103,14 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
         </div>
 
         {/* Festival greeting, centred in the bar. It is inert and sits between
-            the brand lockup and the user block — at 1024px, the narrowest
-            width it shows at, there is still ~79px of clearance either side.
-            Hidden below lg, where the bar has no room to spare. */}
+            the brand lockup and the user block — at 1280px, the narrowest
+            width it shows at, there is still ~90px of clearance either side.
+            The file is 3x the display size so it stays sharp on dense
+            screens; hidden below xl, where the bar has no room to spare. */}
         <img
           src="/assets/festival/festive-dussehra.webp"
           alt="Happy Dussehra"
-          className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[34px] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 select-none lg:block"
+          className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[44px] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 select-none xl:block"
         />
 
         {/* The rule fades out to the right rather than cutting across the
