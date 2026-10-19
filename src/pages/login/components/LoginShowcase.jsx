@@ -52,8 +52,8 @@ const LEADS = [
     company: "TechNova Pvt. Ltd.",
     status: "New",
     score: 85,
-    avatar: "from-[#2f6df6] to-[#1e3f9e]",
-    pill: "bg-emerald-500/15 text-emerald-300 border-emerald-400/25",
+    avatar: "from-[#d4663a] to-[#a23a1f]",
+    pill: "bg-emerald-500/12 text-emerald-700 border-emerald-500/25",
   },
   {
     initials: "NV",
@@ -61,8 +61,8 @@ const LEADS = [
     company: "Bright Solutions",
     status: "Contacted",
     score: 72,
-    avatar: "from-[#3b82f6] to-[#2947b8]",
-    pill: "bg-sky-500/15 text-sky-300 border-sky-400/25",
+    avatar: "from-[#e08a3c] to-[#b4571d]",
+    pill: "bg-sky-500/12 text-sky-700 border-sky-500/25",
   },
   {
     initials: "AK",
@@ -70,8 +70,8 @@ const LEADS = [
     company: "Innovate Labs",
     status: "Qualified",
     score: 66,
-    avatar: "from-[#6366f1] to-[#3730a3]",
-    pill: "bg-violet-500/15 text-violet-300 border-violet-400/25",
+    avatar: "from-[#c9452f] to-[#8e1526]",
+    pill: "bg-violet-500/12 text-violet-700 border-violet-500/25",
   },
   {
     initials: "PS",
@@ -79,9 +79,18 @@ const LEADS = [
     company: "NextGen Corp.",
     status: "Proposal",
     score: 91,
-    avatar: "from-[#8b5cf6] to-[#5b21b6]",
-    pill: "bg-amber-500/15 text-amber-300 border-amber-400/25",
+    avatar: "from-[#ae2131] to-[#6d0f1f]",
+    pill: "bg-amber-500/15 text-amber-700 border-amber-500/30",
   },
+];
+
+// Leaves drift down the panel on their own loops, so no two cross the frame
+// together. Each entry is [left %, top %, width px, duration s, delay s].
+const LEAVES = [
+  { left: "14%", top: "6%", size: 26, duration: 13, delay: 0 },
+  { left: "47%", top: "2%", size: 20, duration: 16, delay: 2.5 },
+  { left: "63%", top: "18%", size: 30, duration: 15, delay: 5 },
+  { left: "31%", top: "30%", size: 17, duration: 18, delay: 8 },
 ];
 
 const fadeUp = {
@@ -95,52 +104,52 @@ const fadeUp = {
 
 const LoginShowcase = () => {
   return (
-    <div className="relative hidden lg:flex flex-col overflow-hidden bg-[#050c26] text-white">
-      {/* Deep navy base gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_0%_0%,#0b1743_0%,#071033_45%,#040a1f_100%)]" />
+    <div className="relative hidden lg:flex flex-col overflow-hidden bg-[#fef8f1] text-[#0b1527]">
+      {/* Ivory base, warming toward the foot of the panel */}
+      <div className="absolute inset-0 bg-[linear-gradient(175deg,#fffdfa_0%,#fef8f1_52%,#fdf2e6_100%)]" />
 
-      {/* Blue glow sweeping in from the right edge */}
-      <div className="absolute -top-40 -right-52 h-[620px] w-[620px] rounded-full bg-[#1d4ed8]/40 blur-[130px]" />
-      <div className="absolute top-1/3 -right-24 h-[420px] w-[420px] rounded-full bg-[#2563eb]/25 blur-[120px]" />
-      <div className="absolute -bottom-40 -left-32 h-[460px] w-[460px] rounded-full bg-[#1e40af]/25 blur-[130px]" />
-
-      {/* Faint arc lines in the top-right corner */}
-      <svg
-        className="pointer-events-none absolute -top-24 right-0 h-[420px] w-[420px] opacity-[0.18]"
-        viewBox="0 0 400 400"
-        fill="none"
+      {/* Mandala and hanging diya, anchored to the top-right corner */}
+      <img
+        src="/assets/festival/festive-corner-mandala.png"
+        alt=""
         aria-hidden="true"
-      >
-        {[150, 190, 230, 270, 310].map((r) => (
-          <circle
-            key={r}
-            cx="330"
-            cy="70"
-            r={r}
-            stroke="url(#arcStroke)"
-            strokeWidth="1"
-          />
-        ))}
-        <defs>
-          <linearGradient id="arcStroke" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#93c5fd" stopOpacity="0" />
-            <stop offset="60%" stopColor="#93c5fd" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#93c5fd" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-      </svg>
+        className="pointer-events-none absolute -top-8 right-0 w-[clamp(210px,23vw,320px)] select-none opacity-75"
+      />
 
-      {/* ── Bottom band: maroon glow + dot matrix ─────────────── */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[52%]">
-        {/* Maroon wash rising from the bottom-left */}
-        <div className="absolute inset-0 bg-[radial-gradient(95%_120%_at_10%_105%,rgba(172,35,52,0.85)_0%,rgba(139,28,45,0.45)_32%,rgba(88,20,52,0.18)_58%,transparent_78%)]" />
-        {/* Crimson core */}
-        <div className="absolute -bottom-24 -left-24 h-[380px] w-[380px] rounded-full bg-[#AC2334]/45 blur-[110px]" />
-        {/* Dot matrix, fading upward */}
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.5)_1.2px,transparent_1.2px)] bg-[size:15px_15px] opacity-25 [mask-image:linear-gradient(to_top,black_15%,transparent_85%)]" />
-        {/* Denser maroon-tinted dots hugging the corner */}
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,140,160,0.65)_1.2px,transparent_1.2px)] bg-[size:15px_15px] opacity-40 [mask-image:radial-gradient(70%_90%_at_12%_100%,black_0%,transparent_70%)]" />
-      </div>
+      {/* The scene sits across the foot of the panel at half strength — enough
+          to carry the festival, light enough to keep the copy above 7:1. Its
+          top edge is masked so it rises out of the cream with no seam. */}
+      <img
+        src="/assets/festival/festive-archer.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 w-full select-none opacity-50 [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,#000_34%)] [mask-image:linear-gradient(to_bottom,transparent_0%,#000_34%)]"
+      />
+
+      {/* Falling leaves */}
+      {LEAVES.map((leaf, index) => (
+        <motion.img
+          key={index}
+          src="/assets/festival/festive-leaf.png"
+          alt=""
+          aria-hidden="true"
+          style={{ left: leaf.left, top: leaf.top, width: leaf.size }}
+          className="pointer-events-none absolute select-none opacity-70"
+          initial={{ y: -40, rotate: -20, opacity: 0 }}
+          animate={{
+            y: ["-10%", "115%"],
+            x: [0, 26, -18, 10, 0],
+            rotate: [-20, 35, -12, 28, -20],
+            opacity: [0, 0.75, 0.75, 0.55, 0],
+          }}
+          transition={{
+            duration: leaf.duration,
+            delay: leaf.delay,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
+      ))}
 
       {/* ── Content ─────────────────────────────────────────────── */}
       <div className="relative z-10 flex h-full flex-col px-8 py-[clamp(18px,3vh,40px)] xl:px-10">
@@ -152,7 +161,7 @@ const LoginShowcase = () => {
           className="flex items-center"
         >
           <img
-            src="/assets/aajneeti-logo.png"
+            src="/assets/aajneeti-logo-dark.png"
             alt="Aajneeti Connect"
             className="h-11 w-auto object-contain"
           />
@@ -168,8 +177,8 @@ const LoginShowcase = () => {
               animate="show"
               className="flex items-center gap-3"
             >
-              <span className="h-px w-8 shrink-0 bg-[#e8546b]/70" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#e8546b]">
+              <span className="h-px w-8 shrink-0 bg-[#ae2131]/70" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ae2131]">
                 Performance Marketing × CRM
               </p>
             </motion.div>
@@ -185,7 +194,7 @@ const LoginShowcase = () => {
               <br />
               sales pipeline,
               <br />
-              <span className="italic text-[#f8d0d8]">
+              <span className="italic text-[#a92334]">
                 engineered end to end.
               </span>
             </motion.h1>
@@ -195,10 +204,10 @@ const LoginShowcase = () => {
               initial="hidden"
               animate="show"
               custom={1}
-              className="mt-[clamp(12px,2.2vh,24px)] text-[14px] leading-6 text-white/70"
+              className="mt-[clamp(12px,2.2vh,24px)] text-[14px] leading-6 text-[#5c656e]"
             >
               A CRM is only as powerful as the engine feeding it.{" "}
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-[#0b1527]">
                 AAJneeti Connect Limited
               </span>{" "}
               builds both — the campaigns that capture demand and the pipeline
@@ -215,18 +224,18 @@ const LoginShowcase = () => {
                   custom={2 + index}
                   className="flex items-start gap-4"
                 >
-                  <span className="flex h-[clamp(40px,5vh,52px)] w-[clamp(40px,5vh,52px)] shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-[#1b3a8f] to-[#0e1c47] shadow-[0_10px_30px_-12px_rgba(37,99,235,0.9)]">
+                  <span className="flex h-[clamp(40px,5vh,52px)] w-[clamp(40px,5vh,52px)] shrink-0 items-center justify-center rounded-2xl border border-[#f0d3b4] bg-gradient-to-br from-[#fff6ea] to-[#fde6cf] shadow-[0_10px_26px_-14px_rgba(176,88,24,0.75)]">
                     <Icon
                       name={feature?.icon}
                       size={22}
-                      className="text-[#7db2ff]"
+                      className="text-[#c9452f]"
                     />
                   </span>
                   <div className="pt-1">
-                    <p className="text-[15px] font-semibold text-white">
+                    <p className="text-[15px] font-semibold text-[#0b1527]">
                       {feature?.title}
                     </p>
-                    <p className="mt-0.5 text-[13px] text-white/60">
+                    <p className="mt-0.5 text-[13px] text-[#6b7480]">
                       {feature?.description}
                     </p>
                   </div>
@@ -243,11 +252,11 @@ const LoginShowcase = () => {
               initial="hidden"
               animate="show"
               custom={1}
-              className="rounded-2xl border border-white/10 bg-white/[0.06] p-[clamp(12px,2vh,20px)] backdrop-blur-xl shadow-[0_24px_60px_-30px_rgba(0,0,0,0.9)]"
+              className="rounded-2xl border border-[#f0dcc6] bg-white/75 p-[clamp(12px,2vh,20px)] backdrop-blur-xl shadow-[0_24px_60px_-34px_rgba(120,52,24,0.55)]"
             >
               <div className="flex items-start justify-between">
                 <p className="text-sm font-semibold">Lead Performance</p>
-                <span className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-2.5 py-1 text-[11px] text-white/80">
+                <span className="flex items-center gap-1.5 rounded-lg border border-[#f0dcc6] bg-[#fdf4e9] px-2.5 py-1 text-[11px] text-[#8b7c6d]">
                   This Month
                   <Icon name="ChevronDown" size={12} />
                 </span>
@@ -256,11 +265,11 @@ const LoginShowcase = () => {
               <div className="mt-3 flex items-end gap-3">
                 <p className="text-[32px] font-bold leading-none">2,450</p>
                 <div className="pb-1">
-                  <span className="flex items-center gap-1 text-[12px] font-semibold text-emerald-400">
+                  <span className="flex items-center gap-1 text-[12px] font-semibold text-emerald-600">
                     <Icon name="TrendingUp" size={13} />
                     +18.6%
                   </span>
-                  <span className="text-[11px] text-white/50">
+                  <span className="text-[11px] text-[#9aa2ad]">
                     vs last month
                   </span>
                 </div>
@@ -275,20 +284,20 @@ const LoginShowcase = () => {
               >
                 <defs>
                   <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.45" />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                    <stop offset="0%" stopColor="#e08a3c" stopOpacity="0.45" />
+                    <stop offset="100%" stopColor="#e08a3c" stopOpacity="0" />
                   </linearGradient>
                 </defs>
                 <path d={`${CHART_LINE} L400,120 L0,120 Z`} fill="url(#chartFill)" />
                 <path
                   d={CHART_LINE}
-                  stroke="#7db2ff"
+                  stroke="#c9452f"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   vectorEffect="non-scaling-stroke"
                 />
                 {CHART_POINTS?.map(([x, y]) => (
-                  <circle key={`${x}-${y}`} cx={x} cy={y} r="3" fill="#dbeafe" />
+                  <circle key={`${x}-${y}`} cx={x} cy={y} r="3" fill="#fde6cf" />
                 ))}
               </svg>
             </motion.div>
@@ -299,20 +308,22 @@ const LoginShowcase = () => {
               initial="hidden"
               animate="show"
               custom={2}
-              className="grid grid-cols-4 gap-3 rounded-2xl border border-white/10 bg-white/[0.05] p-3 backdrop-blur-xl"
+              className="grid grid-cols-4 gap-3 rounded-2xl border border-[#f0dcc6] bg-white/70 p-3 backdrop-blur-xl"
             >
               {STATS?.map((stat) => (
                 <div
                   key={stat?.label}
-                  className="rounded-xl border border-white/10 bg-white/[0.04] px-2 py-[clamp(8px,1.5vh,16px)] text-center"
+                  className="rounded-xl border border-[#f4e4d2] bg-[#fffaf4] px-2 py-[clamp(8px,1.5vh,16px)] text-center"
                 >
                   <Icon
                     name={stat?.icon}
                     size={20}
-                    className="mx-auto text-[#7db2ff]"
+                    className="mx-auto text-[#c9452f]"
                   />
                   <p className="mt-2.5 text-xl font-bold">{stat?.value}</p>
-                  <p className="mt-1 text-[11px] text-white/55">{stat?.label}</p>
+                  <p className="mt-1 text-[11px] text-[#8b93a0]">
+                    {stat?.label}
+                  </p>
                 </div>
               ))}
             </motion.div>
@@ -323,24 +334,24 @@ const LoginShowcase = () => {
               initial="hidden"
               animate="show"
               custom={3}
-              className="rounded-2xl border border-white/10 bg-white/[0.06] p-[clamp(12px,2vh,20px)] backdrop-blur-xl shadow-[0_24px_60px_-30px_rgba(0,0,0,0.9)]"
+              className="rounded-2xl border border-[#f0dcc6] bg-white/75 p-[clamp(12px,2vh,20px)] backdrop-blur-xl shadow-[0_24px_60px_-34px_rgba(120,52,24,0.55)]"
             >
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Recent Leads</p>
-                <span className="flex items-center gap-1.5 text-[12px] font-medium text-[#7db2ff]">
+                <span className="flex items-center gap-1.5 text-[12px] font-medium text-[#ae2131]">
                   View All
                   <Icon name="ArrowRight" size={13} />
                 </span>
               </div>
 
-              <div className="mt-4 grid grid-cols-[1.5fr_1.4fr_0.9fr_0.4fr] gap-3 border-b border-white/10 pb-2 text-[11px] text-white/45">
+              <div className="mt-4 grid grid-cols-[1.5fr_1.4fr_0.9fr_0.4fr] gap-3 border-b border-[#f0dcc6] pb-2 text-[11px] text-[#a0a7b2]">
                 <span>Name</span>
                 <span>Company</span>
                 <span className="text-center">Status</span>
                 <span className="text-right">Score</span>
               </div>
 
-              <div className="divide-y divide-white/[0.06]">
+              <div className="divide-y divide-[#f4e6d6]">
                 {LEADS?.map((lead, index) => (
                   <div
                     key={lead?.name}
@@ -352,13 +363,13 @@ const LoginShowcase = () => {
                   >
                     <div className="flex items-center gap-2.5">
                       <span
-                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${lead?.avatar} text-[10px] font-semibold`}
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${lead?.avatar} text-[10px] font-semibold text-white`}
                       >
                         {lead?.initials}
                       </span>
                       <span className="truncate text-[13px]">{lead?.name}</span>
                     </div>
-                    <span className="truncate text-[12px] text-white/60">
+                    <span className="truncate text-[12px] text-[#79818d]">
                       {lead?.company}
                     </span>
                     <span
@@ -366,7 +377,7 @@ const LoginShowcase = () => {
                     >
                       {lead?.status}
                     </span>
-                    <span className="text-right text-[12px] text-white/75">
+                    <span className="text-right text-[12px] text-[#4b5563]">
                       {lead?.score}
                     </span>
                   </div>
@@ -383,8 +394,8 @@ const LoginShowcase = () => {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="mt-[clamp(16px,3vh,40px)] flex items-center gap-4"
         >
-          <span className="h-12 w-[3px] rounded-full bg-gradient-to-b from-[#ff6b83] via-[#AC2334] to-transparent" />
-          <p className="max-w-lg text-[16px] font-medium italic leading-6 text-white/70">
+          <span className="h-12 w-[3px] rounded-full bg-gradient-to-b from-[#e8873a] via-[#AC2334] to-transparent" />
+          <p className="max-w-lg text-[16px] font-medium italic leading-6 text-[#5c656e]">
             Performance marketing, wired straight into your CRM.
           </p>
         </motion.div>
