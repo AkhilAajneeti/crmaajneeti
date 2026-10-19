@@ -7,32 +7,32 @@
 @layer base {
   :root {
     /* Core Colors */
-    --color-background: #FFFFFF;
-    /* clean white background */
+    --color-background: #FCF6ED;
+    /* festive ivory page */
     --color-foreground: #0F1419;
     /* even darker gray for maximum contrast */
-    --color-border: #E2E8F0;
-    /* clean light gray border */
+    --color-border: #F8E7D3;
+    /* warm sand border */
     --color-input: #FFFFFF;
     /* clean white input */
     --color-ring: #A3D9A5;
     /* much darker mint green ring */
 
     /* Card Colors */
-    --color-card: #FFFFFF;
-    /* clean white card */
+    --color-card: #FDFBF7;
+    /* festive ivory card */
     --color-card-foreground: #0F1419;
     /* even darker gray for maximum contrast */
 
     /* Popover Colors */
-    --color-popover: #FFFFFF;
-    /* clean white popover */
+    --color-popover: #FDFBF7;
+    /* festive ivory popover */
     --color-popover-foreground: #0F1419;
     /* even darker gray for maximum contrast */
 
     /* Muted Colors */
-    --color-muted: #F1F5F9;
-    /* light gray muted */
+    --color-muted: #FAF1E4;
+    /* warm sand muted */
     --color-muted-foreground: #1A202C;
     /* significantly darker for better visibility */
 
@@ -176,6 +176,36 @@
    element still wins on `position` — otherwise this rule, being later in the
    sheet at equal specificity, would drop the panel back into normal flow. */
 @layer components {
+  /* Saffron page wash — the ivory token alone is flat, this gives the page the
+     same warm falloff the festival artwork has. */
+  .festive-page {
+    background-image:
+      radial-gradient(
+        120% 85% at 100% 0%,
+        rgba(240, 160, 72, 0.14) 0%,
+        rgba(240, 160, 72, 0) 58%
+      ),
+      radial-gradient(
+        90% 70% at 0% 100%,
+        rgba(226, 122, 32, 0.1) 0%,
+        rgba(226, 122, 32, 0) 60%
+      );
+  }
+
+  /* Faint mandala pressed into a card's bottom-right corner. */
+  .festive-card-mark::after {
+    content: "";
+    position: absolute;
+    right: -26px;
+    bottom: -30px;
+    width: 128px;
+    height: 128px;
+    background: url("/assets/festival/festive-mandala-full.png") no-repeat center /
+      contain;
+    opacity: 0.1;
+    pointer-events: none;
+  }
+
   /* Soft "orb" surface. Measured off the reference: near-white and flat across
      the inner half, deepening to a pale blue that peaks around 95% of the
      radius. The gradient's centre sits above the middle, which is what makes

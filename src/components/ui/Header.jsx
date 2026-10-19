@@ -81,8 +81,17 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
   const count = data || 0;
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b border-border z-40">
-        <div className="flex items-center justify-between h-full px-4 lg:px-6">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b border-border z-40 overflow-hidden">
+        {/* Festival scene across the right of the bar. It is masked to fade
+            into the ivory so the bar keeps a clean left side for the logo. */}
+        <img
+          src="/assets/festival/festive-archer.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute right-0 top-0 hidden h-[260%] w-auto max-w-none select-none object-cover object-bottom opacity-[0.55] [-webkit-mask-image:linear-gradient(to_right,transparent_0%,#000_38%)] [mask-image:linear-gradient(to_right,transparent_0%,#000_38%)] md:block"
+        />
+
+        <div className="relative flex items-center justify-between h-full px-4 lg:px-6">
           {/* Left Section - Mobile Menu & Logo */}
           <div className="flex items-center space-x-4">
             {/* Mobile Menu Button */}

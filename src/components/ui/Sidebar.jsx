@@ -121,12 +121,21 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 shadow-sm z-50 lg:z-30
+          fixed top-0 left-0 h-full w-64 overflow-hidden bg-gradient-to-b from-[#fffdf9] to-[#fbf4e9] border-r border-border shadow-sm z-50 lg:z-30
           transform transition-transform duration-300 ease-out
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        <div className="flex flex-col h-full">
+        {/* Temple skyline at the foot of the rail. The art is pulled left so
+            the towers show rather than the archer at its centre. */}
+        <img
+          src="/assets/festival/festive-archer.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 left-0 w-[190%] max-w-none select-none opacity-40 [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,#000_45%)] [mask-image:linear-gradient(to_bottom,transparent_0%,#000_45%)]"
+        />
+
+        <div className="relative flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border">
             <div className="flex items-center space-x-3">
@@ -163,7 +172,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                 <div key={group.title}>
 
                   {/* SECTION TITLE */}
-                  <p className="px-3 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <p className="px-3 mb-2 text-xs font-semibold text-[#8a6436] uppercase tracking-wider">
                     {group.title}
                   </p>
 
@@ -183,7 +192,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                     transition-all duration-200 ease-out
                     ${isActive
                                 ? "bg-gradient-to-r from-black to-[#AC2334] text-white"
-                                : "text-gray-600 hover:bg-gray-100"}
+                                : "text-gray-600 hover:bg-[#f7ead9]"}
                   `}
                           >
                             <span className={`

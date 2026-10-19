@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
+import { FestiveMark } from "../../../components/FestiveOrnament";
 import Button from "../../../components/ui/Button";
 import { fetchLeadsCount } from "services/leads.service";
 
@@ -267,7 +268,8 @@ const PipelineChart = ({ leads = [] }) => {
     >
       <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
         <div>
-          <h3 className="text-lg font-semibold text-card-foreground">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-card-foreground">
+            <FestiveMark size={15} />
             Leads Performance
           </h3>
           <p className="text-sm text-muted-foreground">

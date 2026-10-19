@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Header from "../../components/ui/Header";
+import { FestiveRule } from "../../components/FestiveOrnament";
 import Sidebar from "../../components/ui/Sidebar";
 import KPICard from "./components/KPICard";
 import PipelineChart from "./components/PipelineChart";
@@ -12,8 +13,24 @@ import { fetchMeeting } from "services/meeting.service";
 import Button from "../../components/ui/Button";
 import { useLeadsCount } from "hooks/useLeads";
 import { useQuery } from "@tanstack/react-query";
+// A gust of leaves crosses the page every 10s, matching the login screen.
+const DASHBOARD_LEAVES = Array.from({ length: 14 }, (_, index) => {
+  const at = (offset) => {
+    const value = Math.sin((index * 7 + offset) * 127.1) * 43758.5453;
+    return value - Math.floor(value);
+  };
+  return {
+    left: `${3 + at(0) * 92}%`,
+    size: 12 + Math.round(at(2) * 16),
+    duration: 6 + at(1) * 2.2,
+    delay: at(3) * 2.4,
+    drift: 18 + at(4) * 36,
+  };
+});
+
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
   const [activeInsight, setActiveInsight] = useState(null);
   const [insightData, setInsightData] = useState([]);
 
@@ -230,20 +247,60 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="festive-page min-h-screen bg-background">
       <Header onMenuToggle={handleMenuToggle} isSidebarOpen={isSidebarOpen} />
       <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
-      <main className="lg:ml-64 pt-16">
-        <div className="m-6">
-          <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
+      <main className="relative lg:ml-64 pt-16">
+        {/* Festival flourishes — purely decorative, behind the content */}
+        <img
+          src="/assets/festival/festive-mandala-full.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-24 top-[38%] hidden w-[320px] select-none opacity-[0.07] lg:block"
+        />
+        <img
+          src="/assets/festival/festive-archer.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 hidden w-full select-none opacity-[0.16] lg:block [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,#000_60%)] [mask-image:linear-gradient(to_bottom,transparent_0%,#000_60%)]"
+        />
+        {!prefersReducedMotion &&
+          DASHBOARD_LEAVES.map((leaf, index) => (
+            <motion.img
+              key={index}
+              src="/assets/festival/festive-leaf.png"
+              alt=""
+              aria-hidden="true"
+              style={{ left: leaf.left, width: leaf.size }}
+              className="pointer-events-none absolute top-0 z-0 select-none"
+              initial={{ y: "-12vh", opacity: 0 }}
+              animate={{
+                y: ["-12vh", "112vh"],
+                x: [0, leaf.drift, -leaf.drift * 0.6, leaf.drift * 0.4, 0],
+                rotate: [0, 60, -35, 50, 18],
+                opacity: [0, 0.55, 0.55, 0.4, 0],
+              }}
+              transition={{
+                duration: leaf.duration,
+                delay: leaf.delay,
+                repeat: Infinity,
+                repeatDelay: 10 - leaf.duration,
+                ease: "linear",
+              }}
+            />
+          ))}
+
+        <div className="relative m-6">
+          <h1 className="mb-2 flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
             Dashboard
+            <FestiveRule />
           </h1>
           <p className="text-muted-foreground">
             Welcome back! Here's what's happening with your sales today.
           </p>
         </div>
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5 m-3 sm:m-5">
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5 m-3 sm:m-5">
           {kpiData?.map((kpi, index) => (
             <motion.div
               key={index}
@@ -259,7 +316,7 @@ const Dashboard = () => {
             </motion.div>
           ))}
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
+        <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
           {/* Main Content */}
           <div className="flex-1 p-4 lg:p-0 xl:pr-0">
             <motion.div
