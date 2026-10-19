@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
 
 const FEATURES = [
@@ -20,14 +20,34 @@ const FEATURES = [
   },
 ];
 
-// Leaves drift down the panel on their own loops, so no two cross the frame
-// together. Each entry is [left %, top %, width px, duration s, delay s].
-const LEAVES = [
-  { left: "14%", top: "6%", size: 26, duration: 13, delay: 0 },
-  { left: "47%", top: "2%", size: 20, duration: 16, delay: 2.5 },
-  { left: "63%", top: "18%", size: 30, duration: 15, delay: 5 },
-  { left: "31%", top: "30%", size: 17, duration: 18, delay: 8 },
-];
+// A gust of leaves crosses the panel every 10s. Each leaf takes 6-8s to fall
+// and the gust itself spreads over ~2.4s, so the panel clears before the next
+// one arrives. `repeatDelay` is whatever is left of the 10s after the fall,
+// which is what holds every leaf to the same cadence despite different speeds.
+const BURST_INTERVAL = 10;
+const LEAF_COUNT = 19;
+
+// Deterministic pseudo-random: scattered to the eye, identical on every render,
+// so the leaves do not reshuffle when the component re-renders.
+const scatter = (seed) => {
+  const value = Math.sin(seed * 127.1) * 43758.5453;
+  return value - Math.floor(value);
+};
+
+const LEAVES = Array.from({ length: LEAF_COUNT }, (_, index) => {
+  const at = (offset) => scatter(index * 7 + offset);
+  const duration = 6 + at(1) * 2.2;
+
+  return {
+    left: `${2 + at(0) * 93}%`,
+    size: 13 + Math.round(at(2) * 19),
+    duration,
+    delay: at(3) * 2.4,
+    repeatDelay: BURST_INTERVAL - duration,
+    drift: 20 + at(4) * 42,
+    spin: at(5) > 0.5 ? 1 : -1,
+  };
+});
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -39,6 +59,8 @@ const fadeUp = {
 };
 
 const LoginShowcase = () => {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <div className="relative hidden lg:flex flex-col overflow-hidden bg-[#fef8f1] text-[#0b1527]">
       {/* Ivory base, warming toward the foot of the panel */}
@@ -63,29 +85,45 @@ const LoginShowcase = () => {
       />
 
       {/* Falling leaves */}
-      {LEAVES.map((leaf, index) => (
-        <motion.img
-          key={index}
-          src="/assets/festival/festive-leaf.png"
-          alt=""
-          aria-hidden="true"
-          style={{ left: leaf.left, top: leaf.top, width: leaf.size }}
-          className="pointer-events-none absolute select-none opacity-70"
-          initial={{ y: -40, rotate: -20, opacity: 0 }}
-          animate={{
-            y: ["-10%", "115%"],
-            x: [0, 26, -18, 10, 0],
-            rotate: [-20, 35, -12, 28, -20],
-            opacity: [0, 0.75, 0.75, 0.55, 0],
-          }}
-          transition={{
-            duration: leaf.duration,
-            delay: leaf.delay,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-      ))}
+      {!prefersReducedMotion &&
+        LEAVES.map((leaf, index) => (
+          <motion.img
+            key={index}
+            src="/assets/festival/festive-leaf.png"
+            alt=""
+            aria-hidden="true"
+            style={{ left: leaf.left, width: leaf.size }}
+            className="pointer-events-none absolute top-0 select-none"
+            initial={{ y: "-14vh", opacity: 0 }}
+            animate={{
+              // vh, not %, because a percentage translate would be measured
+              // against the leaf itself and barely move it.
+              y: ["-14vh", "114vh"],
+              x: [
+                0,
+                leaf.drift * leaf.spin,
+                leaf.drift * -0.6 * leaf.spin,
+                leaf.drift * 0.4 * leaf.spin,
+                0,
+              ],
+              rotate: [
+                0,
+                70 * leaf.spin,
+                -40 * leaf.spin,
+                55 * leaf.spin,
+                20 * leaf.spin,
+              ],
+              opacity: [0, 0.8, 0.8, 0.6, 0],
+            }}
+            transition={{
+              duration: leaf.duration,
+              delay: leaf.delay,
+              repeat: Infinity,
+              repeatDelay: leaf.repeatDelay,
+              ease: "linear",
+            }}
+          />
+        ))}
 
       {/* ── Content ─────────────────────────────────────────────── */}
       <div className="relative z-10 flex h-full flex-col px-8 py-[clamp(18px,3vh,40px)] xl:px-10">
