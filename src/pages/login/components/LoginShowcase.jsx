@@ -5,18 +5,18 @@ import Icon from "../../../components/AppIcon";
 const FEATURES = [
   {
     icon: "TrendingUp",
-    title: "Real-time Insights",
-    description: "Make smarter, faster decisions",
+    title: "Real-time Performance",
+    description: "Track progress and make informed decisions",
   },
   {
     icon: "Users",
-    title: "Stronger Customer Relationships",
-    description: "Build lasting business connections",
+    title: "Seamless Team Collaboration",
+    description: "Keep teams aligned and work moving forward",
   },
   {
     icon: "ShieldCheck",
-    title: "Secure & Reliable",
-    description: "Your data is always protected",
+    title: "Secure & Reliable Access",
+    description: "Your workspace, protected at every step",
   },
 ];
 
@@ -115,7 +115,7 @@ const LoginShowcase = () => {
             >
               <span className="h-px w-8 shrink-0 bg-[#ae2131]/70" />
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ae2131]">
-                Performance Marketing × CRM
+                Performance • Teamwork • Growth
               </p>
             </motion.div>
 
@@ -126,12 +126,10 @@ const LoginShowcase = () => {
               custom={0.4}
               className="mt-[clamp(12px,2.2vh,22px)] text-[clamp(26px,min(2.2vw,38px),38px)] font-bold leading-[1.1] tracking-tight"
             >
-              India's strongest
-              <br />
-              sales pipeline,
+              One workspace.
               <br />
               <span className="italic text-[#a92334]">
-                engineered end to end.
+                Every team, in sync.
               </span>
             </motion.h1>
 
@@ -142,12 +140,12 @@ const LoginShowcase = () => {
               custom={1}
               className="mt-[clamp(12px,2.2vh,24px)] text-[14px] leading-6 text-[#5c656e]"
             >
-              A CRM is only as powerful as the engine feeding it.{" "}
+              Your work, your team, your goals — all in one place.{" "}
               <span className="font-semibold text-[#0b1527]">
                 AAJneeti Connect Limited
               </span>{" "}
-              builds both — the campaigns that capture demand and the pipeline
-              that converts it — as one continuous system.
+              brings people, processes, and performance together to help
+              everyone work smarter and achieve more.
             </motion.p>
 
             <div className="mt-[clamp(16px,3vh,36px)] space-y-[clamp(10px,1.9vh,22px)]">
@@ -191,7 +189,7 @@ const LoginShowcase = () => {
         >
           <span className="h-12 w-[3px] rounded-full bg-gradient-to-b from-[#e8873a] via-[#AC2334] to-transparent" />
           <p className="max-w-lg text-[16px] font-medium italic leading-6 text-[#5c656e]">
-            Performance marketing, wired straight into your CRM.
+            One team. One platform. Better outcomes.
           </p>
         </motion.div>
       </div>
