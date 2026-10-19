@@ -126,18 +126,6 @@ const Sidebar = ({ isOpen = false, onClose }) => {
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        {/* Temple skyline behind the whole rail. The art is bottom-anchored
-            and cover-fitted, so its sky fills the upper rail and the towers
-            land at the foot. The mask holds it back through the nav rows —
-            full strength only below them — which keeps every label at 6.4:1
-            while the skyline still reads. */}
-        <img
-          src="/assets/festival/festive-sidebar.webp"
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-bottom opacity-85 [-webkit-mask-image:linear-gradient(to_bottom,transparent_50%,#000_85%)] [mask-image:linear-gradient(to_bottom,transparent_50%,#000_85%)]"
-        />
-
         <div className="relative flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border">
@@ -267,6 +255,18 @@ const Sidebar = ({ isOpen = false, onClose }) => {
 
             </div>
           </nav>
+
+          {/* A single mandala closes the rail, sitting between the last nav
+              item and the footer card. In the flow rather than absolute, so
+              it cannot overlap a label however long the nav grows. */}
+          <div className="relative flex shrink-0 justify-center pb-1 pt-2">
+            <img
+              src="/assets/festival/festive-mandala-full.png"
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none w-[108px] select-none opacity-30"
+            />
+          </div>
 
           {/* Footer — waved brand card. The curve is fitted to the profile
               card's wave; everything above it is transparent, so the panel

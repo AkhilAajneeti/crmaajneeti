@@ -81,14 +81,22 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
   const count = data || 0;
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b border-border z-40 overflow-hidden">
-        {/* Festival scene across the right of the bar. It is masked to fade
-            into the ivory so the bar keeps a clean left side for the logo. */}
+      {/* The bar itself must not clip: the festival banner is taller than the
+          header and is meant to spill into the top of the page, as on the
+          reference. It is inert, so the content beneath stays clickable. */}
+      <header className="fixed top-0 left-0 right-0 h-16 bg-background z-40">
         <img
-          src="/assets/festival/festive-archer.png"
+          src="/assets/festival/festive-banner-wide.webp"
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute right-0 top-0 hidden h-[260%] w-auto max-w-none select-none object-cover object-bottom opacity-[0.55] [-webkit-mask-image:linear-gradient(to_right,transparent_0%,#000_38%)] [mask-image:linear-gradient(to_right,transparent_0%,#000_38%)] md:block"
+          className="pointer-events-none absolute right-0 top-0 hidden h-[260px] w-auto max-w-none select-none [-webkit-mask-composite:source-in] [-webkit-mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] [mask-composite:intersect] [mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] md:block"
+        />
+
+        {/* The rule fades out to the right rather than cutting across the
+            banner, as on the reference. */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-border via-border to-transparent"
         />
 
         <div className="relative flex items-center justify-between h-full px-4 lg:px-6">
