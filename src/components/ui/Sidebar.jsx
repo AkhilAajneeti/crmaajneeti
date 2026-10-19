@@ -126,6 +126,16 @@ const Sidebar = ({ isOpen = false, onClose }) => {
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
+        {/* A single mandala closes the rail. It is a background layer, placed
+            before the content so the nav always paints over it, and anchored
+            just above the footer card. */}
+        <img
+          src="/assets/festival/festive-mandala-full.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-[132px] left-1/2 w-[118px] -translate-x-1/2 select-none opacity-25"
+        />
+
         <div className="relative flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border">
@@ -255,18 +265,6 @@ const Sidebar = ({ isOpen = false, onClose }) => {
 
             </div>
           </nav>
-
-          {/* A single mandala closes the rail, sitting between the last nav
-              item and the footer card. In the flow rather than absolute, so
-              it cannot overlap a label however long the nav grows. */}
-          <div className="relative flex shrink-0 justify-center pb-1 pt-2">
-            <img
-              src="/assets/festival/festive-mandala-full.png"
-              alt=""
-              aria-hidden="true"
-              className="pointer-events-none w-[108px] select-none opacity-30"
-            />
-          </div>
 
           {/* Footer — waved brand card. The curve is fitted to the profile
               card's wave; everything above it is transparent, so the panel

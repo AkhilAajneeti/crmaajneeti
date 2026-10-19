@@ -268,10 +268,10 @@ const Dashboard = () => {
           className="pointer-events-none absolute -left-24 top-[38%] hidden w-[320px] select-none opacity-[0.07] lg:block"
         />
         <img
-          src="/assets/festival/festive-archer.png"
+          src="/assets/festival/festive-mandala-full.png"
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 hidden w-full select-none opacity-[0.16] lg:block [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,#000_60%)] [mask-image:linear-gradient(to_bottom,transparent_0%,#000_60%)]"
+          className="pointer-events-none absolute -right-24 bottom-6 hidden w-[360px] select-none opacity-[0.13] lg:block"
         />
         {!prefersReducedMotion &&
           DASHBOARD_LEAVES.map((leaf, index) => (
