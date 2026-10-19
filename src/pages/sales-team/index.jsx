@@ -20,6 +20,7 @@ import { fetchLeads } from "services/leads.service";
 import { useUsers } from "hooks/useUsers";
 import { useLeads } from "hooks/useLeads";
 import { useQueryClient } from "@tanstack/react-query";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 const SalesTeam = () => {
   const [drawerMode, setDrawerMode] = useState(null);
@@ -403,7 +404,10 @@ const SalesTeam = () => {
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Sales Team</h1>
+              <h1 className="flex items-center gap-3 text-2xl font-bold text-foreground">
+                Sales Team
+                <FestiveRule />
+              </h1>
               <p className="text-muted-foreground mt-1">
                 Manage your individual contacts and relationships
               </p>

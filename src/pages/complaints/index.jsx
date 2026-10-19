@@ -27,6 +27,7 @@ import MultiLineChart from "pages/dashboard/components/MultiLineChart";
 import { useComplaint, useComplaintById } from "hooks/useComplaint";
 import { canCreate } from "utils/permissions";
 import { createComplaint, deleteComplaint, updateComplaint } from "services/complaint.service";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 const Complaints = () => {
   const navigate = useNavigate();
@@ -384,8 +385,9 @@ const Complaints = () => {
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                <h1 className="flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
                   Complaints
+                  <FestiveRule />
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   Monitor, prioritize, and resolve customer issues in one place

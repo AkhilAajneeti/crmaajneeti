@@ -19,6 +19,7 @@ import { useAccounts } from "hooks/useAccounts";
 import { useMetaData } from "hooks/useMetaData";
 import { useQueryClient } from "@tanstack/react-query";
 import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 const AccountsPage = () => {
   const navigate = useNavigate();
@@ -336,8 +337,9 @@ const AccountsPage = () => {
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-semibold text-foreground">
+              <h1 className="flex items-center gap-3 text-2xl font-semibold text-foreground">
                 Accounts
+                <FestiveRule />
               </h1>
               <p className="text-muted-foreground mt-1">
                 Manage your customer companies and relationships

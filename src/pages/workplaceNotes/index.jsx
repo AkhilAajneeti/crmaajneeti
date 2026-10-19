@@ -22,6 +22,7 @@ import {
   deleteWorkplace,
   updateWorkplace,
 } from "services/workplace.service";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 const WorkPlace = () => {
   const navigate = useNavigate();
@@ -357,8 +358,9 @@ const WorkPlace = () => {
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                <h1 className="flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
                   Work Place Notes
+                  <FestiveRule />
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   Smarter notes for smarter sales

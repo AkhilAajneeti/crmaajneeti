@@ -21,6 +21,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useTasks, useTasksAll, useTasksById } from "hooks/useTasks";
 import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
+import { FestiveRule } from "../../components/FestiveOrnament";
 const TaskPage = () => {
   const navigate = useNavigate();
   // EspoCRM-style URL params: /Task/<action>/<id?>
@@ -349,8 +350,9 @@ const TaskPage = () => {
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                <h1 className="flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
                   Tasks
+                  <FestiveRule />
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   Easily create, assign, and track tasks to ensure every

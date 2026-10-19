@@ -16,6 +16,7 @@ import { Helmet } from "react-helmet";
 import { usePipelineData } from "./hooks/usePipelineData";
 import { usePipelineFilters } from "./hooks/usePipelineFilters";
 import { COLUMN_IDS, DEFAULT_FILTERS } from "./utils/pipelineConstants";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 const Pipeline = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -161,8 +162,9 @@ const Pipeline = () => {
           {/* Page Header */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
+              <h1 className="flex items-center gap-3 text-2xl font-bold text-foreground">
                 Sales Pipeline
+                <FestiveRule />
               </h1>
               <p className="text-muted-foreground">
                 Track follow-ups, manage urgency and never miss a lead.

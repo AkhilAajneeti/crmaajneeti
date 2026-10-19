@@ -10,6 +10,7 @@ import DealDrawer from "./components/DealDrawer";
 import { updateprofile } from "services/user.service";
 import Input from "../../components/ui/Input";
 import TablePagination from "./components/TablePagination";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -239,8 +240,9 @@ const Profile = () => {
                 <Icon name="UsersRound" size={26} className="text-white" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight">
+                <h1 className="flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground tracking-tight">
                   Profile &amp; Details
+                  <FestiveRule />
                 </h1>
                 <p className="text-sm text-muted-foreground mt-0.5">
                   Manage your team's profile data, departments, and contact info.

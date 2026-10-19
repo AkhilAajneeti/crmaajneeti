@@ -7,6 +7,7 @@ import CompanyTab from "./components/CompanyTab";
 import TeamsTab from "./components/TeamsTab";
 import PipelineTab from "./components/PipelineTab";
 import UserTab from "./components/UserTab";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 // EspoCRM entity name → which Settings tab to activate
 const ENTITY_TO_TAB = {
@@ -101,8 +102,9 @@ const Settings = () => {
                 <Icon name="Settings" size={24} className="text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                <h1 className="flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
                   Settings
+                  <FestiveRule />
                 </h1>
                 <p className="text-muted-foreground">
                   Configure your CRM system and preferences

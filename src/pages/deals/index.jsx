@@ -27,6 +27,7 @@ import { useLeads, useNewLeads } from "hooks/useLeads";
 import { useMetaData } from "hooks/useMetaData";
 import { useLeadDetails } from "hooks/useLeadDetails";
 import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 // List view-state (filters/page/limit/sort) is persisted per browser-tab session
 // so it survives the remount that happens when the drawer route opens/closes.
@@ -437,8 +438,9 @@ const DealsPage = () => {
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                <h1 className="flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
                   Leads
+                  <FestiveRule />
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   Track and manage your sales opportunities

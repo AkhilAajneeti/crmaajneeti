@@ -18,6 +18,7 @@ import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { useKnowledge, useKnowledgeById } from "hooks/useKnowledge";
 import { canCreate } from "utils/permissions";
 import { createArticle, deleteArticle, updateArticle } from "services/knowledge.service";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 const KnowledgeBase = () => {
   const navigate = useNavigate();
@@ -355,8 +356,9 @@ const KnowledgeBase = () => {
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                <h1 className="flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
                   Knowledge Base
+                  <FestiveRule />
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   Empower your team with structured knowledge management

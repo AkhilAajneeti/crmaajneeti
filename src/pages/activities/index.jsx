@@ -11,6 +11,7 @@ import BulkActions from "./components/BulkActions";
 import ActivityStats from "./components/ActivityStats";
 import { createActivity, fetchActivity } from "services/activity.service";
 import { deleteActivity } from "services/activity.service";
+import { FestiveRule } from "../../components/FestiveOrnament";
 const Activities = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
@@ -241,8 +242,9 @@ const Activities = () => {
           {/* Page Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">
+              <h1 className="flex items-center gap-3 text-2xl font-bold text-foreground mb-2">
                 Activities
+                <FestiveRule />
               </h1>
               <p className="text-muted-foreground">
                 Track and manage your sales activities, tasks, and follow-ups

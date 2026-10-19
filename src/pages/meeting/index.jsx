@@ -23,6 +23,7 @@ import {
 } from "services/meeting.service";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 const MeetingPage = () => {
   const navigate = useNavigate();
@@ -311,8 +312,9 @@ const MeetingPage = () => {
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                <h1 className="flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
                   Meetings
+                  <FestiveRule />
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   Track and manage your meetings

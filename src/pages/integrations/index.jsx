@@ -14,6 +14,7 @@ import {
 } from "services/intergration.service";
 import DealDrawer from "./components/DealDrawer";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 const IntegrationsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -311,8 +312,9 @@ const IntegrationsPage = () => {
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-foreground">
+                <h1 className="flex items-center gap-3 text-2xl font-bold text-foreground">
                   Integrations
+                  <FestiveRule />
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   Connect your favorite tools and services to enhance your CRM

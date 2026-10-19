@@ -84,13 +84,32 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
       {/* The bar shows only the top of the banner and clips the rest. The
           part below the bar is drawn by the page instead, at the same size
           and anchor, so the two line up — and so it scrolls away with the
-          content rather than hanging over the cards. */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-background z-40 overflow-hidden">
-        <img
-          src="/assets/festival/festive-banner-wide.webp"
-          alt=""
+          content rather than hanging over the cards.
+
+          The clipping lives on this wrapper, not on <header>: clipping the
+          header itself would also cut off the notification and profile
+          dropdowns, which hang below the bar. */}
+      <header className="fixed top-0 left-0 right-0 h-16 bg-background z-40">
+        <div
           aria-hidden="true"
-          className="pointer-events-none absolute right-0 top-0 hidden h-[260px] w-auto max-w-none select-none [-webkit-mask-composite:source-in] [-webkit-mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] [mask-composite:intersect] [mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] md:block"
+          className="pointer-events-none absolute inset-0 overflow-hidden"
+        >
+          <img
+            src="/assets/festival/festive-banner-wide.webp"
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute right-0 top-0 hidden h-[260px] w-auto max-w-none select-none [-webkit-mask-composite:source-in] [-webkit-mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] [mask-composite:intersect] [mask-image:linear-gradient(to_bottom,#000_42%,transparent_65%),linear-gradient(to_right,transparent_0%,#000_46%)] md:block"
+          />
+        </div>
+
+        {/* Festival greeting, centred in the bar. It is inert and sits between
+            the brand lockup and the user block — at 1024px, the narrowest
+            width it shows at, there is still ~79px of clearance either side.
+            Hidden below lg, where the bar has no room to spare. */}
+        <img
+          src="/assets/festival/festive-dussehra.webp"
+          alt="Happy Dussehra"
+          className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[34px] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 select-none lg:block"
         />
 
         {/* The rule fades out to the right rather than cutting across the

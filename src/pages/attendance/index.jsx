@@ -21,6 +21,7 @@ import {
   canEditRecord,
 } from "utils/permissions";
 import { deleteAttendance } from "services/calender.service";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 // Persist list view-state (filters/page/limit/sort) per browser-tab session so it
 // survives the remount that happens when the detail/drawer route opens & closes.
@@ -308,8 +309,9 @@ const Attendance = () => {
             >
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">
+                  <h1 className="flex items-center gap-3 text-3xl font-bold text-foreground">
                     Attendance Request
+                    <FestiveRule />
                   </h1>
                 </div>
 

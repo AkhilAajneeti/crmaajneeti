@@ -14,6 +14,7 @@ import Icon from "../../components/AppIcon";
 import DealsTable from "./components/DealsTable";
 import { useNewLeads } from "hooks/useLeads";
 import { useReport } from "hooks/useReport";
+import { FestiveRule } from "../../components/FestiveOrnament";
 
 const Reports = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -535,8 +536,9 @@ const Reports = () => {
             >
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">
+                  <h1 className="flex items-center gap-3 text-3xl font-bold text-foreground">
                     Reports & Analytics
+                    <FestiveRule />
                   </h1>
                   <p className="text-muted-foreground mt-2">
                     Comprehensive sales insights and performance metrics
