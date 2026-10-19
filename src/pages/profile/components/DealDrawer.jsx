@@ -273,7 +273,7 @@ const DealDrawer = ({
   const tabs = [
     { id: "overview", label: "Overview", icon: "Eye" },
     { id: "BankDetails", label: "Bank Details", icon: "Users" },
-    { id: "MonthlyAttendance", label: "Monthly Attendance", icon: "Users" },
+    { id: "MonthlyAttendance", label: "Monthly Attendance Summary", icon: "Users" },
     { id: "AssignedUsers", label: "Assigned User", icon: "Users" }
   ];
 
