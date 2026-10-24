@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Header from "../../components/ui/Header";
@@ -85,18 +85,6 @@ const Pipeline = () => {
   ];
 
 
-  // Merge the full record into the card's partial one, so the panel fills in
-  // email, source and the rest once the fetch lands.
-  useEffect(() => {
-    if (!selectedLead?.id || !leadDetails) return;
-    if (leadDetails.id !== selectedLead.id) return;
-    setSelectedLead((current) =>
-      current && current.id === leadDetails.id && !current.emailAddress
-        ? { ...current, ...leadDetails }
-        : current
-    );
-  }, [leadDetails, selectedLead?.id]);
-
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -158,6 +146,17 @@ const Pipeline = () => {
   const handleResetFilters = () => {
     clearFilters();
   };
+
+  // The card carries only board fields; the fetched record fills in the rest.
+  // Merging here rather than in state keeps the panel correct for leads that
+  // are missing any given field.
+  const leadForPanel = useMemo(() => {
+    if (!selectedLead) return null;
+    if (leadDetails?.id && leadDetails.id === selectedLead.id) {
+      return { ...selectedLead, ...leadDetails, category: selectedLead.category };
+    }
+    return selectedLead;
+  }, [selectedLead, leadDetails]);
 
   const handleOpenLead = (deal) => {
     if (!deal?.id) return;
@@ -344,7 +343,7 @@ const Pipeline = () => {
       {/* Lead details — a centred panel, like the user details modal in
           Settings, so closing it returns straight to the board. */}
       <LeadDetailsModal
-        lead={selectedLead}
+        lead={leadForPanel}
         isOpen={isLeadModalOpen}
         onClose={handleLeadModalClose}
         onOpenFullRecord={handleOpenFullRecord}
