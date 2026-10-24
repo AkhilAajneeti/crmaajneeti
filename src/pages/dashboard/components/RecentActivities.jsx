@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
-import { FestiveMark } from "../../../components/FestiveOrnament";
 import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
 
@@ -58,8 +57,7 @@ const RecentActivities = ({ activities = [] }) => {
     >
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-card-foreground">
-            <FestiveMark size={15} />
+          <h3 className="text-lg font-semibold text-card-foreground">
             Recent Activities
           </h3>
           <p className="text-sm text-muted-foreground">

@@ -11,7 +11,6 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
-import { FestiveMark } from "../../../components/FestiveOrnament";
 import Button from "../../../components/ui/Button";
 import { fetchLeadsCount } from "services/leads.service";
 
@@ -315,8 +314,7 @@ const MultiLineChart = ({ leads = [] }) => {
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
         <div>
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-card-foreground">
-            <FestiveMark size={15} />
+          <h3 className="text-lg font-semibold text-card-foreground">
             Lead Source Performance
           </h3>
          

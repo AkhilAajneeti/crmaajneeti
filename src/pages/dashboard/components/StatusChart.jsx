@@ -9,7 +9,6 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
-import { FestiveMark } from "../../../components/FestiveOrnament";
 import Select from "../../../components/ui/Select";
 import Input from "../../../components/ui/Input";
 import { fetchLeadsCount } from "services/leads.service";
@@ -293,8 +292,7 @@ const StatusChart = () => {
       {/* Header */}
       <div className="flex items-start justify-between mb-6 flex-col">
         <div>
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-card-foreground">
-            <FestiveMark size={15} />
+          <h3 className="text-lg font-semibold text-card-foreground">
             Leads by Status
           </h3>
           <p className="text-sm text-muted-foreground">

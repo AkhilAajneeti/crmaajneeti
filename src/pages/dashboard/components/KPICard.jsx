@@ -1,6 +1,5 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
-import { FestiveMark } from '../../../components/FestiveOrnament';
 
 const KPICard = ({
   title,
@@ -15,13 +14,12 @@ const KPICard = ({
 }) => {
   return (
     <div
-      className={`festive-card-mark relative bg-card border border-border rounded-xl p-3 sm:p-4 md:p-6 shadow-elevation-1  hover:shadow-elevation-2 transition-smooth overflow-hidden
+      className={`relative bg-card border border-border rounded-xl p-3 sm:p-4 md:p-6 shadow-elevation-1  hover:shadow-elevation-2 transition-smooth overflow-hidden
       ${isLoading ? "kpi-shimmer kpi-glow" : ""}`}
     >
-      <div className="relative flex items-start justify-between">
+      <div className="flex items-start justify-between">
         <div className={`flex-1 ${isLoading ? "opacity-50" : ""}`}>
-          <p className="mb-1 flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground sm:mb-2">
-            <FestiveMark size={14} />
+          <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2">
             {title || "Loading..."}
           </p>
 

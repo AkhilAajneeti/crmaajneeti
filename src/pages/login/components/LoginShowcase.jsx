@@ -1,5 +1,5 @@
 import React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
 
 const FEATURES = [
@@ -20,35 +20,6 @@ const FEATURES = [
   },
 ];
 
-// A gust of leaves crosses the panel every 10s. Each leaf takes 6-8s to fall
-// and the gust itself spreads over ~2.4s, so the panel clears before the next
-// one arrives. `repeatDelay` is whatever is left of the 10s after the fall,
-// which is what holds every leaf to the same cadence despite different speeds.
-const BURST_INTERVAL = 10;
-const LEAF_COUNT = 19;
-
-// Deterministic pseudo-random: scattered to the eye, identical on every render,
-// so the leaves do not reshuffle when the component re-renders.
-const scatter = (seed) => {
-  const value = Math.sin(seed * 127.1) * 43758.5453;
-  return value - Math.floor(value);
-};
-
-const LEAVES = Array.from({ length: LEAF_COUNT }, (_, index) => {
-  const at = (offset) => scatter(index * 7 + offset);
-  const duration = 6 + at(1) * 2.2;
-
-  return {
-    left: `${2 + at(0) * 93}%`,
-    size: 13 + Math.round(at(2) * 19),
-    duration,
-    delay: at(3) * 2.4,
-    repeatDelay: BURST_INTERVAL - duration,
-    drift: 20 + at(4) * 42,
-    spin: at(5) > 0.5 ? 1 : -1,
-  };
-});
-
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   show: (i = 0) => ({
@@ -59,71 +30,53 @@ const fadeUp = {
 };
 
 const LoginShowcase = () => {
-  const prefersReducedMotion = useReducedMotion();
-
   return (
-    <div className="relative hidden lg:flex flex-col overflow-hidden bg-[#fef8f1] text-[#0b1527]">
-      {/* Ivory base, warming toward the foot of the panel */}
-      <div className="absolute inset-0 bg-[linear-gradient(175deg,#fffdfa_0%,#fef8f1_52%,#fdf2e6_100%)]" />
+    <div className="relative hidden lg:flex flex-col overflow-hidden bg-[#050c26] text-white">
+      {/* Deep navy base gradient */}
+      <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_0%_0%,#0b1743_0%,#071033_45%,#040a1f_100%)]" />
 
-      {/* Mandala and hanging diya, anchored to the top-right corner */}
-      <img
-        src="/assets/festival/festive-corner-mandala.png"
-        alt=""
+      {/* Blue glow sweeping in from the right edge */}
+      <div className="absolute -top-40 -right-52 h-[620px] w-[620px] rounded-full bg-[#1d4ed8]/40 blur-[130px]" />
+      <div className="absolute top-1/3 -right-24 h-[420px] w-[420px] rounded-full bg-[#2563eb]/25 blur-[120px]" />
+      <div className="absolute -bottom-40 -left-32 h-[460px] w-[460px] rounded-full bg-[#1e40af]/25 blur-[130px]" />
+
+      {/* Faint arc lines in the top-right corner */}
+      <svg
+        className="pointer-events-none absolute -top-24 right-0 h-[420px] w-[420px] opacity-[0.18]"
+        viewBox="0 0 400 400"
+        fill="none"
         aria-hidden="true"
-        className="pointer-events-none absolute -top-8 right-0 w-[clamp(210px,23vw,320px)] select-none opacity-75"
-      />
-
-      {/* The scene sits across the foot of the panel at half strength — enough
-          to carry the festival, light enough to keep the copy above 7:1. Its
-          top edge is masked so it rises out of the cream with no seam. */}
-      <img
-        src="/assets/festival/festive-archer.png"
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 w-full select-none opacity-50 [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,#000_34%)] [mask-image:linear-gradient(to_bottom,transparent_0%,#000_34%)]"
-      />
-
-      {/* Falling leaves */}
-      {!prefersReducedMotion &&
-        LEAVES.map((leaf, index) => (
-          <motion.img
-            key={index}
-            src="/assets/festival/festive-leaf.png"
-            alt=""
-            aria-hidden="true"
-            style={{ left: leaf.left, width: leaf.size }}
-            className="pointer-events-none absolute top-0 select-none"
-            initial={{ y: "-14vh", opacity: 0 }}
-            animate={{
-              // vh, not %, because a percentage translate would be measured
-              // against the leaf itself and barely move it.
-              y: ["-14vh", "114vh"],
-              x: [
-                0,
-                leaf.drift * leaf.spin,
-                leaf.drift * -0.6 * leaf.spin,
-                leaf.drift * 0.4 * leaf.spin,
-                0,
-              ],
-              rotate: [
-                0,
-                70 * leaf.spin,
-                -40 * leaf.spin,
-                55 * leaf.spin,
-                20 * leaf.spin,
-              ],
-              opacity: [0, 0.8, 0.8, 0.6, 0],
-            }}
-            transition={{
-              duration: leaf.duration,
-              delay: leaf.delay,
-              repeat: Infinity,
-              repeatDelay: leaf.repeatDelay,
-              ease: "linear",
-            }}
+      >
+        {[150, 190, 230, 270, 310].map((r) => (
+          <circle
+            key={r}
+            cx="330"
+            cy="70"
+            r={r}
+            stroke="url(#arcStroke)"
+            strokeWidth="1"
           />
         ))}
+        <defs>
+          <linearGradient id="arcStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#93c5fd" stopOpacity="0" />
+            <stop offset="60%" stopColor="#93c5fd" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#93c5fd" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      {/* ── Bottom band: maroon glow + dot matrix ─────────────── */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[52%]">
+        {/* Maroon wash rising from the bottom-left */}
+        <div className="absolute inset-0 bg-[radial-gradient(95%_120%_at_10%_105%,rgba(172,35,52,0.85)_0%,rgba(139,28,45,0.45)_32%,rgba(88,20,52,0.18)_58%,transparent_78%)]" />
+        {/* Crimson core */}
+        <div className="absolute -bottom-24 -left-24 h-[380px] w-[380px] rounded-full bg-[#AC2334]/45 blur-[110px]" />
+        {/* Dot matrix, fading upward */}
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.5)_1.2px,transparent_1.2px)] bg-[size:15px_15px] opacity-25 [mask-image:linear-gradient(to_top,black_15%,transparent_85%)]" />
+        {/* Denser maroon-tinted dots hugging the corner */}
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,140,160,0.65)_1.2px,transparent_1.2px)] bg-[size:15px_15px] opacity-40 [mask-image:radial-gradient(70%_90%_at_12%_100%,black_0%,transparent_70%)]" />
+      </div>
 
       {/* ── Content ─────────────────────────────────────────────── */}
       <div className="relative z-10 flex h-full flex-col px-8 py-[clamp(18px,3vh,40px)] xl:px-10">
@@ -135,7 +88,7 @@ const LoginShowcase = () => {
           className="flex items-center"
         >
           <img
-            src="/assets/aajneeti-logo-dark.png"
+            src="/assets/aajneeti-logo.png"
             alt="Aajneeti Connect"
             className="h-11 w-auto object-contain"
           />
@@ -151,8 +104,8 @@ const LoginShowcase = () => {
               animate="show"
               className="flex items-center gap-3"
             >
-              <span className="h-px w-8 shrink-0 bg-[#ae2131]/70" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ae2131]">
+              <span className="h-px w-8 shrink-0 bg-[#e8546b]/70" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#e8546b]">
                 Performance • Teamwork • Growth
               </p>
             </motion.div>
@@ -166,7 +119,7 @@ const LoginShowcase = () => {
             >
               One workspace.
               <br />
-              <span className="italic text-[#a92334]">
+              <span className="italic text-[#f8d0d8]">
                 Every team, in sync.
               </span>
             </motion.h1>
@@ -176,10 +129,10 @@ const LoginShowcase = () => {
               initial="hidden"
               animate="show"
               custom={1}
-              className="mt-[clamp(12px,2.2vh,24px)] text-[14px] leading-6 text-[#5c656e]"
+              className="mt-[clamp(12px,2.2vh,24px)] text-[14px] leading-6 text-white/70"
             >
               Your work, your team, your goals — all in one place.{" "}
-              <span className="font-semibold text-[#0b1527]">
+              <span className="font-semibold text-white">
                 AAJneeti Connect Limited
               </span>{" "}
               brings people, processes, and performance together to help
@@ -196,18 +149,18 @@ const LoginShowcase = () => {
                   custom={2 + index}
                   className="flex items-start gap-4"
                 >
-                  <span className="flex h-[clamp(40px,5vh,52px)] w-[clamp(40px,5vh,52px)] shrink-0 items-center justify-center rounded-2xl border border-[#f0d3b4] bg-gradient-to-br from-[#fff6ea] to-[#fde6cf] shadow-[0_10px_26px_-14px_rgba(176,88,24,0.75)]">
+                  <span className="flex h-[clamp(40px,5vh,52px)] w-[clamp(40px,5vh,52px)] shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-[#1b3a8f] to-[#0e1c47] shadow-[0_10px_30px_-12px_rgba(37,99,235,0.9)]">
                     <Icon
                       name={feature?.icon}
                       size={22}
-                      className="text-[#c9452f]"
+                      className="text-[#7db2ff]"
                     />
                   </span>
                   <div className="pt-1">
-                    <p className="text-[15px] font-semibold text-[#0b1527]">
+                    <p className="text-[15px] font-semibold text-white">
                       {feature?.title}
                     </p>
-                    <p className="mt-0.5 text-[13px] text-[#6b7480]">
+                    <p className="mt-0.5 text-[13px] text-white/60">
                       {feature?.description}
                     </p>
                   </div>
@@ -225,8 +178,8 @@ const LoginShowcase = () => {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="mt-[clamp(16px,3vh,40px)] flex items-center gap-4"
         >
-          <span className="h-12 w-[3px] rounded-full bg-gradient-to-b from-[#e8873a] via-[#AC2334] to-transparent" />
-          <p className="max-w-lg text-[16px] font-medium italic leading-6 text-[#5c656e]">
+          <span className="h-12 w-[3px] rounded-full bg-gradient-to-b from-[#ff6b83] via-[#AC2334] to-transparent" />
+          <p className="max-w-lg text-[16px] font-medium italic leading-6 text-white/70">
             One team. One platform. Better outcomes.
           </p>
         </motion.div>
