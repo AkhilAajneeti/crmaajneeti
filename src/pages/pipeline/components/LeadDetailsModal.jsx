@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import Icon from "../../../components/AppIcon";
-import { getStatusTheme } from "utils/leadStatus";
+import { getStatusTheme, LEAD_STATUS_OPTIONS } from "utils/leadStatus";
 import { parseEspoToLocal } from "../utils/dateHelpers";
 
 // Accent per classifier category. It tints the header badge, every icon glyph
@@ -133,10 +133,60 @@ const Chip = ({ dot, className = "", children }) => (
  * The open animation is the macOS sheet feel: the panel springs up from 92%
  * with a short overshoot while the backdrop blurs in behind it.
  */
-const LeadDetailsModal = ({ lead, isOpen, onClose, onOpenFullRecord }) => {
+const LeadDetailsModal = ({
+  lead,
+  isOpen,
+  onClose,
+  onOpenFullRecord,
+  onSaveStatus,
+  canEditStatus = false,
+}) => {
+  // Inline status edit. Kept local so a half-finished change is discarded
+  // when the panel closes rather than leaking into the board.
+  const [isEditingStatus, setIsEditingStatus] = useState(false);
+  const [draftStatus, setDraftStatus] = useState("");
+  const [isSavingStatus, setIsSavingStatus] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsEditingStatus(false);
+      setIsSavingStatus(false);
+    }
+  }, [isOpen]);
+
+  const startStatusEdit = () => {
+    setDraftStatus(lead?.status || "");
+    setIsEditingStatus(true);
+  };
+
+  const saveStatus = async () => {
+    if (!draftStatus) {
+      setIsEditingStatus(false);
+      return;
+    }
+    if (draftStatus === lead?.status) {
+      setIsEditingStatus(false);
+      return;
+    }
+    try {
+      setIsSavingStatus(true);
+      await onSaveStatus?.(lead.id, draftStatus);
+      setIsEditingStatus(false);
+    } finally {
+      setIsSavingStatus(false);
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) return undefined;
-    const onKey = (e) => e.key === "Escape" && onClose?.();
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      if (isEditingStatus) {
+        setIsEditingStatus(false);
+        return;
+      }
+      onClose?.();
+    };
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
@@ -144,7 +194,7 @@ const LeadDetailsModal = ({ lead, isOpen, onClose, onOpenFullRecord }) => {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKey);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isEditingStatus]);
 
   const accent = CATEGORY_ACCENT[lead?.category] || CATEGORY_ACCENT.stale;
   const rgb = accent.rgb;
@@ -303,10 +353,84 @@ const LeadDetailsModal = ({ lead, isOpen, onClose, onOpenFullRecord }) => {
                 title="Details"
                 cols="sm:grid-cols-2 xl:grid-cols-4"
               >
-                <MiniField icon="CircleDot" rgb={rgb} label="Status">
-                  {lead?.status ? (
-                    <Chip className={`${statusTheme.pill} !text-[12.5px]`}>{lead.status}</Chip>
-                  ) : null}
+                <MiniField
+                  icon="CircleDot"
+                  rgb={rgb}
+                  label="Status"
+                  className={isEditingStatus ? "sm:col-span-2 xl:col-span-4" : ""}
+                >
+                  {isEditingStatus ? (
+                    <div className="mt-0.5">
+                      <div className="flex max-h-44 flex-wrap gap-1.5 overflow-y-auto pr-1">
+                        {LEAD_STATUS_OPTIONS.map((option) => {
+                          const theme = getStatusTheme(option.value);
+                          const selected = draftStatus === option.value;
+                          return (
+                            <button
+                              key={option.value}
+                              type="button"
+                              aria-pressed={selected}
+                              disabled={isSavingStatus}
+                              onClick={() => setDraftStatus(option.value)}
+                              className={`rounded-full px-2.5 py-1 text-[12.5px] font-semibold transition-all disabled:opacity-60 ${
+                                selected
+                                  ? `${theme.pill} ring-2 ring-offset-1 ring-current`
+                                  : "bg-white/70 text-slate-600 ring-1 ring-black/[0.05] hover:bg-white"
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="mt-2.5 flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={saveStatus}
+                          disabled={isSavingStatus}
+                          className="inline-flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold text-white transition-all hover:brightness-110 disabled:opacity-70"
+                          style={{ background: `rgb(${rgb})` }}
+                        >
+                          <Icon
+                            name={isSavingStatus ? "LoaderCircle" : "Check"}
+                            size={14}
+                            className={isSavingStatus ? "animate-spin" : ""}
+                          />
+                          {isSavingStatus ? "Saving..." : "Save"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingStatus(false)}
+                          disabled={isSavingStatus}
+                          className="rounded-[10px] bg-white/70 px-3 py-1.5 text-[13px] font-semibold text-slate-600 ring-1 ring-black/[0.05] transition-colors hover:bg-white disabled:opacity-60"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      {lead?.status ? (
+                        <Chip className={`${statusTheme.pill} !text-[12.5px]`}>
+                          {lead.status}
+                        </Chip>
+                      ) : (
+                        <span className="font-medium text-slate-400">None</span>
+                      )}
+                      {canEditStatus && onSaveStatus && (
+                        <button
+                          type="button"
+                          onClick={startStatusEdit}
+                          aria-label="Edit status"
+                          title="Edit status"
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/80 text-slate-500 shadow-[0_1px_3px_rgba(15,23,42,0.14),inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-black/[0.05] transition-colors hover:text-slate-900"
+                        >
+                          <Icon name="Pencil" size={13} />
+                        </button>
+                      )}
+                    </span>
+                  )}
                 </MiniField>
 
                 <MiniField icon="Flag" rgb={rgb} label="Priority">

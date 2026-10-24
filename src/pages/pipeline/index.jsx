@@ -20,6 +20,9 @@ import { COLUMN_IDS, DEFAULT_FILTERS } from "./utils/pipelineConstants";
 import { FestiveRule } from "../../components/FestiveOrnament";
 import LeadDetailsModal from "./components/LeadDetailsModal";
 import { useLeadDetails } from "hooks/useLeadDetails";
+import { updateLead } from "services/leads.service";
+import { useQueryClient } from "@tanstack/react-query";
+import { canEdit } from "utils/permissions";
 
 const Pipeline = () => {
   const navigate = useNavigate();
@@ -34,6 +37,9 @@ const Pipeline = () => {
   // they closed it.
   const [selectedLead, setSelectedLead] = useState(null);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+
+  const queryClient = useQueryClient();
+  const canEditLead = canEdit("Lead");
 
   // A card carries only the fields the board needs, so fetch the full record.
   // The card's own data shows immediately in the meantime.
@@ -162,6 +168,26 @@ const Pipeline = () => {
     if (!deal?.id) return;
     setSelectedLead(deal);
     setIsLeadModalOpen(true);
+  };
+
+  // Status is editable straight from the panel. A change can re-bucket the
+  // lead, so the board is refetched alongside the record itself.
+  const handleSaveLeadStatus = async (id, status) => {
+    if (!canEditLead || !id) return;
+    try {
+      await updateLead(id, { status });
+      setSelectedLead((current) =>
+        current && current.id === id ? { ...current, status } : current
+      );
+      queryClient.invalidateQueries({ queryKey: ["leads"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["leadDetails", id] });
+      refetch();
+      toast.success("Status updated");
+    } catch (err) {
+      console.error("Status update failed", err);
+      toast.error("Could not update the status");
+      throw err;
+    }
   };
 
   const handleLeadModalClose = () => {
@@ -347,6 +373,8 @@ const Pipeline = () => {
         isOpen={isLeadModalOpen}
         onClose={handleLeadModalClose}
         onOpenFullRecord={handleOpenFullRecord}
+        onSaveStatus={handleSaveLeadStatus}
+        canEditStatus={canEditLead}
       />
 
       <VersionHistoryModal
