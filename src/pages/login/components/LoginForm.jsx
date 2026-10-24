@@ -119,15 +119,15 @@ const LoginForm = () => {
   };
 
   const fieldClasses =
-    "h-[clamp(42px,5.6vh,52px)] rounded-xl border-[#ecdccb] bg-white pl-11 text-[14px] text-[#2a3140] shadow-[0_1px_2px_rgba(120,52,24,0.05)] placeholder:text-[#b4a494] transition-colors focus-visible:ring-2 focus-visible:ring-[#ae2131]/25 focus-visible:ring-offset-0 focus-visible:border-[#ae2131]";
+    "h-[clamp(42px,5.6vh,52px)] rounded-xl border-slate-200 bg-white pl-11 text-[14px] text-slate-800 shadow-[0_1px_2px_rgba(15,23,42,0.04)] placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-[#2563eb]/30 focus-visible:ring-offset-0 focus-visible:border-[#2563eb]";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-[clamp(12px,2.2vh,22px)]">
       {errors.general && (
-        <div className="rounded-xl border border-[#f0c9ce] bg-[#fdf0f1] p-3.5">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3.5">
           <div className="flex items-center space-x-2">
-            <Icon name="AlertCircle" size={16} className="text-[#ae2131]" />
-            <p className="text-sm text-[#8e1526]">{errors.general}</p>
+            <Icon name="AlertCircle" size={16} className="text-red-500" />
+            <p className="text-sm text-red-700">{errors.general}</p>
           </div>
         </div>
       )}
@@ -136,9 +136,9 @@ const LoginForm = () => {
       <div className="space-y-2">
         <label
           htmlFor="login-username"
-          className="block text-[14px] font-semibold text-[#2a3140]"
+          className="block text-[14px] font-semibold text-slate-700"
         >
-          Username <span className="text-[#ae2131]">*</span>
+          Username <span className="text-red-500">*</span>
         </label>
         <Input
           id="login-username"
@@ -158,9 +158,9 @@ const LoginForm = () => {
       <div className="space-y-2">
         <label
           htmlFor="login-password"
-          className="block text-[14px] font-semibold text-[#2a3140]"
+          className="block text-[14px] font-semibold text-slate-700"
         >
-          Password <span className="text-[#ae2131]">*</span>
+          Password <span className="text-red-500">*</span>
         </label>
         <div className="relative">
           <Input
@@ -181,7 +181,7 @@ const LoginForm = () => {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? "Hide password" : "Show password"}
-            className="absolute right-3.5 top-[calc(clamp(42px,5.6vh,52px)/2)] -translate-y-1/2 text-[#b4a494] transition-colors hover:text-[#ae2131]"
+            className="absolute right-3.5 top-[calc(clamp(42px,5.6vh,52px)/2)] -translate-y-1/2 text-slate-400 transition-colors hover:text-[#2563eb]"
           >
             <Icon name={showPassword ? "EyeOff" : "Eye"} size={18} />
           </button>
@@ -196,9 +196,9 @@ const LoginForm = () => {
           checked={formData.rememberMe}
           onChange={handleInputChange}
           disabled={isLoading}
-          className={`items-center [&_.peer]:h-[18px] [&_.peer]:w-[18px] [&_.peer]:rounded-[5px] [&_.peer]:border-[#ae2131] [&_label]:text-[13.5px] [&_label]:text-[#6b7585] ${
+          className={`items-center [&_.peer]:h-[18px] [&_.peer]:w-[18px] [&_.peer]:rounded-[5px] [&_.peer]:border-[#2563eb] [&_label]:text-[13.5px] [&_label]:text-slate-600 ${
             formData.rememberMe
-              ? "[&_.peer]:bg-[#ae2131] [&_.peer]:text-white"
+              ? "[&_.peer]:bg-[#2563eb] [&_.peer]:text-white"
               : ""
           }`}
         />
@@ -210,28 +210,26 @@ const LoginForm = () => {
         fullWidth
         loading={isLoading}
         disabled={isLoading}
-        className="group mt-1 h-[clamp(46px,6.4vh,58px)] rounded-2xl bg-gradient-to-r from-[#8e1526] via-[#ae2131] to-[#8e1526] text-[16px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(174,33,49,0.85)] transition-all hover:brightness-110 hover:shadow-[0_20px_42px_-14px_rgba(174,33,49,0.95)]"
+        className="mt-1 h-[clamp(46px,6.4vh,58px)] rounded-2xl bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#1e40af] text-[16px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(37,99,235,0.95)] transition-all hover:brightness-110 hover:shadow-[0_20px_40px_-14px_rgba(37,99,235,1)]"
       >
-        <span className="flex items-center justify-center gap-2.5">
-          {isLoading ? "Signing In..." : "Sign In"}
+        <span className="flex items-center justify-center gap-3">
           {!isLoading && (
-            <Icon
-              name="ArrowRight"
-              size={17}
-              className="transition-transform duration-300 group-hover:translate-x-1"
-            />
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+              <Icon name="ArrowRight" size={17} />
+            </span>
           )}
+          {isLoading ? "Signing In..." : "Sign In"}
         </span>
       </Button>
 
       {/* Secure footer */}
       <div className="flex items-center gap-3 pt-1">
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent to-[#ead6c2]" />
-        <span className="flex items-center gap-1.5 whitespace-nowrap text-[12.5px] text-[#8b7c6d]">
-          <Icon name="ShieldCheck" size={14} className="text-[#ae2131]" />
+        <span className="h-px flex-1 bg-slate-200" />
+        <span className="flex items-center gap-1.5 whitespace-nowrap text-[12.5px] text-slate-500">
+          <Icon name="ShieldCheck" size={14} className="text-[#2563eb]" />
           Secure CRM Access
         </span>
-        <span className="h-px flex-1 bg-gradient-to-l from-transparent to-[#ead6c2]" />
+        <span className="h-px flex-1 bg-slate-200" />
       </div>
     </form>
   );
