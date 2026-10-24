@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Icon from "../AppIcon";
-import FestiveGreeting from "../FestiveGreeting";
 import Button from "./Button";
 
 import { fetchNotifications } from "services/notification.service";
@@ -84,13 +83,6 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b border-border z-40">
-        {/* Festival greeting, centred in the bar. Live text, so it stays
-            sharp at any zoom or pixel density — see FestiveGreeting. Inert,
-            and hidden below xl where the bar has no room to spare. */}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 xl:block">
-          <FestiveGreeting />
-        </div>
-
         <div className="relative flex items-center justify-between h-full px-4 lg:px-6">
           {/* Left Section - Mobile Menu & Logo */}
           <div className="flex items-center space-x-4">
