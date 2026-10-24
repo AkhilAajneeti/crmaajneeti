@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import Header from "../../components/ui/Header";
 import Sidebar from "../../components/ui/Sidebar";
 import Icon from "../../components/AppIcon";
@@ -17,30 +18,25 @@ import { usePipelineData } from "./hooks/usePipelineData";
 import { usePipelineFilters } from "./hooks/usePipelineFilters";
 import { COLUMN_IDS, DEFAULT_FILTERS } from "./utils/pipelineConstants";
 import { FestiveRule } from "../../components/FestiveOrnament";
-// The leads drawer is reused as-is; the Leads page is not touched.
-import DealDrawer from "../deals/components/DealDrawer";
+import LeadDetailsModal from "./components/LeadDetailsModal";
 import { useLeadDetails } from "hooks/useLeadDetails";
-import { updateLead, deleteActivity } from "services/leads.service";
-import { useQueryClient } from "@tanstack/react-query";
-import { canEdit } from "utils/permissions";
 
 const Pipeline = () => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAddDealModalOpen, setIsAddDealModalOpen] = useState(false);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
   const [selectedDealForHistory, setSelectedDealForHistory] = useState(null);
   const [selectedStage, setSelectedStage] = useState(null);
 
-  // Lead drawer, opened over the board. Clicking a card used to navigate to
-  // /Lead/view/:id, which left the user on the Leads page after closing.
+  // Lead details, shown in a panel over the board. Clicking a card used to
+  // navigate to /Lead/view/:id, which left the user on the Leads page once
+  // they closed it.
   const [selectedLead, setSelectedLead] = useState(null);
-  const [isLeadDrawerOpen, setIsLeadDrawerOpen] = useState(false);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
 
-  const queryClient = useQueryClient();
-  const canEditLead = canEdit("Lead");
-
-  // A card carries only the fields the board needs, so fetch the full record
-  // for the drawer. The card's own data shows immediately in the meantime.
+  // A card carries only the fields the board needs, so fetch the full record.
+  // The card's own data shows immediately in the meantime.
   const { data: leadDetails } = useLeadDetails(selectedLead?.id, "view");
 
   // Pipeline data + filters — single source of truth lives in the store and
@@ -89,8 +85,8 @@ const Pipeline = () => {
   ];
 
 
-  // Promote the card's partial record to the full one so the drawer's form
-  // initialises with real values rather than the handful of board fields.
+  // Merge the full record into the card's partial one, so the panel fills in
+  // email, source and the rest once the fetch lands.
   useEffect(() => {
     if (!selectedLead?.id || !leadDetails) return;
     if (leadDetails.id !== selectedLead.id) return;
@@ -166,40 +162,17 @@ const Pipeline = () => {
   const handleOpenLead = (deal) => {
     if (!deal?.id) return;
     setSelectedLead(deal);
-    setIsLeadDrawerOpen(true);
+    setIsLeadModalOpen(true);
   };
 
-  const handleLeadDrawerClose = () => {
-    setIsLeadDrawerOpen(false);
+  const handleLeadModalClose = () => {
+    setIsLeadModalOpen(false);
     setSelectedLead(null);
   };
 
-  // Saving from the drawer has to refresh the board as well: a status or
-  // follow-up change can move the lead into a different column.
-  const handleLeadUpdate = async (id, payload) => {
-    if (!canEditLead) return;
-    try {
-      await updateLead(id, payload);
-      toast.success("Lead updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["leads"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["leadDetails", id] });
-      refetch();
-    } catch (err) {
-      console.error("Lead update failed", err);
-      toast.error("Could not update the lead");
-    }
-  };
-
-  // The drawer's stream lets you delete a feedback entry; it delegates to the
-  // page, so without this the button would throw.
-  const handleDeleteLeadActivity = async (id) => {
-    try {
-      await deleteActivity(id);
-      toast.success("Activity deleted successfully");
-    } catch (err) {
-      console.error("Delete failed", err);
-      toast.error("Could not delete the activity");
-    }
+  // Escape hatch for editing, which the panel itself is read-only about.
+  const handleOpenFullRecord = (lead) => {
+    if (lead?.id) navigate(`/Lead/view/${lead.id}`);
   };
 
   const handleOpenVersionHistory = (dealId) => {
@@ -368,17 +341,13 @@ const Pipeline = () => {
         onSave={handleSaveDeal}
         initialStage={selectedStage}
       />
-      {/* Lead drawer — same component the Leads page uses, rendered here so
-          closing it returns to the board instead of another page. */}
-      <DealDrawer
-        deal={selectedLead}
-        leadsDetails={leadDetails}
-        mode="view"
-        isOpen={isLeadDrawerOpen}
-        onClose={handleLeadDrawerClose}
-        onUpdate={handleLeadUpdate}
-        onDelete={handleDeleteLeadActivity}
-        selectedIds={[]}
+      {/* Lead details — a centred panel, like the user details modal in
+          Settings, so closing it returns straight to the board. */}
+      <LeadDetailsModal
+        lead={selectedLead}
+        isOpen={isLeadModalOpen}
+        onClose={handleLeadModalClose}
+        onOpenFullRecord={handleOpenFullRecord}
       />
 
       <VersionHistoryModal
