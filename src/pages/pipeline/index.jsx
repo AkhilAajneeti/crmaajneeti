@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import Header from "../../components/ui/Header";
 import Sidebar from "../../components/ui/Sidebar";
@@ -17,6 +17,12 @@ import { usePipelineData } from "./hooks/usePipelineData";
 import { usePipelineFilters } from "./hooks/usePipelineFilters";
 import { COLUMN_IDS, DEFAULT_FILTERS } from "./utils/pipelineConstants";
 import { FestiveRule } from "../../components/FestiveOrnament";
+// The leads drawer is reused as-is; the Leads page is not touched.
+import DealDrawer from "../deals/components/DealDrawer";
+import { useLeadDetails } from "hooks/useLeadDetails";
+import { updateLead, deleteActivity } from "services/leads.service";
+import { useQueryClient } from "@tanstack/react-query";
+import { canEdit } from "utils/permissions";
 
 const Pipeline = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -24,6 +30,18 @@ const Pipeline = () => {
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
   const [selectedDealForHistory, setSelectedDealForHistory] = useState(null);
   const [selectedStage, setSelectedStage] = useState(null);
+
+  // Lead drawer, opened over the board. Clicking a card used to navigate to
+  // /Lead/view/:id, which left the user on the Leads page after closing.
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [isLeadDrawerOpen, setIsLeadDrawerOpen] = useState(false);
+
+  const queryClient = useQueryClient();
+  const canEditLead = canEdit("Lead");
+
+  // A card carries only the fields the board needs, so fetch the full record
+  // for the drawer. The card's own data shows immediately in the meantime.
+  const { data: leadDetails } = useLeadDetails(selectedLead?.id, "view");
 
   // Pipeline data + filters — single source of truth lives in the store and
   // React Query; this hook owns the cNextContact fetch, classification, and
@@ -70,6 +88,18 @@ const Pipeline = () => {
     { id: COLUMN_IDS.STALE, name: "Stale", color: "gray" },
   ];
 
+
+  // Promote the card's partial record to the full one so the drawer's form
+  // initialises with real values rather than the handful of board fields.
+  useEffect(() => {
+    if (!selectedLead?.id || !leadDetails) return;
+    if (leadDetails.id !== selectedLead.id) return;
+    setSelectedLead((current) =>
+      current && current.id === leadDetails.id && !current.emailAddress
+        ? { ...current, ...leadDetails }
+        : current
+    );
+  }, [leadDetails, selectedLead?.id]);
 
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -131,6 +161,45 @@ const Pipeline = () => {
 
   const handleResetFilters = () => {
     clearFilters();
+  };
+
+  const handleOpenLead = (deal) => {
+    if (!deal?.id) return;
+    setSelectedLead(deal);
+    setIsLeadDrawerOpen(true);
+  };
+
+  const handleLeadDrawerClose = () => {
+    setIsLeadDrawerOpen(false);
+    setSelectedLead(null);
+  };
+
+  // Saving from the drawer has to refresh the board as well: a status or
+  // follow-up change can move the lead into a different column.
+  const handleLeadUpdate = async (id, payload) => {
+    if (!canEditLead) return;
+    try {
+      await updateLead(id, payload);
+      toast.success("Lead updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["leads"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["leadDetails", id] });
+      refetch();
+    } catch (err) {
+      console.error("Lead update failed", err);
+      toast.error("Could not update the lead");
+    }
+  };
+
+  // The drawer's stream lets you delete a feedback entry; it delegates to the
+  // page, so without this the button would throw.
+  const handleDeleteLeadActivity = async (id) => {
+    try {
+      await deleteActivity(id);
+      toast.success("Activity deleted successfully");
+    } catch (err) {
+      console.error("Delete failed", err);
+      toast.error("Could not delete the activity");
+    }
   };
 
   const handleOpenVersionHistory = (dealId) => {
@@ -221,6 +290,7 @@ const Pipeline = () => {
                               stage={stage}
                               deals={getDealsBySection(stage.id)}
                               onViewHistory={handleOpenVersionHistory}
+                              onOpenDeal={handleOpenLead}
                               onAddDeal={handleAddDeal}
                               onEditDeal={handleEditDeal}
                               onDeleteDeal={handleDeleteDeal}
@@ -298,6 +368,19 @@ const Pipeline = () => {
         onSave={handleSaveDeal}
         initialStage={selectedStage}
       />
+      {/* Lead drawer — same component the Leads page uses, rendered here so
+          closing it returns to the board instead of another page. */}
+      <DealDrawer
+        deal={selectedLead}
+        leadsDetails={leadDetails}
+        mode="view"
+        isOpen={isLeadDrawerOpen}
+        onClose={handleLeadDrawerClose}
+        onUpdate={handleLeadUpdate}
+        onDelete={handleDeleteLeadActivity}
+        selectedIds={[]}
+      />
+
       <VersionHistoryModal
         isOpen={isVersionModalOpen}
         onClose={() => setIsVersionModalOpen(false)}

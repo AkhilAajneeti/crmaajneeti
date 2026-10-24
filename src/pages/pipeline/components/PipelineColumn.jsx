@@ -51,6 +51,7 @@ const PipelineColumn = ({
   onDeleteDeal,
   onCloneDeal,
   onViewHistory,
+  onOpenDeal,
 }) => {
   const tone = TONE_STYLES[stage?.id] || TONE_STYLES.stale;
   const description = COLUMN_DESCRIPTIONS[stage?.id] || "";
@@ -111,6 +112,7 @@ const PipelineColumn = ({
                     onDelete={() => onDeleteDeal && onDeleteDeal(deal.id)}
                     onClone={() => onCloneDeal && onCloneDeal(deal)}
                     onViewHistory={onViewHistory}
+                    onOpen={onOpenDeal}
                   />
                 </motion.div>
               )}

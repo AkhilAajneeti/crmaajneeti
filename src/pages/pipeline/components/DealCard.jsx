@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { parseEspoToLocal, daysSince } from "../utils/dateHelpers";
 
-// Tone per classifier category — drives the card's left border, the
+// Tone per classifier category — drives the card's border and shadow, the
 // next-follow-up date color, and the urgency-pill bullet color.
 const CATEGORY_TONE = {
   overdue: {
@@ -13,36 +12,54 @@ const CATEGORY_TONE = {
     date: "text-red-600",
     pillBg: "bg-red-50 text-red-700",
     bullet: "bg-red-500",
+    ring: "border-red-200",
+    shadow:
+      "shadow-[0_2px_10px_-4px_rgba(239,68,68,0.45)] hover:shadow-[0_8px_20px_-8px_rgba(239,68,68,0.65)]",
   },
   due_today: {
     border: "border-l-amber-500",
     date: "text-amber-600",
     pillBg: "bg-amber-50 text-amber-700",
     bullet: "bg-amber-500",
+    ring: "border-amber-200",
+    shadow:
+      "shadow-[0_2px_10px_-4px_rgba(245,158,11,0.45)] hover:shadow-[0_8px_20px_-8px_rgba(245,158,11,0.65)]",
   },
   upcoming: {
     border: "border-l-blue-500",
     date: "text-blue-600",
     pillBg: "bg-blue-50 text-blue-700",
     bullet: "bg-blue-500",
+    ring: "border-blue-200",
+    shadow:
+      "shadow-[0_2px_10px_-4px_rgba(59,130,246,0.45)] hover:shadow-[0_8px_20px_-8px_rgba(59,130,246,0.65)]",
   },
   active: {
     border: "border-l-emerald-500",
     date: "text-emerald-600",
     pillBg: "bg-emerald-50 text-emerald-700",
     bullet: "bg-emerald-500",
+    ring: "border-emerald-200",
+    shadow:
+      "shadow-[0_2px_10px_-4px_rgba(16,185,129,0.45)] hover:shadow-[0_8px_20px_-8px_rgba(16,185,129,0.65)]",
   },
   budget_issue: {
     border: "border-l-purple-500",
     date: "text-purple-600",
     pillBg: "bg-purple-50 text-purple-700",
     bullet: "bg-purple-500",
+    ring: "border-purple-200",
+    shadow:
+      "shadow-[0_2px_10px_-4px_rgba(168,85,247,0.45)] hover:shadow-[0_8px_20px_-8px_rgba(168,85,247,0.65)]",
   },
   stale: {
     border: "border-l-gray-400",
     date: "text-gray-600",
     pillBg: "bg-gray-100 text-gray-700",
     bullet: "bg-gray-400",
+    ring: "border-gray-200",
+    shadow:
+      "shadow-[0_2px_10px_-4px_rgba(156,163,175,0.45)] hover:shadow-[0_8px_20px_-8px_rgba(156,163,175,0.65)]",
   },
 };
 
@@ -123,20 +140,20 @@ const getActivityLabel = (lastActivity) => {
   return formatShortDate(lastActivity);
 };
 
-const DealCard = ({ deal = {}, onDelete, onViewHistory }) => {
+const DealCard = ({ deal = {}, onDelete, onViewHistory, onOpen }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const navigate = useNavigate();
 
   const tone = CATEGORY_TONE[deal.category] || CATEGORY_TONE.stale;
   const urgency = getUrgencyLabel(deal.category, deal.nextContact);
   const priority = getPriorityPill(deal.priority);
 
-  // Open this lead in the Deals page via the EspoCRM-style deep link.
-  // stopPropagation so the click doesn't fight the drag handler.
-  const openInDeals = (e) => {
+  // Hand the lead up to the Pipeline page, which opens it in a drawer over
+  // the board. Leaving for /leads meant closing the drawer stranded you on
+  // another page. stopPropagation so the click doesn't fight the drag handler.
+  const openLead = (e) => {
     if (e) e.stopPropagation();
-    if (!deal?.id) return;
-    navigate(`/Lead/view/${deal.id}`);
+    if (!deal?.id || !onOpen) return;
+    onOpen(deal);
   };
 
   // Lead name fallbacks: name → firstName lastName → fallback string.
@@ -155,7 +172,7 @@ const DealCard = ({ deal = {}, onDelete, onViewHistory }) => {
 
   return (
     <motion.div
-      className={`relative bg-white border border-border border-l-[4px] ${tone.border} rounded-xl p-4 cursor-grab active:cursor-grabbing transition-shadow hover:shadow-md`}
+      className={`relative bg-white border border-l-[4px] ${tone.border} ${tone.ring} ${tone.shadow} rounded-xl p-4 cursor-grab active:cursor-grabbing transition-shadow`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       whileHover={{ y: -1 }}
@@ -181,13 +198,13 @@ const DealCard = ({ deal = {}, onDelete, onViewHistory }) => {
         </div>
       )}
 
-      {/* Header — name + subtitle. Name is a button that opens the lead's
-          drawer on the Deals page via the EspoCRM-style /Lead/view/:id route. */}
+      {/* Header — name + subtitle. The name opens the lead in the drawer
+          that sits over the board, so the user never leaves the pipeline. */}
       <div className="pr-12">
         <button
           type="button"
-          onClick={openInDeals}
-          title="Open in Leads"
+          onClick={openLead}
+          title="Open lead"
           className="block text-left font-semibold text-[15px] text-foreground leading-tight truncate hover:text-primary hover:underline focus:outline-none focus:text-primary"
         >
           {name}
