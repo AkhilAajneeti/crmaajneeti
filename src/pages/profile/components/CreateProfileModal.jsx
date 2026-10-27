@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import Icon from "../../../components/AppIcon";
-import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import { useUsers } from "hooks/useUsers";
@@ -78,24 +79,41 @@ Bank Name: ${bank.bankName}
 Account Number: ${bank.accountNumber}
 IFSC: ${bank.ifsc}`;
 
+// Field chrome. Inputs sit on the glass as their own slightly-raised
+// surfaces, so the form reads as layers rather than boxes on a panel.
+const FIELD =
+  "h-11 rounded-xl border-transparent bg-white/75 text-[14px] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-black/[0.06] placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-primary/40";
+
+// Select renders its own trigger button, so reach it through the wrapper
+// rather than editing the shared component.
+const SELECT_FIELD =
+  "[&>div>button]:h-11 [&>div>button]:rounded-xl [&>div>button]:border-transparent [&>div>button]:bg-white/75 [&>div>button]:text-[14px] [&>div>button]:shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] [&>div>button]:ring-1 [&>div>button]:ring-black/[0.06]";
+
+const TEXTAREA =
+  "w-full rounded-xl border-transparent bg-white/75 px-3.5 py-2.5 text-[14px] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-black/[0.06] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60";
+
 const Field = ({ label, required, hint, className = "", children }) => (
   <div className={`space-y-1.5 ${className}`}>
-    <label className="block text-[13px] font-medium text-foreground">
+    <label className="block text-[11.5px] font-semibold uppercase tracking-[0.12em] text-slate-500">
       {label} {required && <span className="text-primary">*</span>}
     </label>
     {children}
-    {hint && <p className="text-[11.5px] text-muted-foreground">{hint}</p>}
+    {hint && <p className="text-[11.5px] text-slate-400">{hint}</p>}
   </div>
 );
 
-const SectionTitle = ({ icon, children }) => (
-  <div className="col-span-full flex items-center gap-2 pt-1">
-    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-      <Icon name={icon} size={15} />
-    </span>
-    <h4 className="text-sm font-semibold text-foreground">{children}</h4>
-    <span className="h-px flex-1 bg-border" />
-  </div>
+/** A titled glass card. Each group is its own surface on the panel. */
+const Section = ({ icon, title, children }) => (
+  <section className="rounded-[20px] bg-white/55 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] ring-1 ring-white/60 sm:p-5">
+    <div className="mb-4 flex items-center gap-2.5">
+      <span className="flex h-8 w-8 items-center justify-center rounded-[11px] bg-white text-primary shadow-[0_2px_6px_-2px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-black/[0.03]">
+        <Icon name={icon} size={16} />
+      </span>
+      <h4 className="text-[15px] font-semibold text-slate-900">{title}</h4>
+      <span className="h-px flex-1 bg-gradient-to-r from-black/[0.10] to-transparent" />
+    </div>
+    <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2">{children}</div>
+  </section>
 );
 
 /**
@@ -147,8 +165,6 @@ const CreateProfileModal = ({ isOpen, onClose, onCreate }) => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, isSaving, onClose]);
-
-  if (!isOpen) return null;
 
   const set = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -207,370 +223,445 @@ const CreateProfileModal = ({ isOpen, onClose, onCreate }) => {
     }
   };
 
-  return (
-    <>
-      <div
-        className="fixed inset-0 z-50 bg-black/50"
-        onClick={() => !isSaving && onClose()}
-      />
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
+          <motion.div
+            className="absolute inset-0 bg-slate-900/35 backdrop-blur-[5px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            onClick={() => !isSaving && onClose()}
+          />
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-border p-6">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Icon name="UserPlus" size={20} />
-              </span>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">
-                  Add Profile
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Name, designation, department and official contacts come from
-                  the linked user.
-                </p>
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Add profile"
+            className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[28px] bg-white/75 backdrop-blur-2xl ring-1 ring-white/70"
+            style={{
+              boxShadow:
+                "0 50px 110px -35px rgba(15,23,42,0.55), 0 0 0 1px rgba(172,35,52,0.1), 0 24px 70px -30px rgba(172,35,52,0.35), inset 0 1px 0 rgba(255,255,255,0.85)",
+            }}
+            initial={{ opacity: 0, scale: 0.92, y: 18 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94, y: 10 }}
+            transition={{ type: "spring", stiffness: 280, damping: 24, mass: 0.9 }}
+          >
+            {/* Accent wash down from the top edge */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-primary/[0.12] to-transparent"
+            />
+
+            {/* Header */}
+            <div className="relative flex items-start justify-between gap-4 px-6 pt-6 pb-5 sm:px-7">
+              <div className="flex min-w-0 items-center gap-4">
+                <span
+                  className="flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-full text-white"
+                  style={{
+                    background: "linear-gradient(160deg, #b2152f, #8e1526)",
+                    boxShadow:
+                      "0 10px 26px -10px rgba(172,35,52,0.9), 0 0 0 10px rgba(172,35,52,0.1), inset 0 1px 0 rgba(255,255,255,0.35)",
+                  }}
+                >
+                  <Icon name="UserPlus" size={24} />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="text-[23px] font-bold leading-tight tracking-tight text-slate-900">
+                    Add Profile
+                  </h3>
+                  <p className="mt-1 text-[13.5px] text-slate-500">
+                    Name, designation, department and official contacts come
+                    from the linked user.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <button
-              type="button"
-              onClick={() => !isSaving && onClose()}
-              aria-label="Close"
-              className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <Icon name="X" size={20} />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-            <div className="grid grid-cols-1 gap-x-5 gap-y-4 overflow-y-auto p-6 sm:grid-cols-2">
-              <SectionTitle icon="UserCog">Linked user</SectionTitle>
-
-              <Field label="Assigned User" required>
-                <Select
-                  options={userOptions}
-                  value={form.assignedUserId}
-                  onChange={(v) => set("assignedUserId", v)}
-                  placeholder="Select user"
-                  searchable
-                  error={errors.assignedUserId}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Teams">
-                <Select
-                  options={teamOptions}
-                  value={form.teamsIds}
-                  onChange={(v) => set("teamsIds", Array.isArray(v) ? v : [v])}
-                  placeholder="Select teams"
-                  multiple
-                  searchable
-                  clearable
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <SectionTitle icon="BriefcaseBusiness">Employment</SectionTitle>
-
-              <Field label="Emp code" required>
-                <Input
-                  value={form.empCode}
-                  onChange={(e) => set("empCode", e.target.value)}
-                  placeholder="e.g. 2026D000026"
-                  error={errors.empCode}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Gender" required>
-                <Select
-                  options={GENDER_OPTIONS}
-                  value={form.gender}
-                  onChange={(v) => set("gender", v)}
-                  placeholder="Select gender"
-                  error={errors.gender}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Organisation">
-                <Select
-                  options={ORGANISATION_OPTIONS}
-                  value={form.organisation}
-                  onChange={(v) => set("organisation", v)}
-                  placeholder="Select organisation"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Shift Timings">
-                <Select
-                  options={SHIFT_TIMING_OPTIONS}
-                  value={form.shiftTimings}
-                  onChange={(v) => set("shiftTimings", v)}
-                  placeholder="Select shift"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Joining Date">
-                <Input
-                  type="date"
-                  value={form.joiningDate}
-                  onChange={(e) => set("joiningDate", e.target.value)}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Last Appraisal Date">
-                <Input
-                  type="date"
-                  value={form.lastAppraisalDate}
-                  onChange={(e) => set("lastAppraisalDate", e.target.value)}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Next Appraisal Date">
-                <Input
-                  type="date"
-                  value={form.nextAppraisalDate}
-                  onChange={(e) => set("nextAppraisalDate", e.target.value)}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Exit Date">
-                <Input
-                  type="date"
-                  value={form.exitDate}
-                  onChange={(e) => set("exitDate", e.target.value)}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="FNF Date">
-                <Input
-                  type="date"
-                  value={form.fNFDate}
-                  onChange={(e) => set("fNFDate", e.target.value)}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <SectionTitle icon="Contact">Contact</SectionTitle>
-
-              <Field label='Official "@gmail.com"'>
-                <Input
-                  type="email"
-                  value={form.officialGmail}
-                  onChange={(e) => set("officialGmail", e.target.value)}
-                  placeholder="name@gmail.com"
-                  error={errors.officialGmail}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Personal Email">
-                <Input
-                  type="email"
-                  value={form.personalEmail}
-                  onChange={(e) => set("personalEmail", e.target.value)}
-                  placeholder="name@example.com"
-                  error={errors.personalEmail}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Personal Mobile">
-                <Input
-                  value={form.personalMobile}
-                  onChange={(e) => set("personalMobile", e.target.value)}
-                  placeholder="+91 98765 43210"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Emergency Contact Person">
-                <Input
-                  value={form.emergencyContactPerson}
-                  onChange={(e) => set("emergencyContactPerson", e.target.value)}
-                  placeholder="Name and relation"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Emergency Contact Number">
-                <Input
-                  value={form.emergencyContactNumber}
-                  onChange={(e) => set("emergencyContactNumber", e.target.value)}
-                  placeholder="+91 98765 43210"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Local Address" className="sm:col-span-2">
-                <Input
-                  value={form.localAddress}
-                  onChange={(e) => set("localAddress", e.target.value)}
-                  placeholder="Current address"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Permanent Address" className="sm:col-span-2">
-                <Input
-                  value={form.permanentAddress}
-                  onChange={(e) => set("permanentAddress", e.target.value)}
-                  placeholder="Permanent address"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <SectionTitle icon="Cake">Personal</SectionTitle>
-
-              <Field label="Salutation">
-                <Select
-                  options={SALUTATION_OPTIONS}
-                  value={form.salutationName}
-                  onChange={(v) => set("salutationName", v)}
-                  placeholder="Select"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Document Birthday" required hint="As printed on official documents.">
-                <Input
-                  type="date"
-                  value={form.documentBirthday}
-                  onChange={(e) => set("documentBirthday", e.target.value)}
-                  error={errors.documentBirthday}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Celebration Birthday">
-                <Input
-                  type="date"
-                  value={form.birthday}
-                  onChange={(e) => set("birthday", e.target.value)}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Wedding Anniversary">
-                <Input
-                  type="date"
-                  value={form.weddingAnniversary}
-                  onChange={(e) => set("weddingAnniversary", e.target.value)}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <SectionTitle icon="Landmark">Bank details</SectionTitle>
-
-              <Field label="UPI ID">
-                <Input
-                  value={bank.upiId}
-                  onChange={(e) => setBankField("upiId", e.target.value)}
-                  placeholder="name@oksbi"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="UAN No">
-                <Input
-                  value={bank.uanNo}
-                  onChange={(e) => setBankField("uanNo", e.target.value)}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Account Holder Name">
-                <Input
-                  value={bank.name}
-                  onChange={(e) => setBankField("name", e.target.value)}
-                  placeholder="As per bank records"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Bank Name">
-                <Input
-                  value={bank.bankName}
-                  onChange={(e) => setBankField("bankName", e.target.value)}
-                  placeholder="e.g. ICICI Bank"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="Account Number">
-                <Input
-                  value={bank.accountNumber}
-                  onChange={(e) => setBankField("accountNumber", e.target.value)}
-                  disabled={isSaving}
-                />
-              </Field>
-
-              <Field label="IFSC">
-                <Input
-                  value={bank.ifsc}
-                  onChange={(e) => setBankField("ifsc", e.target.value)}
-                  placeholder="e.g. ICIC0000915"
-                  disabled={isSaving}
-                />
-              </Field>
-
-              {errors.bank && (
-                <p className="col-span-full -mt-1 text-[12.5px] text-destructive">
-                  {errors.bank}
-                </p>
-              )}
-
-              <SectionTitle icon="NotepadText">Other</SectionTitle>
-
-              <Field label="Profile" className="sm:col-span-2">
-                <textarea
-                  rows={3}
-                  value={form.profile}
-                  onChange={(e) => set("profile", e.target.value)}
-                  placeholder="Short bio or notes"
-                  disabled={isSaving}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
-                />
-              </Field>
-
-              <Field label="Monthly Attendance Summary" className="sm:col-span-2">
-                <textarea
-                  rows={2}
-                  value={form.monthlyAttendanceSummary}
-                  onChange={(e) => set("monthlyAttendanceSummary", e.target.value)}
-                  disabled={isSaving}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
-                />
-              </Field>
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-end gap-3 border-t border-border bg-muted/30 px-6 py-4">
-              <Button
+              <button
                 type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isSaving}
+                onClick={() => !isSaving && onClose()}
+                aria-label="Close"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/80 text-slate-600 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.25),inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-white/70 transition-colors hover:bg-white hover:text-slate-900"
               >
-                Cancel
-              </Button>
-              <Button type="submit" loading={isSaving} disabled={isSaving}>
-                {isSaving ? "Creating..." : "Create Profile"}
-              </Button>
+                <Icon name="X" size={18} />
+              </button>
             </div>
-          </form>
+
+            <form onSubmit={handleSubmit} className="relative flex min-h-0 flex-1 flex-col">
+            <div className="space-y-4 overflow-y-auto px-6 py-5 sm:px-7">
+              <Section icon="UserCog" title="Linked user">
+                <Field label="Assigned User" required>
+                  <Select
+                    options={userOptions}
+                    value={form.assignedUserId}
+                    onChange={(v) => set("assignedUserId", v)}
+                    placeholder="Select user"
+                    searchable
+                    error={errors.assignedUserId}
+                    disabled={isSaving}
+                    className={SELECT_FIELD}
+                  />
+                </Field>
+
+                <Field label="Teams">
+                  <Select
+                    options={teamOptions}
+                    value={form.teamsIds}
+                    onChange={(v) => set("teamsIds", Array.isArray(v) ? v : [v])}
+                    placeholder="Select teams"
+                    multiple
+                    searchable
+                    clearable
+                    disabled={isSaving}
+                    className={SELECT_FIELD}
+                  />
+                </Field>
+              </Section>
+
+              <Section icon="BriefcaseBusiness" title="Employment">
+                <Field label="Emp code" required>
+                  <Input
+                    value={form.empCode}
+                    onChange={(e) => set("empCode", e.target.value)}
+                    placeholder="e.g. 2026D000026"
+                    error={errors.empCode}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Gender" required>
+                  <Select
+                    options={GENDER_OPTIONS}
+                    value={form.gender}
+                    onChange={(v) => set("gender", v)}
+                    placeholder="Select gender"
+                    error={errors.gender}
+                    disabled={isSaving}
+                    className={SELECT_FIELD}
+                  />
+                </Field>
+
+                <Field label="Organisation">
+                  <Select
+                    options={ORGANISATION_OPTIONS}
+                    value={form.organisation}
+                    onChange={(v) => set("organisation", v)}
+                    placeholder="Select organisation"
+                    disabled={isSaving}
+                    className={SELECT_FIELD}
+                  />
+                </Field>
+
+                <Field label="Shift Timings">
+                  <Select
+                    options={SHIFT_TIMING_OPTIONS}
+                    value={form.shiftTimings}
+                    onChange={(v) => set("shiftTimings", v)}
+                    placeholder="Select shift"
+                    disabled={isSaving}
+                    className={SELECT_FIELD}
+                  />
+                </Field>
+
+                <Field label="Joining Date">
+                  <Input
+                    type="date"
+                    value={form.joiningDate}
+                    onChange={(e) => set("joiningDate", e.target.value)}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Last Appraisal Date">
+                  <Input
+                    type="date"
+                    value={form.lastAppraisalDate}
+                    onChange={(e) => set("lastAppraisalDate", e.target.value)}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Next Appraisal Date">
+                  <Input
+                    type="date"
+                    value={form.nextAppraisalDate}
+                    onChange={(e) => set("nextAppraisalDate", e.target.value)}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Exit Date">
+                  <Input
+                    type="date"
+                    value={form.exitDate}
+                    onChange={(e) => set("exitDate", e.target.value)}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="FNF Date">
+                  <Input
+                    type="date"
+                    value={form.fNFDate}
+                    onChange={(e) => set("fNFDate", e.target.value)}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+              </Section>
+
+              <Section icon="Contact" title="Contact">
+                <Field label='Official "@gmail.com"'>
+                  <Input
+                    type="email"
+                    value={form.officialGmail}
+                    onChange={(e) => set("officialGmail", e.target.value)}
+                    placeholder="name@gmail.com"
+                    error={errors.officialGmail}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Personal Email">
+                  <Input
+                    type="email"
+                    value={form.personalEmail}
+                    onChange={(e) => set("personalEmail", e.target.value)}
+                    placeholder="name@example.com"
+                    error={errors.personalEmail}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Personal Mobile">
+                  <Input
+                    value={form.personalMobile}
+                    onChange={(e) => set("personalMobile", e.target.value)}
+                    placeholder="+91 98765 43210"
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Emergency Contact Person">
+                  <Input
+                    value={form.emergencyContactPerson}
+                    onChange={(e) => set("emergencyContactPerson", e.target.value)}
+                    placeholder="Name and relation"
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Emergency Contact Number">
+                  <Input
+                    value={form.emergencyContactNumber}
+                    onChange={(e) => set("emergencyContactNumber", e.target.value)}
+                    placeholder="+91 98765 43210"
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Local Address" className="sm:col-span-2">
+                  <Input
+                    value={form.localAddress}
+                    onChange={(e) => set("localAddress", e.target.value)}
+                    placeholder="Current address"
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Permanent Address" className="sm:col-span-2">
+                  <Input
+                    value={form.permanentAddress}
+                    onChange={(e) => set("permanentAddress", e.target.value)}
+                    placeholder="Permanent address"
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+              </Section>
+
+              <Section icon="Cake" title="Personal">
+                <Field label="Salutation">
+                  <Select
+                    options={SALUTATION_OPTIONS}
+                    value={form.salutationName}
+                    onChange={(v) => set("salutationName", v)}
+                    placeholder="Select"
+                    disabled={isSaving}
+                    className={SELECT_FIELD}
+                  />
+                </Field>
+
+                <Field label="Document Birthday" required hint="As printed on official documents.">
+                  <Input
+                    type="date"
+                    value={form.documentBirthday}
+                    onChange={(e) => set("documentBirthday", e.target.value)}
+                    error={errors.documentBirthday}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Celebration Birthday">
+                  <Input
+                    type="date"
+                    value={form.birthday}
+                    onChange={(e) => set("birthday", e.target.value)}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Wedding Anniversary">
+                  <Input
+                    type="date"
+                    value={form.weddingAnniversary}
+                    onChange={(e) => set("weddingAnniversary", e.target.value)}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+              </Section>
+
+              <Section icon="Landmark" title="Bank details">
+                <Field label="UPI ID">
+                  <Input
+                    value={bank.upiId}
+                    onChange={(e) => setBankField("upiId", e.target.value)}
+                    placeholder="name@oksbi"
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="UAN No">
+                  <Input
+                    value={bank.uanNo}
+                    onChange={(e) => setBankField("uanNo", e.target.value)}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Account Holder Name">
+                  <Input
+                    value={bank.name}
+                    onChange={(e) => setBankField("name", e.target.value)}
+                    placeholder="As per bank records"
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Bank Name">
+                  <Input
+                    value={bank.bankName}
+                    onChange={(e) => setBankField("bankName", e.target.value)}
+                    placeholder="e.g. ICICI Bank"
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="Account Number">
+                  <Input
+                    value={bank.accountNumber}
+                    onChange={(e) => setBankField("accountNumber", e.target.value)}
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                <Field label="IFSC">
+                  <Input
+                    value={bank.ifsc}
+                    onChange={(e) => setBankField("ifsc", e.target.value)}
+                    placeholder="e.g. ICIC0000915"
+                    disabled={isSaving}
+                    className={FIELD}
+                  />
+                </Field>
+
+                {errors.bank && (
+                  <p className="col-span-full -mt-1 text-[12.5px] text-destructive">
+                    {errors.bank}
+                  </p>
+                )}
+              </Section>
+
+              <Section icon="NotepadText" title="Other">
+                <Field label="Profile" className="sm:col-span-2">
+                  <textarea
+                    rows={3}
+                    value={form.profile}
+                    onChange={(e) => set("profile", e.target.value)}
+                    placeholder="Short bio or notes"
+                    disabled={isSaving}
+                    className={TEXTAREA}
+                  />
+                </Field>
+
+                <Field label="Monthly Attendance Summary" className="sm:col-span-2">
+                  <textarea
+                    rows={2}
+                    value={form.monthlyAttendanceSummary}
+                    onChange={(e) => set("monthlyAttendanceSummary", e.target.value)}
+                    disabled={isSaving}
+                    className={TEXTAREA}
+                  />
+                </Field>
+              </Section>
+            </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-end gap-3 border-t border-white/60 bg-white/45 px-6 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] sm:px-7">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={isSaving}
+                  className="rounded-[14px] bg-white/85 px-6 py-2.5 text-[15px] font-semibold text-slate-700 shadow-[0_1px_3px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-black/[0.05] transition-colors hover:bg-white disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="flex items-center gap-2 rounded-[14px] px-6 py-2.5 text-[15px] font-semibold text-white transition-all hover:brightness-110 disabled:opacity-70"
+                  style={{
+                    background: "linear-gradient(160deg, #b2152f, #9b0428)",
+                    boxShadow:
+                      "0 10px 24px -10px rgba(155,4,40,0.85), inset 0 1px 0 rgba(255,255,255,0.25)",
+                  }}
+                >
+                  <Icon
+                    name={isSaving ? "LoaderCircle" : "Check"}
+                    size={16}
+                    className={isSaving ? "animate-spin" : ""}
+                  />
+                  {isSaving ? "Creating..." : "Create Profile"}
+                </button>
+              </div>
+            </form>
+          </motion.div>
         </div>
-      </div>
-    </>
+      )}
+    </AnimatePresence>,
+    document.body
   );
 };
 
