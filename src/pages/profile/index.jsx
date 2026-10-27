@@ -6,8 +6,11 @@ import Icon from "../../components/AppIcon";
 import Button from "../../components/ui/Button";
 import ChangePassword from "./components/changePassword";
 import { useProfiles, useUserById, useUsers } from "hooks/useUsers";
+import { canCreate } from "utils/permissions";
+import { useQueryClient } from "@tanstack/react-query";
 import DealDrawer from "./components/DealDrawer";
-import { updateprofile } from "services/user.service";
+import CreateProfileModal from "./components/CreateProfileModal";
+import { createProfile, updateprofile } from "services/user.service";
 import Input from "../../components/ui/Input";
 import TablePagination from "./components/TablePagination";
 import { FestiveRule } from "../../components/FestiveOrnament";
@@ -21,6 +24,12 @@ const Profile = () => {
   const [selectedId, setSelectedId] = useState(null);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  // HR creates directory entries; everyone else only reads and edits their
+  // own, so the button is gated on the entity's create right.
+  const canCreateProfile = canCreate("CProfileDetails");
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
   const loginUserStr = localStorage.getItem("login_object");
   const loginUser = loginUserStr ? JSON.parse(loginUserStr) : null;
@@ -85,18 +94,25 @@ const Profile = () => {
   // /profile                          → drawer closed
   // /CProfileDetails/view/:id         → drawer open, view mode
   // /CProfileDetails/edit/:id         → drawer open, edit mode
+  // /CProfileDetails/create           → create form open
   useEffect(() => {
-    if (urlId) {
+    if (urlAction === "create") {
+      setIsDrawerOpen(false);
+      setSelectedId(null);
+      setIsCreateOpen(canCreateProfile);
+    } else if (urlId) {
       setSelectedId((current) =>
         current?.id === urlId ? current : { id: urlId }
       );
       setDrawerMode(urlAction === "edit" ? "edit" : "view");
       setIsDrawerOpen(true);
+      setIsCreateOpen(false);
     } else {
       setIsDrawerOpen(false);
       setSelectedId(null);
+      setIsCreateOpen(false);
     }
-  }, [urlAction, urlId]);
+  }, [urlAction, urlId, canCreateProfile]);
 
   // Promote the {id} placeholder into the full record once the list resolves,
   // so the drawer header (which reads deal?.name) populates instantly.
@@ -150,6 +166,21 @@ const Profile = () => {
       hash = (hash * 31 + name.charCodeAt(i)) | 0;
     }
     return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+  };
+
+  const handleCreateProfile = async (payload) => {
+    if (!canCreateProfile) return;
+    const created = await createProfile(payload);
+    // The directory is cached for five minutes, so refresh it rather than
+    // leaving the new member invisible until the cache expires.
+    queryClient.invalidateQueries({ queryKey: ["profiles"] });
+    return created;
+  };
+
+  const handleCloseCreate = () => {
+    setIsCreateOpen(false);
+    // Deep-linked at /CProfileDetails/create? Return to the list.
+    if (urlAction === "create") navigate("/profile", { replace: true });
   };
 
   const onDealClick = (deal) => {
@@ -248,10 +279,22 @@ const Profile = () => {
                   Manage your team's profile data, departments, and contact info.
                 </p>
               </div>
-              <div className="hidden md:flex ml-auto items-center gap-2 px-3 py-1.5 rounded-full border border-primary/20 bg-white/60 backdrop-blur-sm text-xs font-medium text-primary">
-                <Icon name="Users" size={14} />
-                {allProfiles.length} member
-                {allProfiles.length === 1 ? "" : "s"}
+              <div className="ml-auto flex items-center gap-3">
+                <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/20 bg-white/60 backdrop-blur-sm text-xs font-medium text-primary">
+                  <Icon name="Users" size={14} />
+                  {allProfiles.length} member
+                  {allProfiles.length === 1 ? "" : "s"}
+                </div>
+
+                {canCreateProfile && (
+                  <Button
+                    onClick={() => setIsCreateOpen(true)}
+                    className="gap-2 whitespace-nowrap"
+                  >
+                    <Icon name="Plus" size={16} />
+                    <span className="hidden sm:inline">Add Profile</span>
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -540,6 +583,12 @@ const Profile = () => {
               </div>
             )}
           </div>
+
+          <CreateProfileModal
+            isOpen={isCreateOpen}
+            onClose={handleCloseCreate}
+            onCreate={handleCreateProfile}
+          />
 
           <DealDrawer
             deal={selectedId}

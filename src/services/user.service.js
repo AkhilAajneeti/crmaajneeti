@@ -147,6 +147,32 @@ export const fetchProfileDetail = async (id) => {
   return await res.json();
 }
 
+export const createProfile = async (payload) => {
+  const token = localStorage.getItem("auth_token");
+
+  const res = await fetch(
+    `https://gateway.aajneetiadvertising.com/CProfileDetails`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        token: token,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  const text = await res.text();
+
+  if (!res.ok) {
+    console.error("API ERROR:", text);
+    throw new Error(text || "Profile create failed");
+  }
+
+  return text ? JSON.parse(text) : null;
+};
+
 export const updateprofile = async (id, payload) => {
   const token = localStorage.getItem("auth_token");
 
