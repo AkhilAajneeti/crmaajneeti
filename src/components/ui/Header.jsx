@@ -10,6 +10,7 @@ import { useNotificationCount } from "hooks/useNotificationCount";
 import Avatar from "react-avatar";
 import { Link } from "react-router-dom";
 import { clearLeadsCache } from "services/leads.service";
+import { applyTheme } from "utils/theme";
 const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
   const LogInuserstr = localStorage.getItem("login_object");
   const LogInuser = LogInuserstr ? JSON.parse(LogInuserstr) : null;
@@ -49,6 +50,10 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
 
     // clear cache
     clearLeadsCache();
+
+    // Back to the default palette — storage is empty now, so this clears any
+    // per-user theme instead of leaving it on the login screen.
+    applyTheme(null);
 
     // 2️⃣ Close dropdown
     handleDropdownClose();

@@ -71,7 +71,7 @@ const LoginShowcase = () => {
         {/* Maroon wash rising from the bottom-left */}
         <div className="absolute inset-0 bg-[radial-gradient(95%_120%_at_10%_105%,rgba(172,35,52,0.85)_0%,rgba(139,28,45,0.45)_32%,rgba(88,20,52,0.18)_58%,transparent_78%)]" />
         {/* Crimson core */}
-        <div className="absolute -bottom-24 -left-24 h-[380px] w-[380px] rounded-full bg-[#AC2334]/45 blur-[110px]" />
+        <div className="absolute -bottom-24 -left-24 h-[380px] w-[380px] rounded-full bg-mahroon opacity-45 blur-[110px]" />
         {/* Dot matrix, fading upward */}
         <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.5)_1.2px,transparent_1.2px)] bg-[size:15px_15px] opacity-25 [mask-image:linear-gradient(to_top,black_15%,transparent_85%)]" />
         {/* Denser maroon-tinted dots hugging the corner */}
@@ -178,7 +178,7 @@ const LoginShowcase = () => {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="mt-[clamp(16px,3vh,40px)] flex items-center gap-4"
         >
-          <span className="h-12 w-[3px] rounded-full bg-gradient-to-b from-[#ff6b83] via-[#AC2334] to-transparent" />
+          <span className="h-12 w-[3px] rounded-full bg-gradient-to-b from-mahroon-200 via-mahroon to-transparent" />
           <p className="max-w-lg text-[16px] font-medium italic leading-6 text-white/70">
             One team. One platform. Better outcomes.
           </p>

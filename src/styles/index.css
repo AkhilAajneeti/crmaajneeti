@@ -12,33 +12,33 @@ body {
 }
 
 input {
-  border-color: #5bcd5f4d !important;
+  border-color: var(--color-field-border) !important;
 }
 
 select {
   /* --tw-ring-color: #5bcd5f4d!important; */
-  border-color: #5bcd5f4d !important;
+  border-color: var(--color-field-border) !important;
 }
 
 select:focus {
-  --tw-ring-color: #5bcd5f4d !important;
-  border-color: #5bcd5f4d !important;
+  --tw-ring-color: var(--color-field-border) !important;
+  border-color: var(--color-field-border) !important;
 }
 
 .bg-mahroon-200 {
-  background-color: #fce8e7;
+  background-color: var(--color-brand-muted);
 }
 
 .bg-mahroon-400 {
-  background-color: #fee0df;
+  background-color: var(--color-brand-soft);
 }
 
 .bg-mahroon {
-  background-color: #AC2334;
+  background-color: var(--color-brand);
 }
 
 .linearbg-1 {
-  background: linear-gradient(52deg, #000000, #AC2334);
+  background: linear-gradient(52deg, #000000, var(--color-brand));
 }
 
 /* Hide scrollbars while keeping scroll (used by horizontal pill/tab rails) */
@@ -76,13 +76,13 @@ select:focus {
 
   0%,
   100% {
-    box-shadow: 0 0 0px rgba(172, 35, 52, 0.4);
+    box-shadow: 0 0 0px var(--color-brand-glow);
   }
 
   50% {
     box-shadow:
-      0 0 6px rgba(172, 35, 52, 0.4),
-      0 0 12px rgba(172, 35, 52, 0.4);
+      0 0 6px var(--color-brand-glow),
+      0 0 12px var(--color-brand-glow);
   }
 }
 

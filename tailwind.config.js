@@ -12,7 +12,14 @@ export default {
         ring: 'var(--color-ring)', // violet-500
         background: 'var(--color-background)', // white
         foreground: 'var(--color-foreground)', // slate-800
-        mahroon:"#fee0df",//#AC2334
+        // Brand accent. `mahroon` (DEFAULT) is the deep tone, `mahroon-200` the
+        // soft chip tint — both token-driven so a per-user theme repaints them.
+        mahroon: {
+          DEFAULT: 'var(--color-brand)',
+          200: 'var(--color-brand-muted)',
+          400: 'var(--color-brand-soft)',
+          strong: 'var(--color-brand-strong)',
+        },
         primary: {
           DEFAULT: 'var(--color-primary)', // violet-500
           foreground: 'var(--color-primary-foreground)', // white

@@ -218,8 +218,8 @@ const Attendance = () => {
           mockcalender?.filter(
             (deal) => deal?.requestType !== "SLC"
           )?.length || 0,
-        icon: "TrendingUp",
-        iconColor: "bg-success",
+        icon: "CalendarDays",
+        iconColor: "bg-indigo-400",
         description: "All leave requests",
       },
       {
@@ -232,8 +232,8 @@ const Attendance = () => {
       {
         title: "Half Day",
         value: countByType(currentData, "Half Day"),
-        icon: "XCircle",
-        iconColor: "bg-red-400",
+        icon: "Contrast",
+        iconColor: "bg-amber-400",
         description: "Half day leaves",
       },
       {

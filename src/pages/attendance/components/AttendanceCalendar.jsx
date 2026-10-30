@@ -1,4 +1,5 @@
 import FullCalendar from "@fullcalendar/react";
+import { getHolidayEvents, getHoliday } from "../utils/holidays";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import { useMemo, useState, useRef, useEffect } from "react";
 
@@ -269,9 +270,13 @@ const AttendanceCalendar = ({
   const [popover, setPopover] = useState(null);
   const calRef = useRef(null);
 
+  // Company holidays ride along as background events: they tint the day
+  // without taking an event row, so attendance still shows normally.
+  const holidayEvents = useMemo(() => getHolidayEvents(), []);
+
   const events = useMemo(() => {
-    if (!attendanceData) return [];
-    return attendanceData.map((item) => {
+    if (!attendanceData) return holidayEvents;
+    const attendanceEvents = attendanceData.map((item) => {
       const cfg = TYPE_CONFIG[item.requestType] || {};
       return {
         id: item.id,
@@ -283,7 +288,8 @@ const AttendanceCalendar = ({
         extendedProps: item,
       };
     });
-  }, [attendanceData]);
+    return [...holidayEvents, ...attendanceEvents];
+  }, [attendanceData, holidayEvents]);
 
   const handleEventClick = (info) => {
     const rect = info.el.getBoundingClientRect();
@@ -422,6 +428,46 @@ const AttendanceCalendar = ({
           border: 1px solid #E5E7EB !important;
           background: #FFFFFF;
           position: relative;
+        }
+
+        /* Company holidays — a warm saffron day, with the festival name
+           printed under the date. Painted on the cell rather than added as an
+           event, so a busy day's "+2 more" can never hide it. */
+        .fc .fc-daygrid-day.is-holiday {
+          background: linear-gradient(
+            160deg,
+            rgba(234, 88, 12, 0.13) 0%,
+            rgba(234, 88, 12, 0.05) 60%,
+            rgba(255, 255, 255, 0.9) 100%
+          ) !important;
+          border-color: rgba(234, 88, 12, 0.35) !important;
+        }
+
+        .fc .fc-daygrid-day.is-holiday .fc-daygrid-day-number {
+          color: #c2410c !important;
+          font-weight: 700 !important;
+        }
+
+        .fc .fc-daygrid-day.is-holiday::after {
+          content: attr(data-holiday);
+          position: absolute;
+          left: 8px;
+          right: 8px;
+          bottom: 6px;
+          font-size: 10px;
+          font-weight: 600;
+          line-height: 1.2;
+          color: #c2410c;
+          text-align: left;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          pointer-events: none;
+        }
+
+        /* The background event itself adds nothing once the cell is tinted. */
+        .fc .holiday-bg {
+          background: transparent !important;
         }
 
         .fc .fc-daygrid-day:hover {
@@ -621,6 +667,17 @@ const AttendanceCalendar = ({
             }}
             height="auto"
             dayMaxEvents={2}
+            dayCellClassNames={(arg) =>
+              getHoliday(arg.date) ? ["is-holiday"] : []
+            }
+            dayCellDidMount={(arg) => {
+              const holiday = getHoliday(arg.date);
+              if (!holiday) return;
+              arg.el.setAttribute("title", holiday.name);
+              // The name is painted by CSS rather than inserted as an event,
+              // so it cannot be pushed under a "+2 more" link.
+              arg.el.setAttribute("data-holiday", holiday.name);
+            }}
             moreLinkClick="popover"
             eventClick={handleEventClick}
             dateClick={handleDateClick}

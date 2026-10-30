@@ -121,7 +121,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full w-64 overflow-hidden bg-gradient-to-b from-[#fffdf9] to-[#fbf4e9] border-r border-border shadow-sm z-50 lg:z-30
+          fixed top-0 left-0 h-full w-64 overflow-hidden bg-gradient-to-b from-[color:var(--sidebar-from)] to-[color:var(--sidebar-to)] border-r border-border shadow-sm z-50 lg:z-30
           transform transition-transform duration-300 ease-out
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
@@ -178,7 +178,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                 <div key={group.title}>
 
                   {/* SECTION TITLE */}
-                  <p className="px-3 mb-2 text-xs font-semibold text-[#8a6436] uppercase tracking-wider">
+                  <p className="px-3 mb-2 text-xs font-semibold text-[color:var(--sidebar-heading)] uppercase tracking-wider">
                     {group.title}
                   </p>
 
@@ -197,8 +197,8 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                     shine-hover group w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm
                     transition-all duration-200 ease-out
                     ${isActive
-                                ? "bg-gradient-to-r from-black to-[#AC2334] text-white"
-                                : "text-gray-600 hover:bg-[#f7ead9]"}
+                                ? "bg-gradient-to-r from-black to-mahroon text-white"
+                                : "text-gray-600 hover:bg-[color:var(--sidebar-hover)]"}
                   `}
                           >
                             <span className={`
@@ -215,7 +215,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                             </span>
                             <span className={`
     transition-all duration-300 ease-out group-hover:-translate-y-0.1 group-hover:rotate-3 group-hover:scale-110 group-active:scale-95
-    ${isActive ? "text-white" : "text-gray-800 group-hover:text-red-600 font-semibold"}`}>{item.label}</span>
+    ${isActive ? "text-white" : "text-gray-800 group-hover:text-[color:var(--sidebar-hover-text)] font-semibold"}`}>{item.label}</span>
                           </button>
 
                           {/* 🌳 CHILD TREE (ONLY if exists) */}
@@ -284,19 +284,19 @@ const Sidebar = ({ isOpen = false, onClose }) => {
               >
                 <defs>
                   <linearGradient id="sidebarWave" x1="0" y1="0" x2="1" y2="0.12">
-                    <stop offset="0%" stopColor="#270b2a" />
-                    <stop offset="35%" stopColor="#2d0b26" />
-                    <stop offset="55%" stopColor="#480d28" />
-                    <stop offset="76%" stopColor="#6b102e" />
-                    <stop offset="91%" stopColor="#811231" />
-                    <stop offset="100%" stopColor="#8d1a3a" />
+                    <stop offset="0%" stopColor="var(--wave-1)" />
+                    <stop offset="35%" stopColor="var(--wave-2)" />
+                    <stop offset="55%" stopColor="var(--wave-3)" />
+                    <stop offset="76%" stopColor="var(--wave-4)" />
+                    <stop offset="91%" stopColor="var(--wave-5)" />
+                    <stop offset="100%" stopColor="var(--wave-6)" />
                   </linearGradient>
                   {/* Strands fade out to the left so they read as texture trailing
                       the crest rather than stripes across the whole card. */}
                   <linearGradient id="sidebarContour" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#ffc9dc" stopOpacity="0" />
-                    <stop offset="40%" stopColor="#ffc9dc" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="#ffd9e6" stopOpacity="1" />
+                    <stop offset="0%" stopColor="var(--wave-contour)" stopOpacity="0" />
+                    <stop offset="40%" stopColor="var(--wave-contour)" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="var(--wave-contour-end)" stopOpacity="1" />
                   </linearGradient>
                   {/* Keeps the strands inside the wave */}
                   <clipPath id="sidebarWaveClip">

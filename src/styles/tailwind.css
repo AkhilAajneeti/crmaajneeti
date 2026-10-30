@@ -77,6 +77,121 @@
     /* much darker soft pink */
     --color-error-foreground: #4A1010;
     /* darker red for better contrast */
+
+    /* Brand Colors — the deep accent used by the sidebar, chips and the login
+       showcase. Kept as tokens so a per-user theme can repaint them. */
+    --color-brand: #AC2334;
+    /* maroon */
+    --color-brand-strong: #7F1626;
+    /* darker maroon, for gradient ends */
+    --color-brand-soft: #fee0df;
+    /* tinted chip background */
+    --color-brand-muted: #fce8e7;
+    /* faintest chip background */
+    --color-brand-glow: rgba(172, 35, 52, 0.4);
+    /* KPI glow pulse */
+    --color-field-border: #5bcd5f4d;
+    /* input/select resting border */
+
+    /* Split-wedge gradient — a hard 135deg break from a tinted base into the
+       brand tone. Used by section headings and the sidebar header. */
+    --split-soft: #fee0df;
+    --split-strong: #AC2334;
+
+    /* Sidebar surface */
+    --sidebar-from: #fffdf9;
+    --sidebar-to: #fbf4e9;
+    --sidebar-hover: #f7ead9;
+    --sidebar-heading: #8a6436;
+    --sidebar-hover-text: #b91c1c;
+
+    /* Sidebar footer wave, dark end to light end */
+    --wave-1: #270b2a;
+    --wave-2: #2d0b26;
+    --wave-3: #480d28;
+    --wave-4: #6b102e;
+    --wave-5: #811231;
+    --wave-6: #8d1a3a;
+    --wave-contour: #ffc9dc;
+    --wave-contour-end: #ffd9e6;
+
+    /* Page wash — the two radial gradients behind `.festive-page`. */
+    --page-wash-1: rgba(240, 160, 72, 0.14);
+    --page-wash-1-fade: rgba(240, 160, 72, 0);
+    --page-wash-2: rgba(226, 122, 32, 0.1);
+    --page-wash-2-fade: rgba(226, 122, 32, 0);
+  }
+
+  /* Pink theme. Applied by `utils/theme.js` as [data-theme="pink"] on <html>
+     for the users it names, so only they see it. Every value below is a
+     variation of pink; the functional success/warning tokens stay recognisable
+     so status still reads as status. */
+  [data-theme="pink"] {
+    --color-background: #FFF6FA;
+    --color-foreground: #2B0A18;
+    --color-border: #F9D3E3;
+    --color-input: #FFFFFF;
+    --color-ring: #D6336C;
+
+    --color-card: #FFFCFD;
+    --color-card-foreground: #2B0A18;
+
+    --color-popover: #FFFCFD;
+    --color-popover-foreground: #2B0A18;
+
+    --color-muted: #FDEAF2;
+    --color-muted-foreground: #5A2440;
+
+    --color-primary: #D6336C;
+    --color-primary-foreground: #FFFFFF;
+
+    --color-secondary: #F06595;
+    --color-secondary-foreground: #2B0A18;
+
+    --color-destructive: #E8647F;
+    --color-destructive-foreground: #FFFFFF;
+
+    --color-accent: #FFE3EE;
+    --color-accent-foreground: #2B0A18;
+
+    --color-success: #A3D9A5;
+    --color-success-foreground: #0A251A;
+
+    --color-warning: #F2B8A0;
+    --color-warning-foreground: #4A1A08;
+
+    --color-error: #E8647F;
+    --color-error-foreground: #FFFFFF;
+
+    --color-brand: #D6336C;
+    --color-brand-strong: #96124A;
+    --color-brand-soft: #FFE3EE;
+    --color-brand-muted: #FFF0F6;
+    --color-brand-glow: rgba(214, 51, 108, 0.4);
+    --color-field-border: #F4A8C6;
+
+    --split-soft: #FFE2EB;
+    --split-strong: #C2185B;
+
+    --sidebar-from: #FFFBFD;
+    --sidebar-to: #FFEDF4;
+    --sidebar-hover: #FFE2EB;
+    --sidebar-heading: #8E2A52;
+    --sidebar-hover-text: #C2185B;
+
+    --wave-1: #2A0A1B;
+    --wave-2: #3D0C22;
+    --wave-3: #5E0F2E;
+    --wave-4: #8A1340;
+    --wave-5: #AB154E;
+    --wave-6: #C2185B;
+    --wave-contour: #FFD3E2;
+    --wave-contour-end: #FFE2EB;
+
+    --page-wash-1: rgba(214, 51, 108, 0.12);
+    --page-wash-1-fade: rgba(214, 51, 108, 0);
+    --page-wash-2: rgba(240, 101, 149, 0.1);
+    --page-wash-2-fade: rgba(240, 101, 149, 0);
   }
 
   * {
@@ -190,14 +305,28 @@
     background-image:
       radial-gradient(
         120% 85% at 100% 0%,
-        rgba(240, 160, 72, 0.14) 0%,
-        rgba(240, 160, 72, 0) 58%
+        var(--page-wash-1) 0%,
+        var(--page-wash-1-fade) 58%
       ),
       radial-gradient(
         90% 70% at 0% 100%,
-        rgba(226, 122, 32, 0.1) 0%,
-        rgba(226, 122, 32, 0) 60%
+        var(--page-wash-2) 0%,
+        var(--page-wash-2-fade) 60%
       );
+  }
+
+  /* The split wedge. Two hard stops at the same position, so there is no
+     blend — the panel reads as a tinted field with a brand corner cut across
+     it. Both colours are tokens, so the pink theme repaints it with no markup
+     change. */
+  .brand-split {
+    background-image: linear-gradient(
+      135deg,
+      var(--split-soft) 0px,
+      var(--split-soft) 58%,
+      var(--split-strong) 58%,
+      var(--split-strong) 100%
+    );
   }
 
   /* Faint mandala pressed into a card's bottom-right corner. */

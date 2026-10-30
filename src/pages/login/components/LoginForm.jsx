@@ -5,6 +5,7 @@ import Input from "../../../components/ui/Input";
 import { Checkbox } from "../../../components/ui/Checkbox";
 import Icon from "../../../components/AppIcon";
 import { fetchUser } from "services/user.service";
+import { applyTheme } from "utils/theme";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -108,6 +109,9 @@ const LoginForm = () => {
         localStorage.setItem("acl", JSON.stringify(data.acl));
       }
       localStorage.setItem("isAuthenticated", "true");
+
+      // Repaint for this user before the dashboard mounts.
+      applyTheme(loginObj);
 
       navigate("/dashboard");
     } catch (err) {
