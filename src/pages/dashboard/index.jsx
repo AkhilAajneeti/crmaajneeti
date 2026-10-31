@@ -7,6 +7,7 @@ import KPICard from "./components/KPICard";
 import PipelineChart from "./components/PipelineChart";
 import Icon from "../../components/AppIcon";
 import RightRail from "./components/RightRail";
+import FollowUpPanel from "./components/FollowUpPanel";
 import { fetchLeads } from "services/leads.service";
 import MultiLineChart from "./components/MultiLineChart";
 import { fetchMeeting } from "services/meeting.service";
@@ -244,6 +245,12 @@ const Dashboard = () => {
             Welcome back! Here's what's happening with your sales today.
           </p>
         </div>
+        {/* Follow-ups that need acting on now. Sits above the KPI cards:
+            the numbers below describe what happened, this says what to do. */}
+        <div className="relative m-3 sm:m-5">
+          <FollowUpPanel />
+        </div>
+
         {/* KPI Cards */}
         <div className="relative grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5 m-3 sm:m-5">
           {kpiData?.map((kpi, index) => (
