@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { Checkbox } from "../../../components/ui/Checkbox";
-import { isClosedLeadStatus } from "utils/leadStatus";
+import { isClosedLeadStatus, isNoChaseStatus } from "utils/leadStatus";
 import QuickEditSheet from "./QuickEditSheet";
 
 // Initials from a person's name: "Minakshi Dubey" -> "MD"
@@ -189,7 +189,10 @@ const DealsTable = ({
     // Dead / Invalid / Not interested / Duplicate (and already-closed) leads
     // are finished — nobody is chasing them, so a past date is stale data
     // rather than a missed follow-up. Show the plain date, no red alarm.
-    if (isClosedLeadStatus(status)) {
+    // ...and the same for leads that have moved forward: a Qualified lead is
+    // progressing, not being neglected, so its follow-up date is shown plainly
+    // rather than as a red overdue warning.
+    if (isClosedLeadStatus(status) || isNoChaseStatus(status)) {
       return (
         <span className="inline-flex px-2 py-1 text-xs font-medium text-muted-foreground">
           {formatDate(value)}
@@ -427,7 +430,7 @@ const DealsTable = ({
       {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-muted/50 border-b border-border">
+          <thead className="festive-thead/50 border-b border-border">
             <tr>
               <th className="w-12 px-4 py-3">
                 <Checkbox

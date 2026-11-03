@@ -24,6 +24,45 @@ export const CLOSED_LEAD_STATUSES = [
   "closed",
 ];
 
+// Statuses where the lead has moved FORWARD past the chasing stage. The
+// follow-up date on these is a reference point, not a debt: a qualified lead
+// is progressing, so flagging it "368 days overdue" in red is noise that
+// trains people to ignore the colour everywhere else.
+//
+// Kept separate from CLOSED_LEAD_STATUSES on purpose — that list also governs
+// what the pipeline board excludes, and a qualified lead must still appear
+// there.
+export const NO_CHASE_STATUSES = ["qualified"];
+
+export const isNoChaseStatus = (status) => {
+  const value = String(status ?? "").toLowerCase().trim();
+  if (!value) return false;
+  return NO_CHASE_STATUSES.some((s) => value.includes(s));
+};
+
+// Statuses that mean the record was never a sellable lead: bad data, not a
+// lost deal. Performance metrics exclude these from the denominator, because
+// a rep handed ten junk IVR records should not have their conversion rate
+// divided by them.
+//
+// Note what is NOT here: "Dead" and "Not interested". Those are real outcomes
+// — the rep reached a real person and lost them — and they are exactly the
+// losses that make a conversion rate mean anything. Excluding them would make
+// the metric gameable: mark every lead you cannot close as "Not interested"
+// and your denominator shrinks until your rate approaches 100%.
+export const UNWORKABLE_LEAD_STATUSES = [
+  "invalid",
+  "duplicate",
+  // Archived imports rather than this period's work.
+  "z old leads",
+];
+
+export const isUnworkableLeadStatus = (status) => {
+  const value = String(status ?? "").toLowerCase().trim();
+  if (!value) return false;
+  return UNWORKABLE_LEAD_STATUSES.some((s) => value.includes(s));
+};
+
 export const isClosedLeadStatus = (status) => {
   const value = String(status ?? "").toLowerCase().trim();
   if (!value) return false;

@@ -342,7 +342,7 @@ const AccountsTable = ({
       {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-muted/50">
+          <thead className="festive-thead/50">
             <tr>
               <th className="w-12 p-4">
                 <Checkbox

@@ -451,7 +451,7 @@ const MultiLineChart = ({ leads = [] }) => {
               <Line
                 type="monotone"
                 dataKey="facebook"
-                stroke="#1877F2"
+                stroke="#8C1226"
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
@@ -460,7 +460,7 @@ const MultiLineChart = ({ leads = [] }) => {
               <Line
                 type="monotone"
                 dataKey="ivr"
-                stroke="#22c55e"
+                stroke="#2F7D53"
                 strokeWidth={2}
                 dot={{ r: 4 }}
               />
@@ -468,7 +468,7 @@ const MultiLineChart = ({ leads = [] }) => {
               <Line
                 type="monotone"
                 dataKey="website"
-                stroke="#f59e0b"
+                stroke="#C9A227"
                 strokeWidth={2}
                 dot={{ r: 4 }}
               />
@@ -481,17 +481,17 @@ const MultiLineChart = ({ leads = [] }) => {
       <div className="mt-4 pt-4 border-t border-border">
         <div className="flex gap-6 overflow-x-auto no-scrollbar sm:justify-center text-sm px-2">
           <div className="flex items-center gap-2 min-w-max">
-            <div className="w-3 h-3 rounded-full bg-[#1877F2]" />
+            <div className="w-3 h-3 rounded-full bg-[#8C1226]" />
             <span>Facebook: {facebookTotal}</span>
           </div>
 
           <div className="flex items-center gap-2 min-w-max">
-            <div className="w-3 h-3 rounded-full bg-[#22c55e]" />
+            <div className="w-3 h-3 rounded-full bg-[#2F7D53]" />
             <span>IVR: {ivrTotal}</span>
           </div>
 
           <div className="flex items-center gap-2 min-w-max">
-            <div className="w-3 h-3 rounded-full bg-[#f59e0b]" />
+            <div className="w-3 h-3 rounded-full bg-[#C9A227]" />
             <span>Website: {websiteTotal}</span>
           </div>
 

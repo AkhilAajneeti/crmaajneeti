@@ -14,6 +14,7 @@ const ICON_TONES = {
   "/tasks": { border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-500" },
   "/meeting": { border: "border-pink-200", bg: "bg-pink-50", text: "text-pink-500" },
   "/reports": { border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-500" },
+  "/sales-team": { border: "border-fuchsia-200", bg: "bg-fuchsia-50", text: "text-fuchsia-500" },
   "/integrations": { border: "border-cyan-200", bg: "bg-cyan-50", text: "text-cyan-500" },
   "/attendance": { border: "border-red-200", bg: "bg-red-50", text: "text-red-500" },
   "/profile": { border: "border-sky-200", bg: "bg-sky-50", text: "text-sky-500" },
@@ -57,6 +58,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       title: "ANALYTICS",
       items: [
         { label: "Reports", path: "/reports", icon: "BarChart3" },
+        { label: "Sales Team", path: "/sales-team", icon: "Trophy", entity: "Lead" },
       ],
     },
     {
@@ -132,7 +134,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
         {/* The wrapper owns the centring translate and the image owns the
             spin — both are `transform`, so they would overwrite each other
             on a single element. */}
-        <div className="pointer-events-none absolute bottom-[132px] left-1/2 w-[118px] -translate-x-1/2">
+        <div className="pointer-events-none absolute bottom-[200px] left-1/2 w-[118px] -translate-x-1/2">
           <img
             src="/assets/festival/festive-mandala-full.png"
             alt=""
@@ -271,67 +273,38 @@ const Sidebar = ({ isOpen = false, onClose }) => {
             </div>
           </nav>
 
-          {/* Footer — waved brand card. The curve is fitted to the profile
-              card's wave; everything above it is transparent, so the panel
-              background shows through. */}
-          <div className="p-3">
-            <div className="relative overflow-hidden rounded-[22px]">
-              <svg
-                className="absolute inset-0 h-full w-full"
-                viewBox="0 0 320 130"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
-                <defs>
-                  <linearGradient id="sidebarWave" x1="0" y1="0" x2="1" y2="0.12">
-                    <stop offset="0%" stopColor="var(--wave-1)" />
-                    <stop offset="35%" stopColor="var(--wave-2)" />
-                    <stop offset="55%" stopColor="var(--wave-3)" />
-                    <stop offset="76%" stopColor="var(--wave-4)" />
-                    <stop offset="91%" stopColor="var(--wave-5)" />
-                    <stop offset="100%" stopColor="var(--wave-6)" />
-                  </linearGradient>
-                  {/* Strands fade out to the left so they read as texture trailing
-                      the crest rather than stripes across the whole card. */}
-                  <linearGradient id="sidebarContour" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="var(--wave-contour)" stopOpacity="0" />
-                    <stop offset="40%" stopColor="var(--wave-contour)" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="var(--wave-contour-end)" stopOpacity="1" />
-                  </linearGradient>
-                  {/* Keeps the strands inside the wave */}
-                  <clipPath id="sidebarWaveClip">
-                    <path d="M0,50.3 C5.3,46.9 21.3,33.8 32,29.8 C42.7,25.8 53.3,25.9 64,26.3 C74.7,26.7 85.3,29.6 96,32.4 C106.7,35.2 117.3,40.0 128,43.3 C138.7,46.6 149.3,50.2 160,52.1 C170.7,54.0 181.3,55.1 192,54.7 C202.7,54.3 213.3,52.6 224,49.7 C234.7,46.8 245.3,42.6 256,37.4 C266.7,32.2 277.3,24.8 288,18.6 C298.7,12.4 314.7,3.1 320,0.0 V130 H0 Z" />
-                  </clipPath>
-                </defs>
+          {/* Footer — the lotus banner, with its maroon wave continued
+              underneath to carry the credit line.
 
-                <path d="M0,50.3 C5.3,46.9 21.3,33.8 32,29.8 C42.7,25.8 53.3,25.9 64,26.3 C74.7,26.7 85.3,29.6 96,32.4 C106.7,35.2 117.3,40.0 128,43.3 C138.7,46.6 149.3,50.2 160,52.1 C170.7,54.0 181.3,55.1 192,54.7 C202.7,54.3 213.3,52.6 224,49.7 C234.7,46.8 245.3,42.6 256,37.4 C266.7,32.2 277.3,24.8 288,18.6 C298.7,12.4 314.7,3.1 320,0.0 V130 H0 Z" fill="url(#sidebarWave)" />
+              The block below is NOT an approximation of the artwork's colour:
+              the banner's bottom row is opaque maroon sampled across its
+              width at #5C062D / #59052C / #840738 / #9B0641 / #800639, and
+              those same stops are repeated here, so the seam between image
+              and div is invisible. Re-export the banner and these have to be
+              re-sampled. */}
+          <div className="relative mt-auto">
+            <img
+              src="/assets/festival/Ornate Glowing Diwali Lotus Mandala.png"
+              alt=""
+              aria-hidden="true"
+              className="relative block w-full select-none mix-blend-multiply"
+              style={{ filter: "brightness(1.07) contrast(1.03)" }}
+            />
 
-                <g
-                  clipPath="url(#sidebarWaveClip)"
-                  fill="none"
-                  stroke="url(#sidebarContour)"
-                  strokeWidth="0.8"
-                  vectorEffect="non-scaling-stroke"
-                >
-                  <path d="M0,57.3 C5.3,53.9 21.3,40.8 32,36.8 C42.7,32.8 53.3,32.9 64,33.3 C74.7,33.7 85.3,36.6 96,39.4 C106.7,42.2 117.3,47.0 128,50.3 C138.7,53.6 149.3,57.2 160,59.1 C170.7,61.0 181.3,62.1 192,61.7 C202.7,61.3 213.3,59.6 224,56.7 C234.7,53.8 245.3,49.6 256,44.4 C266.7,39.2 277.3,31.8 288,25.6 C298.7,19.4 314.7,10.1 320,7.0" strokeOpacity="0.5" />
-                  <path d="M0,64.3 C5.3,60.9 21.3,47.8 32,43.8 C42.7,39.8 53.3,39.9 64,40.3 C74.7,40.7 85.3,43.6 96,46.4 C106.7,49.2 117.3,54.0 128,57.3 C138.7,60.6 149.3,64.2 160,66.1 C170.7,68.0 181.3,69.1 192,68.7 C202.7,68.3 213.3,66.6 224,63.7 C234.7,60.8 245.3,56.6 256,51.4 C266.7,46.2 277.3,38.8 288,32.6 C298.7,26.4 314.7,17.1 320,14.0" strokeOpacity="0.45" />
-                  <path d="M0,71.3 C5.3,67.9 21.3,54.8 32,50.8 C42.7,46.8 53.3,46.9 64,47.3 C74.7,47.7 85.3,50.6 96,53.4 C106.7,56.2 117.3,61.0 128,64.3 C138.7,67.6 149.3,71.2 160,73.1 C170.7,75.0 181.3,76.1 192,75.7 C202.7,75.3 213.3,73.6 224,70.7 C234.7,67.8 245.3,63.6 256,58.4 C266.7,53.2 277.3,45.8 288,39.6 C298.7,33.4 314.7,24.1 320,21.0" strokeOpacity="0.4" />
-                  <path d="M0,78.3 C5.3,74.9 21.3,61.8 32,57.8 C42.7,53.8 53.3,53.9 64,54.3 C74.7,54.7 85.3,57.6 96,60.4 C106.7,63.2 117.3,68.0 128,71.3 C138.7,74.6 149.3,78.2 160,80.1 C170.7,82.0 181.3,83.1 192,82.7 C202.7,82.3 213.3,80.6 224,77.7 C234.7,74.8 245.3,70.6 256,65.4 C266.7,60.2 277.3,52.8 288,46.6 C298.7,40.4 314.7,31.1 320,28.0" strokeOpacity="0.35" />
-                  <path d="M0,85.3 C5.3,81.9 21.3,68.8 32,64.8 C42.7,60.8 53.3,60.9 64,61.3 C74.7,61.7 85.3,64.6 96,67.4 C106.7,70.2 117.3,75.0 128,78.3 C138.7,81.6 149.3,85.2 160,87.1 C170.7,89.0 181.3,90.1 192,89.7 C202.7,89.3 213.3,87.6 224,84.7 C234.7,81.8 245.3,77.6 256,72.4 C266.7,67.2 277.3,59.8 288,53.6 C298.7,47.4 314.7,38.1 320,35.0" strokeOpacity="0.3" />
-                  <path d="M0,92.3 C5.3,88.9 21.3,75.8 32,71.8 C42.7,67.8 53.3,67.9 64,68.3 C74.7,68.7 85.3,71.6 96,74.4 C106.7,77.2 117.3,82.0 128,85.3 C138.7,88.6 149.3,92.2 160,94.1 C170.7,96.0 181.3,97.1 192,96.7 C202.7,96.3 213.3,94.6 224,91.7 C234.7,88.8 245.3,84.6 256,79.4 C266.7,74.2 277.3,66.8 288,60.6 C298.7,54.4 314.7,45.1 320,42.0" strokeOpacity="0.25" />
-                  <path d="M0,99.3 C5.3,95.9 21.3,82.8 32,78.8 C42.7,74.8 53.3,74.9 64,75.3 C74.7,75.7 85.3,78.6 96,81.4 C106.7,84.2 117.3,89.0 128,92.3 C138.7,95.6 149.3,99.2 160,101.1 C170.7,103.0 181.3,104.1 192,103.7 C202.7,103.3 213.3,101.6 224,98.7 C234.7,95.8 245.3,91.6 256,86.4 C266.7,81.2 277.3,73.8 288,67.6 C298.7,61.4 314.7,52.1 320,49.0" strokeOpacity="0.2" />
-                  <path d="M0,106.3 C5.3,102.9 21.3,89.8 32,85.8 C42.7,81.8 53.3,81.9 64,82.3 C74.7,82.7 85.3,85.6 96,88.4 C106.7,91.2 117.3,96.0 128,99.3 C138.7,102.6 149.3,106.2 160,108.1 C170.7,110.0 181.3,111.1 192,110.7 C202.7,110.3 213.3,108.6 224,105.7 C234.7,102.8 245.3,98.6 256,93.4 C266.7,88.2 277.3,80.8 288,74.6 C298.7,68.4 314.7,59.1 320,56.0" strokeOpacity="0.15" />
-                </g>
-              </svg>
-
-              <div className="relative px-4 pt-[4.5rem] pb-5 text-center">
-                <p className="text-[11px] font-semibold tracking-wide text-white">
-                  Developed by Aajneeti connect ltd.
-                </p>
-                <p className="mt-1 text-[11px] text-white/70">
-                  © 2026 All rights reserved.
-                </p>
-              </div>
+            <div
+              className="relative z-10 -mt-[2px] px-4 pb-4 pt-1 text-center"
+              style={{
+                background:
+                  "linear-gradient(90deg,#5C062D 0%,#59052C 25%,#840738 50%,#9B0641 75%,#800639 100%)",
+                filter: "brightness(1.07) contrast(1.03)",
+              }}
+            >
+              <p className="text-[11px] font-semibold tracking-wide text-white">
+                Developed by Aajneeti connect ltd.
+              </p>
+              <p className="mt-0.5 text-[11px] text-white/70">
+                © 2026 All rights reserved.
+              </p>
             </div>
           </div>
         </div>

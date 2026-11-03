@@ -14,7 +14,7 @@ import Button from "components/ui/Button";
 
 const COLORS = {
   Active: "#6366F1",
-  Converted: "#22C55E",
+  Converted: "#2F7D53",
   Lost: "#F43F5E",
   Invalid: "#94A3B8",
 };

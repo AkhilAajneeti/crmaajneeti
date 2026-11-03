@@ -185,7 +185,7 @@ const LoginForm = () => {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? "Hide password" : "Show password"}
-            className="absolute right-3.5 top-[calc(clamp(42px,5.6vh,52px)/2)] -translate-y-1/2 text-slate-400 transition-colors hover:text-[#2563eb]"
+            className="absolute right-3.5 top-[calc(clamp(42px,5.6vh,52px)/2)] -translate-y-1/2 text-slate-400 transition-colors hover:text-[#8c1226]"
           >
             <Icon name={showPassword ? "EyeOff" : "Eye"} size={18} />
           </button>
@@ -214,7 +214,7 @@ const LoginForm = () => {
         fullWidth
         loading={isLoading}
         disabled={isLoading}
-        className="mt-1 h-[clamp(46px,6.4vh,58px)] rounded-2xl bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#1e40af] text-[16px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(37,99,235,0.95)] transition-all hover:brightness-110 hover:shadow-[0_20px_40px_-14px_rgba(37,99,235,1)]"
+        className="mt-1 h-[clamp(46px,6.4vh,58px)] rounded-full bg-[linear-gradient(100deg,#8c1226_0%,#a51f2b_55%,#8c1226_100%)] text-[16px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(140,18,38,0.95)] transition-all hover:brightness-110 hover:shadow-[0_20px_40px_-14px_rgba(140,18,38,1)]"
       >
         <span className="flex items-center justify-center gap-3">
           {!isLoading && (

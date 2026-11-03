@@ -149,7 +149,7 @@ const paginatedDeals = deals;
       {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-muted/50 border-b border-border">
+          <thead className="festive-thead/50 border-b border-border">
             <tr>
               <th className="w-12 px-4 py-3">
                 <Checkbox

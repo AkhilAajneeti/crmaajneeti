@@ -1,185 +1,170 @@
 import React from "react";
-import { motion } from "framer-motion";
-import Icon from "../../../components/AppIcon";
+import { motion, useReducedMotion } from "framer-motion";
+import Icon from "components/AppIcon";
+import FestiveFireworks from "components/FestiveFireworks";
 
+// Feature rows. Each icon sits on its own soft tint so the three read as a
+// set without competing with the artwork behind them.
 const FEATURES = [
   {
     icon: "TrendingUp",
+    tint: "bg-rose-50 text-rose-600",
     title: "Real-time Performance",
-    description: "Track progress and make informed decisions",
+    body: "Track progress and make informed decisions",
   },
   {
     icon: "Users",
+    tint: "bg-rose-50 text-rose-600",
     title: "Seamless Team Collaboration",
-    description: "Keep teams aligned and work moving forward",
+    body: "Keep teams aligned and work moving forward",
   },
   {
     icon: "ShieldCheck",
+    tint: "bg-rose-50 text-rose-600",
     title: "Secure & Reliable Access",
-    description: "Your workspace, protected at every step",
+    body: "Your workspace, protected at every step",
   },
 ];
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  show: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: 0.15 + i * 0.1, duration: 0.6, ease: "easeOut" },
-  }),
-};
-
 const LoginShowcase = () => {
+  const reduceMotion = useReducedMotion();
+
+  const rise = (delay) =>
+    reduceMotion
+      ? { initial: { opacity: 0 }, animate: { opacity: 1 } }
+      : {
+          initial: { opacity: 0, y: 18 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] },
+        };
+
   return (
-    <div className="relative hidden lg:flex flex-col overflow-hidden bg-[#050c26] text-white">
-      {/* Deep navy base gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_0%_0%,#0b1743_0%,#071033_45%,#040a1f_100%)]" />
+    <div className="relative hidden overflow-hidden bg-[#fffaf4] lg:block">
+      {/* ── Background layers, back to front ───────────────────── */}
 
-      {/* Blue glow sweeping in from the right edge */}
-      <div className="absolute -top-40 -right-52 h-[620px] w-[620px] rounded-full bg-[#1d4ed8]/40 blur-[130px]" />
-      <div className="absolute top-1/3 -right-24 h-[420px] w-[420px] rounded-full bg-[#2563eb]/25 blur-[120px]" />
-      <div className="absolute -bottom-40 -left-32 h-[460px] w-[460px] rounded-full bg-[#1e40af]/25 blur-[130px]" />
+      {/* Ivory silk ground with its lit lotus lamp.
 
-      {/* Faint arc lines in the top-right corner */}
-      <svg
-        className="pointer-events-none absolute -top-24 right-0 h-[420px] w-[420px] opacity-[0.18]"
-        viewBox="0 0 400 400"
-        fill="none"
+          Cropped from the right rather than centred: at the default crop the
+          lamp sat bottom-LEFT, directly under the feature list, which is the
+          clutter that needed clearing. Pushing the focal point right drops it
+          near the temple, where it belongs, and the silk sheen still carries
+          the whole panel. */}
+      <img
+        src="/assets/festival/lotus lamp.jpg"
+        alt=""
         aria-hidden="true"
-      >
-        {[150, 190, 230, 270, 310].map((r) => (
-          <circle
-            key={r}
-            cx="330"
-            cy="70"
-            r={r}
-            stroke="url(#arcStroke)"
-            strokeWidth="1"
-          />
-        ))}
-        <defs>
-          <linearGradient id="arcStroke" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#93c5fd" stopOpacity="0" />
-            <stop offset="60%" stopColor="#93c5fd" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#93c5fd" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-      </svg>
+        className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-[78%_bottom]"
+      />
 
-      {/* ── Bottom band: maroon glow + dot matrix ─────────────── */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[52%]">
-        {/* Maroon wash rising from the bottom-left */}
-        <div className="absolute inset-0 bg-[radial-gradient(95%_120%_at_10%_105%,rgba(172,35,52,0.85)_0%,rgba(139,28,45,0.45)_32%,rgba(88,20,52,0.18)_58%,transparent_78%)]" />
-        {/* Crimson core */}
-        <div className="absolute -bottom-24 -left-24 h-[380px] w-[380px] rounded-full bg-mahroon opacity-45 blur-[110px]" />
-        {/* Dot matrix, fading upward */}
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.5)_1.2px,transparent_1.2px)] bg-[size:15px_15px] opacity-25 [mask-image:linear-gradient(to_top,black_15%,transparent_85%)]" />
-        {/* Denser maroon-tinted dots hugging the corner */}
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,140,160,0.65)_1.2px,transparent_1.2px)] bg-[size:15px_15px] opacity-40 [mask-image:radial-gradient(70%_90%_at_12%_100%,black_0%,transparent_70%)]" />
-      </div>
+      {/* Lifted over the photograph so the headline and body stay readable,
+          heavier on the left where the text sits and thinning to the right so
+          the artwork survives. */}
+      <div className="absolute inset-0 bg-[linear-gradient(103deg,rgba(255,254,251,0.97)_0%,rgba(255,251,244,0.93)_42%,rgba(255,247,236,0.66)_70%,rgba(253,240,222,0.4)_100%)]" />
 
-      {/* ── Content ─────────────────────────────────────────────── */}
-      <div className="relative z-10 flex h-full flex-col px-8 py-[clamp(18px,3vh,40px)] xl:px-10">
-        {/* Brand lockup */}
-        <motion.div
-          initial={{ opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="flex items-center"
-        >
-          <img
-            src="/assets/aajneeti-logo.png"
-            alt="Aajneeti Connect"
-            className="h-11 w-auto object-contain"
-          />
-        </motion.div>
+      {/* Faint mandala, pushed far enough off-canvas to stay clear of the
+          logo in the top-left corner. */}
+      <img
+        src="/assets/festival/festive-mandala-full.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-40 top-[22%] w-[360px] select-none opacity-[0.06]"
+      />
 
-        {/* Headline, pitch and feature list */}
-        <div className="mt-[clamp(16px,3.5vh,44px)] flex flex-1 items-center">
-          {/* Pitch */}
-          <div className="max-w-xl">
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              animate="show"
-              className="flex items-center gap-3"
-            >
-              <span className="h-px w-8 shrink-0 bg-[#e8546b]/70" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#e8546b]">
-                Performance • Teamwork • Growth
-              </p>
-            </motion.div>
+      {/* Lanterns, held to the right half so they cannot reach the logo.
+          This is the transparent PNG rather than one of the JPEGs — the
+          JPEG lantern art was renamed off disk, and a PNG needs no blend
+          trick to drop its background. */}
+      <img
+        src="/assets/festival/festive-lanterns.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-6 right-[6%] h-[300px] select-none object-contain"
+      />
 
-            <motion.h1
-              variants={fadeUp}
-              initial="hidden"
-              animate="show"
-              custom={0.4}
-              className="mt-[clamp(12px,2.2vh,22px)] text-[clamp(26px,min(2.2vw,38px),38px)] font-bold leading-[1.1] tracking-tight"
-            >
-              One workspace.
-              <br />
-              <span className="italic text-[#f8d0d8]">
-                Every team, in sync.
-              </span>
-            </motion.h1>
+      {/* Rocket crackers over the upper-right, behind the lanterns. */}
+      <FestiveFireworks className="absolute right-[6%] top-[4%] h-[300px] w-[380px] opacity-90" />
+      <FestiveFireworks className="absolute left-[46%] top-[30%] hidden h-[210px] w-[260px] opacity-50 xl:block" />
 
-            <motion.p
-              variants={fadeUp}
-              initial="hidden"
-              animate="show"
-              custom={1}
-              className="mt-[clamp(12px,2.2vh,24px)] text-[14px] leading-6 text-white/70"
-            >
-              Your work, your team, your goals — all in one place.{" "}
-              <span className="font-semibold text-white">
-                AAJneeti Connect Limited
-              </span>{" "}
-              brings people, processes, and performance together to help
-              everyone work smarter and achieve more.
-            </motion.p>
+      {/* The temple, anchored bottom-right and bleeding off the edge so it
+          reads as a scene the panel stands in. */}
+      <img
+        src="/assets/festival/Illuminated Ivory Hindu Temple Garden.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-12 bottom-0 w-[58%] max-w-[600px] select-none object-contain"
+      />
 
-            <div className="mt-[clamp(16px,3vh,36px)] space-y-[clamp(10px,1.9vh,22px)]">
-              {FEATURES?.map((feature, index) => (
-                <motion.div
-                  key={feature?.title}
-                  variants={fadeUp}
-                  initial="hidden"
-                  animate="show"
-                  custom={2 + index}
-                  className="flex items-start gap-4"
+      {/* Golden glow pooling behind the temple and along the floor. */}
+      <div className="pointer-events-none absolute bottom-[2%] right-[10%] h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,rgba(247,186,99,0.38)_0%,rgba(247,186,99,0)_70%)] blur-2xl" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#fdf0de] via-[#fdf0de]/55 to-transparent" />
+
+      {/* ── Content ────────────────────────────────────────────── */}
+      <div className="relative z-10 flex h-full flex-col px-12 py-10 xl:px-16">
+        <img
+          src="/assets/aajneeti-logo-dark.png"
+          alt="Aajneeti Connect"
+          className="relative z-20 h-11 w-auto self-start object-contain"
+        />
+
+        <div className="flex flex-1 flex-col justify-center py-10">
+          {/* Eyebrow: letter-spaced gold caps between two rules. */}
+          <motion.div {...rise(0.05)} className="mb-6 flex items-center gap-3">
+            <span className="h-px w-10 bg-gradient-to-r from-transparent to-[#e0b070]" />
+            <span className="text-[12px] font-semibold uppercase tracking-[0.28em] text-[#c98a2e]">
+              Festival of lights and love
+            </span>
+            <span className="h-px w-10 bg-gradient-to-l from-transparent to-[#e0b070]" />
+          </motion.div>
+
+          <motion.h1
+            {...rise(0.12)}
+            className="max-w-[18ch] text-[clamp(32px,4.4vw,52px)] font-bold leading-[1.08] tracking-tight text-[#111c3a]"
+          >
+            One workspace.
+            <span className="mt-1 block italic text-[#8c1226]">
+              Every team, in sync.
+            </span>
+          </motion.h1>
+
+          <motion.p
+            {...rise(0.2)}
+            className="mt-5 max-w-[46ch] text-[15px] leading-7 text-slate-600"
+          >
+            Your work, your team, your goals — all in one place.{" "}
+            <span className="font-semibold text-slate-800">
+              AAJneeti Connect Limited
+            </span>{" "}
+            brings people, processes, and performance together to help everyone
+            work smarter and achieve more.
+          </motion.p>
+
+          <div className="mt-9 space-y-5">
+            {FEATURES.map((f, i) => (
+              <motion.div
+                key={f.title}
+                {...rise(0.28 + i * 0.08)}
+                className="flex items-start gap-4"
+              >
+                <span
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${f.tint}`}
                 >
-                  <span className="flex h-[clamp(40px,5vh,52px)] w-[clamp(40px,5vh,52px)] shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-[#1b3a8f] to-[#0e1c47] shadow-[0_10px_30px_-12px_rgba(37,99,235,0.9)]">
-                    <Icon
-                      name={feature?.icon}
-                      size={22}
-                      className="text-[#7db2ff]"
-                    />
-                  </span>
-                  <div className="pt-1">
-                    <p className="text-[15px] font-semibold text-white">
-                      {feature?.title}
-                    </p>
-                    <p className="mt-0.5 text-[13px] text-white/60">
-                      {feature?.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                  <Icon name={f.icon} size={21} />
+                </span>
+                <div>
+                  <p className="text-[16px] font-semibold text-[#111c3a]">
+                    {f.title}
+                  </p>
+                  <p className="mt-0.5 text-[14px] text-slate-500">{f.body}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
-
         </div>
 
-        {/* Tagline */}
-        <motion.div
-          initial={{ opacity: 0, x: -16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="mt-[clamp(16px,3vh,40px)] flex items-center gap-4"
-        >
-          <span className="h-12 w-[3px] rounded-full bg-gradient-to-b from-mahroon-200 via-mahroon to-transparent" />
-          <p className="max-w-lg text-[16px] font-medium italic leading-6 text-white/70">
+        {/* Closing line, held by a maroon rule on its left edge. */}
+        <motion.div {...rise(0.6)} className="flex items-center gap-4">
+          <span className="h-10 w-[3px] shrink-0 rounded-full bg-[#8c1226]" />
+          <p className="text-[16px] font-semibold italic text-[#8c1226]">
             One team. One platform. Better outcomes.
           </p>
         </motion.div>

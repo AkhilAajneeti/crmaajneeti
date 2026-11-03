@@ -14,11 +14,11 @@ import {
 import { motion } from "framer-motion";
 const COLORS = [
   "#6366F1",
-  "#22C55E",
-  "#F59E0B",
-  "#EF4444",
-  "#06B6D4",
-  "#8B5CF6",
+  "#2F7D53",
+  "#C9A227",
+  "#B3261E",
+  "#1F6F7A",
+  "#6B2D5C",
 ];
 
 const AssignedUserChart = ({ leads = [] }) => {
@@ -111,19 +111,19 @@ const AssignedUserChart = ({ leads = [] }) => {
               <Bar
                 dataKey="interested"
                 stackId="a"
-                fill="#22C55E"
+                fill="#2F7D53"
                 radius={[0, 4, 4, 0]}
               />
               <Bar
                 dataKey="followUp"
                 stackId="a"
-                fill="#F59E0B"
+                fill="#C9A227"
                 radius={[0, 4, 4, 0]}
               />
               <Bar
                 dataKey="notInterested"
                 stackId="a"
-                fill="#EF4444"
+                fill="#B3261E"
                 radius={[0, 4, 4, 0]}
               />
               <Bar

@@ -214,6 +214,68 @@ export const fetchNewLeads = async ({ limit, page, filters = {}, sort }) => {
     }
   }
 
+  // ✅ NEXT CONTACT FILTER
+  // Independent of the created-date filter above and ANDed with it, so the two
+  // can be combined. Same option set, different attribute.
+  if (filters.nextContactType) {
+    const type = filters.nextContactType;
+    const attribute = "cNextContact";
+
+    switch (type) {
+      case "today":
+      case "lastSevenDays":
+      case "currentMonth":
+      case "lastMonth":
+      case "nextMonth":
+      case "currentQuarter":
+      case "lastQuarter":
+      case "currentYear":
+      case "lastYear":
+      case "past":
+      case "future":
+      case "ever":
+      case "isEmpty":
+        where.push({ type, attribute, dateTime: true });
+        break;
+
+      case "on":
+      case "before":
+      case "after":
+        if (filters.nextContactFrom) {
+          where.push({
+            type,
+            attribute,
+            value: filters.nextContactFrom,
+            dateTime: true,
+          });
+        }
+        break;
+
+      case "between":
+        if (filters.nextContactFrom && filters.nextContactTo) {
+          where.push({
+            type,
+            attribute,
+            value: [filters.nextContactFrom, filters.nextContactTo],
+            dateTime: true,
+          });
+        }
+        break;
+
+      case "lastXDays":
+      case "afterXDays":
+        if (filters.nextContactXDays) {
+          where.push({
+            type,
+            attribute,
+            value: filters.nextContactXDays,
+            dateTime: true,
+          });
+        }
+        break;
+    }
+  }
+
   // ✅ OTHER FILTERS
   if (filters.search) {
     where.push({
@@ -223,7 +285,18 @@ export const fetchNewLeads = async ({ limit, page, filters = {}, sort }) => {
     });
   }
 
-  if (filters.status) {
+  // Status accepts one value or several. The saved view-state from before
+  // multi-select held a plain string, so both shapes are handled rather than
+  // breaking for anyone with a filter already stored.
+  if (Array.isArray(filters.status)) {
+    if (filters.status.length) {
+      where.push({
+        type: "in",
+        attribute: "status",
+        value: filters.status,
+      });
+    }
+  } else if (filters.status) {
     where.push({
       type: "equals",
       attribute: "status",

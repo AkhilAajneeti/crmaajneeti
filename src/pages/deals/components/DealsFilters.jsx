@@ -5,6 +5,18 @@ import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import { useUsers } from "hooks/useUsers";
 import RoleGuard from "components/RoleGuard";
+import { CHIP_PALETTE, STATUS_COLORS } from "utils/leadStatus";
+
+/** Accepts the old string shape and the new array shape alike. */
+const toStatusArray = (value) => {
+  if (Array.isArray(value)) return value;
+  return value ? [value] : [];
+};
+
+/** Each status keeps the colour it has everywhere else in the app. */
+const statusPillClass = (status) =>
+  CHIP_PALETTE[STATUS_COLORS[String(status ?? "").trim()]]?.pill ||
+  "bg-slate-100 text-slate-700";
 
 const DealsFilters = ({
   filters,
@@ -131,6 +143,17 @@ const DealsFilters = ({
   ];
   const showDateInputs = ["on", "before", "after", "between"].includes(filters?.dateType);
   const showXDaysInput = ["lastXDays", "afterXDays"].includes(filters?.dateType);
+
+  // Next-contact filter. Same option list and same sub-filters as the created
+  // date filter, on its own set of keys so the two can be combined — "created
+  // this month AND due to be called this week" is the question this page could
+  // not ask before.
+  const showNextContactInputs = ["on", "before", "after", "between"].includes(
+    filters?.nextContactType
+  );
+  const showNextContactXDays = ["lastXDays", "afterXDays"].includes(
+    filters?.nextContactType
+  );
   const handleFilterChange = (key, value) => {
     let updated = {
       ...filters,
@@ -144,6 +167,14 @@ const DealsFilters = ({
       updated.xDays = "";
     }
 
+    // Same rule for the next-contact filter: a leftover "between" end date
+    // would silently narrow the next selection.
+    if (key === "nextContactType") {
+      updated.nextContactFrom = "";
+      updated.nextContactTo = "";
+      updated.nextContactXDays = "";
+    }
+
     onFiltersChange(updated);
   };
 
@@ -152,8 +183,10 @@ const DealsFilters = ({
     setShowBulkActions(false);
   };
 
-  const activeFiltersCount = Object.values(filters)?.filter(
-    (value) => value !== "" && value !== null && value !== undefined,
+  const activeFiltersCount = Object.values(filters)?.filter((value) =>
+    Array.isArray(value)
+      ? value.length > 0
+      : value !== "" && value !== null && value !== undefined,
   )?.length;
   const assignUserOptions = assignUser.map((acc) => ({
     value: acc.id, // 👈 important (ID use karo)
@@ -182,6 +215,8 @@ const DealsFilters = ({
         return `Project: ${value}`;
       case "dateType":
         return `Date: ${optionLabel(ACTIVITY_DATE_FILTERS, value)}`;
+      case "nextContactType":
+        return `Next contact: ${optionLabel(ACTIVITY_DATE_FILTERS, value)}`;
       default:
         return `${key}: ${value}`;
     }
@@ -197,11 +232,25 @@ const DealsFilters = ({
     "assignUser",
     "projectName",
     "dateType",
+    "nextContactType",
   ];
-  const activeChips = CHIP_KEYS.filter((key) => filters?.[key]).map((key) => ({
-    key,
-    label: getFilterChipLabel(key, filters[key]),
-  }));
+  const selectedStatuses = toStatusArray(filters?.status);
+
+  const activeChips = CHIP_KEYS.filter((key) => {
+    const value = filters?.[key];
+    return Array.isArray(value) ? value.length > 0 : Boolean(value);
+  })
+    .filter((key) => key !== "status")
+    .map((key) => ({
+      key,
+      label: getFilterChipLabel(key, filters[key]),
+    }));
+
+  const removeStatus = (status) =>
+    handleFilterChange(
+      "status",
+      selectedStatuses.filter((s) => s !== status),
+    );
 
   return (
     <div className="bg-card border border-border rounded-lg p-4 mb-6">
@@ -211,8 +260,24 @@ const DealsFilters = ({
           <h2 className="text-lg font-semibold text-foreground">
             Leads ({dealCount})
           </h2>
-          {activeChips.length > 0 && (
+          {(activeChips.length > 0 || selectedStatuses.length > 0) && (
             <div className="flex flex-wrap items-center gap-2">
+              {selectedStatuses.map((status) => (
+                <span
+                  key={status}
+                  className={`inline-flex items-center gap-1.5 rounded-full py-1 pl-3 pr-1.5 text-xs font-semibold shadow-sm transition-all duration-200 hover:shadow-md ${statusPillClass(status)}`}
+                >
+                  <span className="truncate max-w-[160px]">{status}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeStatus(status)}
+                    aria-label={`Remove ${status} status filter`}
+                    className="flex h-4 w-4 items-center justify-center rounded-full opacity-60 transition-all duration-200 hover:bg-black/20 hover:opacity-100"
+                  >
+                    <Icon name="X" size={11} />
+                  </button>
+                </span>
+              ))}
               {activeChips.map((chip) => (
                 <span
                   key={chip.key}
@@ -320,7 +385,10 @@ const DealsFilters = ({
         <Select
           placeholder="Status"
           options={statusOptions}
-          value={filters?.status || ""}
+          multiple
+          // Normalised to an array on the way in: a view-state saved before
+          // multi-select existed still holds a bare string.
+          value={toStatusArray(filters?.status)}
           onChange={(value) => handleFilterChange("status", value)}
         />
 
@@ -384,6 +452,48 @@ const DealsFilters = ({
                 value={filters?.closeDateTo || ""}
                 onChange={(e) =>
                   handleFilterChange("closeDateTo", e.target.value)
+                }
+              />
+            )}
+          </div>
+        )}
+
+        {/* Next Contact Type Select */}
+        <Select
+          className="min-w-0"
+          placeholder="Filter by next contact"
+          options={ACTIVITY_DATE_FILTERS}
+          value={filters?.nextContactType || ""}
+          onChange={(value) => handleFilterChange("nextContactType", value)}
+        />
+
+        {showNextContactXDays && (
+          <Input
+            type="number"
+            placeholder="Enter days"
+            value={filters?.nextContactXDays || ""}
+            onChange={(e) =>
+              handleFilterChange("nextContactXDays", e.target.value)
+            }
+          />
+        )}
+
+        {showNextContactInputs && (
+          <div className="flex gap-2">
+            <Input
+              type="date"
+              value={filters?.nextContactFrom || ""}
+              onChange={(e) =>
+                handleFilterChange("nextContactFrom", e.target.value)
+              }
+            />
+
+            {filters?.nextContactType === "between" && (
+              <Input
+                type="date"
+                value={filters?.nextContactTo || ""}
+                onChange={(e) =>
+                  handleFilterChange("nextContactTo", e.target.value)
                 }
               />
             )}

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { parseEspoToLocal } from "pages/pipeline/utils/dateHelpers";
 import { useNavigate } from "react-router-dom";
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
@@ -91,6 +92,141 @@ const getAvatarColor = (name) => {
   return AVATAR_COLORS[sum % AVATAR_COLORS.length];
 };
 
+
+//
+export const DATE_FILTER_OPTIONS = [
+  { label: "Today", value: "today" },
+  { label: "Last 7 Days", value: "lastSevenDays" },
+  { label: "Current Month", value: "currentMonth" },
+  { label: "Last Month", value: "lastMonth" },
+  { label: "Current Quarter", value: "currentQuarter" },
+  { label: "Last Quarter", value: "lastQuarter" },
+  { label: "Current Year", value: "currentYear" },
+  { label: "Last Year", value: "lastYear" },
+  { label: "On", value: "on" },
+  { label: "Between", value: "between" },
+  { label: "Last X Days", value: "lastXDays" },
+];
+export const STATUS_FILTER_OPTIONS = [
+  { label: "InActive", value: "InActive" },
+  { label: "Active", value: "Active" }
+];
+const DEFAULT_USER_FILTERS = {
+  search: "",
+  dateType: "",
+  statusType: "",
+  roleType: "",
+  dateFrom: "",
+  dateTo: "",
+  xDays: "",
+};
+
+// Date ranges are resolved on the client because the user list is already
+// fully in memory — no second request, and the result updates as you type.
+const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+const RANGE_BUILDERS = {
+  today: () => {
+    const from = startOfDay(new Date());
+    return [from, new Date(from.getTime() + 86400000)];
+  },
+  lastSevenDays: () => {
+    const to = new Date();
+    const from = startOfDay(new Date());
+    from.setDate(from.getDate() - 6);
+    return [from, to];
+  },
+  currentMonth: () => {
+    const n = new Date();
+    return [new Date(n.getFullYear(), n.getMonth(), 1), new Date(n.getFullYear(), n.getMonth() + 1, 1)];
+  },
+  lastMonth: () => {
+    const n = new Date();
+    return [new Date(n.getFullYear(), n.getMonth() - 1, 1), new Date(n.getFullYear(), n.getMonth(), 1)];
+  },
+  currentQuarter: () => {
+    const n = new Date();
+    const q = Math.floor(n.getMonth() / 3);
+    return [new Date(n.getFullYear(), q * 3, 1), new Date(n.getFullYear(), q * 3 + 3, 1)];
+  },
+  lastQuarter: () => {
+    const n = new Date();
+    const q = Math.floor(n.getMonth() / 3) - 1;
+    return [new Date(n.getFullYear(), q * 3, 1), new Date(n.getFullYear(), q * 3 + 3, 1)];
+  },
+  currentYear: () => {
+    const y = new Date().getFullYear();
+    return [new Date(y, 0, 1), new Date(y + 1, 0, 1)];
+  },
+  lastYear: () => {
+    const y = new Date().getFullYear() - 1;
+    return [new Date(y, 0, 1), new Date(y + 1, 0, 1)];
+  },
+};
+
+/**
+ * True when the record's date falls inside the selected range. An empty
+ * filter passes everything, and an unparseable date fails only when a filter
+ * is actually set — otherwise a missing createdAt would hide the user even
+ * with no filter on.
+ */
+export const matchesDateFilter = (value, filters) => {
+  const type = filters?.dateType;
+  if (!type) return true;
+
+  const date = parseEspoToLocal(value);
+  if (!date) return false;
+
+  if (RANGE_BUILDERS[type]) {
+    const [from, to] = RANGE_BUILDERS[type]();
+    return date >= from && date < to;
+  }
+
+  // Explicit day / range / rolling window.
+  if (type === "on") {
+    if (!filters.dateFrom) return true;
+    const from = startOfDay(new Date(filters.dateFrom));
+    return date >= from && date < new Date(from.getTime() + 86400000);
+  }
+
+  if (type === "between") {
+    if (!filters.dateFrom || !filters.dateTo) return true;
+    const from = startOfDay(new Date(filters.dateFrom));
+    const to = startOfDay(new Date(filters.dateTo));
+    return date >= from && date < new Date(to.getTime() + 86400000);
+  }
+
+  if (type === "lastXDays") {
+    const days = Number(filters.xDays);
+    if (!days) return true;
+    const from = startOfDay(new Date());
+    from.setDate(from.getDate() - (days - 1));
+    return date >= from;
+  }
+
+  return true;
+};
+
+/**
+ * Roles live in two places on a user record: `rolesNames` (an id→name map from
+ * the roles table) and `type` (the built-in admin/regular distinction). The
+ * filter matches either, so picking "Manager" works whether the deployment
+ * models it as a named role or as a user type.
+ */
+export const matchesRoleFilter = (member, roleType) => {
+  if (!roleType) return true;
+
+  const wanted = String(roleType).toLowerCase();
+  if (String(member?.type || "").toLowerCase() === wanted) return true;
+
+  const named = Object.values(member?.rolesNames || {}).map((r) =>
+    String(r).toLowerCase()
+  );
+  if (named.includes(wanted)) return true;
+
+  return Object.keys(member?.rolesNames || {}).includes(roleType);
+};
+
 // Avatar + name pill (used for the User Name column).
 const UserPill = ({ name }) => {
   if (!name) return <span className="text-muted-foreground text-sm">—</span>;
@@ -140,7 +276,8 @@ const UserTab = ({ deepLink }) => {
   const [isShowDetails, setIsShowDetails] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
- const [detailsLoadingId, setDetailsLoadingId] = useState(null);
+  const [detailsLoadingId, setDetailsLoadingId] = useState(null);
+  const [filters, setFilters] = useState({ ...DEFAULT_USER_FILTERS });
   const [inviteData, setInviteData] = useState({
     userName: "",
     title: "",
@@ -257,7 +394,7 @@ const UserTab = ({ deepLink }) => {
   };
   const fetchuserById = async (member) => {
     try {
-     setDetailsLoadingId(member.id);
+      setDetailsLoadingId(member.id);
 
       const data = await fetchUserById(member.id);
 
@@ -267,7 +404,7 @@ const UserTab = ({ deepLink }) => {
       console.error("failed to fetch data", err);
       toast.error("Failed to load user details");
     } finally {
-       setDetailsLoadingId(null);
+      setDetailsLoadingId(null);
     }
   };
 
@@ -364,11 +501,69 @@ const UserTab = ({ deepLink }) => {
     value: t.id,
     label: t.name,
   }));
-  const paginatedMembers = React.useMemo(() => {
+  const filteredMembers = useMemo(() => {
+    const q = (filters.search || "").trim().toLowerCase();
+
+    return (teamMembers || []).filter((m) => {
+      if (q) {
+        const name = (m?.name || "").toLowerCase();
+        const userName = (m?.userName || "").toLowerCase();
+        const email = (m?.emailAddress || "").toLowerCase();
+        if (!name.includes(q) && !userName.includes(q) && !email.includes(q)) {
+          return false;
+        }
+      }
+
+      if (!matchesDateFilter(m?.createdAt, filters)) return false;
+      if (!matchesRoleFilter(m, filters.roleType)) return false;
+
+      // Status values come from STATUS_FILTER_OPTIONS ("Active"/"InActive")
+      // and are matched against the boolean isActive flag.
+      if (filters.statusType === "Active" && !m?.isActive) return false;
+      if (filters.statusType === "InActive" && m?.isActive) return false;
+
+      return true;
+    });
+  }, [teamMembers, filters]);
+
+  // Pagination follows the FILTERED list — paging the unfiltered one would
+  // show "1–10 of 116" above ten rows that are actually a subset.
+  const paginatedMembers = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return teamMembers.slice(startIndex, endIndex);
-  }, [teamMembers, currentPage, itemsPerPage]);
+    return filteredMembers.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredMembers, currentPage, itemsPerPage]);
+
+  const activeFiltersCount = Object.entries(filters).filter(
+    // dateFrom / dateTo / xDays are sub-parts of the date filter, already
+    // represented by dateType — counting them would read as three filters
+    // when the user picked one.
+    ([key, value]) =>
+      !["dateFrom", "dateTo", "xDays"].includes(key) && value !== "",
+  ).length;
+
+  const showDateInputs = ["on", "between"].includes(filters.dateType);
+  const showXDaysInput = filters.dateType === "lastXDays";
+
+  // Real roles from the backend, with the user types that are not in that
+  // table appended — hardcoding the list would drift the moment a role is
+  // added in admin.
+  const roleFilterOptions = useMemo(() => {
+    const fromBackend = (role || []).map((r) => ({
+      value: r.name,
+      label: r.name,
+    }));
+    const types = [
+      { value: "admin", label: "Admin" },
+      { value: "Executive", label: "Executive" },
+    ];
+    const seen = new Set();
+    return [...fromBackend, ...types].filter((o) => {
+      const key = String(o.value).toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [role]);
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
@@ -476,7 +671,10 @@ const UserTab = ({ deepLink }) => {
     );
   };
 
-  const totalPages = Math.ceil(teamMembers?.length / itemsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil((filteredMembers?.length || 0) / itemsPerPage),
+  );
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -488,7 +686,24 @@ const UserTab = ({ deepLink }) => {
   useEffect(() => {
     setCurrentPage(1);
   }, [itemsPerPage]);
-  const ROLES = ["apiread", "calling", "Executive", "Manager"];
+
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === "dateType") {
+        next.dateFrom = "";
+        next.dateTo = "";
+        next.xDays = "";
+      }
+      return next;
+    });
+    setCurrentPage(1);
+  };
+
+  const clearFilters = () => {
+    setFilters({ ...DEFAULT_USER_FILTERS });
+    setCurrentPage(1);
+  };
   const generatePassword = (length = 10) => {
     const chars =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -637,6 +852,85 @@ const UserTab = ({ deepLink }) => {
         </div>
 
         {/* Team Members Table */}
+        {/* Filters */}
+        <div className="mb-4 rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <h4 className="text-sm font-medium text-card-foreground">
+                Users ({filteredMembers.length})
+              </h4>
+              {activeFiltersCount > 0 && (
+                <>
+                  <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                    {activeFiltersCount} filter{activeFiltersCount !== 1 ? "s" : ""} active
+                  </span>
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs">
+                    Clear all
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <Input
+              type="search"
+              placeholder="Search by name or user name..."
+              value={filters.search}
+              onChange={(e) => handleFilterChange("search", e?.target?.value)}
+              className="lg:col-span-2"
+            />
+            <Select
+              placeholder="Filter by date"
+              options={DATE_FILTER_OPTIONS}
+              value={filters.dateType}
+              onChange={(value) => handleFilterChange("dateType", value)}
+              clearable
+            />
+            <Select
+              placeholder="Filter by Status"
+              options={STATUS_FILTER_OPTIONS}
+              value={filters.statusType}
+              onChange={(value) => handleFilterChange("statusType", value)}
+              clearable
+            />
+            <Select
+              placeholder="Filter by role"
+              options={roleFilterOptions}
+              value={filters.roleType}
+              onChange={(value) => handleFilterChange("roleType", value)}
+              clearable
+            />
+            {showXDaysInput && (
+              <Input
+                type="number"
+                placeholder="Enter days"
+                value={filters.xDays}
+                onChange={(e) => handleFilterChange("xDays", e?.target?.value)}
+              />
+            )}
+            {showDateInputs && (
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  max={todayLocal()}
+                  value={filters.dateFrom}
+                  onChange={(e) => handleFilterChange("dateFrom", e?.target?.value)}
+                />
+                {filters.dateType === "between" && (
+                  <Input
+                    type="date"
+                    max={todayLocal()}
+                    min={filters.dateFrom || undefined}
+                    value={filters.dateTo}
+                    onChange={(e) => handleFilterChange("dateTo", e?.target?.value)}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -754,7 +1048,7 @@ const UserTab = ({ deepLink }) => {
                             size="icon"
                             onClick={() => fetchuserById(member)}
                             aria-label="View member"
-                             loading={detailsLoadingId === member.id}
+                            loading={detailsLoadingId === member.id}
                           >
                             <Icon name="Eye" size={16} />
                           </Button>
@@ -785,7 +1079,7 @@ const UserTab = ({ deepLink }) => {
         <TablePagination
           currentPage={currentPage}
           totalPages={totalPages}
-          totalItems={teamMembers?.length}
+          totalItems={filteredMembers?.length || 0}
           itemsPerPage={itemsPerPage}
           onPageChange={handlePageChange}
           onItemsPerPageChange={handleItemsPerPageChange}
@@ -819,9 +1113,9 @@ const UserTab = ({ deepLink }) => {
 
                 <button
                   onClick={() => {
-              setIsInviteModalOpen(false);
-              clearDeepLinkUrl();
-            }}
+                    setIsInviteModalOpen(false);
+                    clearDeepLinkUrl();
+                  }}
                   className="p-2 rounded-lg hover:bg-muted transition"
                 >
                   <Icon name="X" size={20} />
@@ -939,7 +1233,7 @@ const UserTab = ({ deepLink }) => {
                         />
                       </div>
                       {/* Regular And Is Active */}
-                      <div className="grid grid-cols-2 gap-2">
+                      {/* <div className="grid grid-cols-2 gap-2">
                         <Select
                           label="Type"
                           options={typeOptions}
@@ -956,7 +1250,7 @@ const UserTab = ({ deepLink }) => {
                             handleInviteChange("isActive", value)
                           }
                         />
-                      </div>
+                      </div> */}
                     </div>
                     {/* password and generate password */}
                     <div className="bg-card border border-border rounded-lg p-4 space-y-4">
@@ -1026,9 +1320,9 @@ const UserTab = ({ deepLink }) => {
                       <Button
                         variant="outline"
                         onClick={() => {
-              setIsInviteModalOpen(false);
-              clearDeepLinkUrl();
-            }}
+                          setIsInviteModalOpen(false);
+                          clearDeepLinkUrl();
+                        }}
                         fullWidth
                       >
                         Cancel

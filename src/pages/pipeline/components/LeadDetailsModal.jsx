@@ -241,22 +241,22 @@ const LeadDetailsModal = ({
             <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-5 sm:px-7">
               <div className="flex min-w-0 items-center gap-4">
                 <span
-                  className="flex h-[66px] w-[66px] shrink-0 items-center justify-center rounded-full text-white"
+                  className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full text-white"
                   style={{
                     background: `linear-gradient(160deg, rgba(${rgb},0.95), rgb(${rgb}))`,
                     boxShadow: `0 10px 26px -10px rgba(${rgb},0.9), 0 0 0 10px rgba(${rgb},0.12), inset 0 1px 0 rgba(255,255,255,0.35)`,
                   }}
                 >
-                  <Icon name={accent.icon} size={28} />
+                  <Icon name={accent.icon} size={22} />
                 </span>
 
                 <div className="min-w-0">
-                  <h3 className="truncate text-[27px] font-bold leading-tight tracking-tight text-slate-900">
+                  <h3 className="truncate text-[22px] font-bold leading-tight tracking-tight text-slate-900">
                     {name}
                   </h3>
                   <div className="mt-2 flex flex-wrap items-center gap-2.5">
                     {place && (
-                      <span className="inline-flex items-center gap-1.5 text-[14px] text-slate-500">
+                      <span className="inline-flex items-center gap-1.5 text-[12px] text-slate-500">
                         <Icon name="MapPin" size={15} />
                         {place}
                       </span>
@@ -445,12 +445,12 @@ const LeadDetailsModal = ({
                   {lead?.source}
                 </MiniField>
 
+              </Section>
                 <MiniField icon="NotepadText" rgb={rgb} label="Description">
                   {lead?.description ? (
                     <p className="whitespace-pre-line break-words">{lead.description}</p>
                   ) : null}
                 </MiniField>
-              </Section>
 
               <Section
                 icon="UsersRound"

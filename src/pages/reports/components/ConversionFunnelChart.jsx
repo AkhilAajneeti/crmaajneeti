@@ -3,12 +3,12 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { fetchreportLeads } from "services/report.service";
 
 const funnelColors = [
-  "#ef4444",
-  "#f97316",
+  "#B3261E",
+  "#9A6112",
   "#facc15",
-  "#22c55e",
+  "#2F7D53",
   "#14b8a6",
-  "#06b6d4",
+  "#1F6F7A",
   "#6366f1",
 ];
 

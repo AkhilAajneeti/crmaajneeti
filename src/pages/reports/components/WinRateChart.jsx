@@ -109,10 +109,10 @@ const WinRateChart = ({ data, pieData, summary }) => {
               <Line
                 type="monotone"
                 dataKey="winRate"
-                stroke="#8B5CF6"
+                stroke="#6B2D5C"
                 strokeWidth={3}
-                dot={{ fill: "#8B5CF6", strokeWidth: 2, r: 6 }}
-                activeDot={{ r: 8, stroke: "#8B5CF6", strokeWidth: 2 }}
+                dot={{ fill: "#6B2D5C", strokeWidth: 2, r: 6 }}
+                activeDot={{ r: 8, stroke: "#6B2D5C", strokeWidth: 2 }}
                 animationDuration={1500}
               />
             </LineChart>

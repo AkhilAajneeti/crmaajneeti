@@ -14,25 +14,25 @@ import Input from "../../../components/ui/Input";
 import { fetchLeadsCount } from "services/leads.service";
 
 const COLORS = [
-  "#06b6d4", // cyan
-  "#8b5cf6", // purple
-  "#2563eb", // blue
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#10b981", // green
-  "#f97316", // orange
-  "#22c55e", // light green
-  "#e11d48", // rose
+  "#1F6F7A", // cyan
+  "#6B2D5C", // purple
+  "#8C1226", // blue
+  "#C9A227", // amber
+  "#B3261E", // red
+  "#2F7D53", // green
+  "#9A6112", // orange
+  "#2F7D53", // light green
+  "#B3261E", // rose
 ];
 
 // Fixed color per status so each always renders the same hue (order-independent).
 const STATUS_COLOR_MAP = {
-  Converted: "#06b6d4", // cyan
-  "Proposal Shared": "#8b5cf6", // purple
-  Interested: "#10b981", // green
-  "Follow Up": "#f59e0b", // amber
-  New: "#2563eb", // blue
-  "Not interested": "#ef4444", // red
+  Converted: "#1F6F7A", // cyan
+  "Proposal Shared": "#6B2D5C", // purple
+  Interested: "#2F7D53", // green
+  "Follow Up": "#C9A227", // amber
+  New: "#8C1226", // blue
+  "Not interested": "#B3261E", // red
 };
 
 const getStatusColor = (name, index) =>
@@ -341,7 +341,7 @@ const StatusChart = () => {
                 (entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={isEmpty ? "#d1d5db" : getStatusColor(entry?.name, index)}
+                    fill={isEmpty ? "rgba(201,162,39,0.22)" : getStatusColor(entry?.name, index)}
                     opacity={isEmpty ? 0.4 : 1}
                   />
                 ),

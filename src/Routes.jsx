@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router-dom";
 import ScrollToTop from "components/ScrollToTop";
+import FestiveOverlay from "components/FestiveOverlay";
 import ErrorBoundary from "components/ErrorBoundary";
 import NotFound from "pages/NotFound";
 import Settings from "./pages/settings";
@@ -31,6 +32,7 @@ const Routes = () => {
     <BrowserRouter>
       <ErrorBoundary>
         <ScrollToTop />
+        <FestiveOverlay />
         <RouterRoutes>
           {/* Define your route here */}
           <Route path="/login" element={<Login />} />
@@ -70,7 +72,7 @@ const Routes = () => {
           <Route
             path="/sales-team"
             element={
-              <ProtectedRoute entity="Contact">
+              <ProtectedRoute entity="Lead">
                 <SalesTeam />
               </ProtectedRoute>
             }

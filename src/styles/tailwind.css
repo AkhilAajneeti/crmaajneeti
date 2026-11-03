@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap');
+/* Display pair for the festival greeting: Playfair is the closest free
+   Didone to the reference's high thick/thin contrast, Cormorant carries
+   the italic line above it. */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,75 +12,75 @@
 @layer base {
   :root {
     /* Core Colors */
-    --color-background: #FCF6ED;
+    --color-background: #FEF9F0;
     /* festive ivory page */
-    --color-foreground: #0F1419;
+    --color-foreground: #2A1A14;
     /* even darker gray for maximum contrast */
-    --color-border: #F8E7D3;
+    --color-border: #EEDCC0;
     /* warm sand border */
     --color-input: #FFFFFF;
     /* clean white input */
-    --color-ring: #A3D9A5;
+    --color-ring: #C9A227;
     /* much darker mint green ring */
 
     /* Card Colors */
-    --color-card: #FDFBF7;
+    --color-card: #FFFDF8;
     /* festive ivory card */
-    --color-card-foreground: #0F1419;
+    --color-card-foreground: #2A1A14;
     /* even darker gray for maximum contrast */
 
     /* Popover Colors */
-    --color-popover: #FDFBF7;
+    --color-popover: #FFFDF8;
     /* festive ivory popover */
-    --color-popover-foreground: #0F1419;
+    --color-popover-foreground: #2A1A14;
     /* even darker gray for maximum contrast */
 
     /* Muted Colors */
-    --color-muted: #FAF1E4;
+    --color-muted: #FAF2E4;
     /* warm sand muted */
-    --color-muted-foreground: #1A202C;
+    --color-muted-foreground: #6B5340;
     /* significantly darker for better visibility */
 
     /* Primary Colors */
-    --color-primary: #AC2334;
+    --color-primary: #8C1226;
     /* much darker mint green */
-    --color-primary-foreground: #ffffff;
+    --color-primary-foreground: #FFF8EC;
     /* even darker gray for maximum contrast */
 
     /* Secondary Colors */
-    --color-secondary: #D1A3E8;
+    --color-secondary: #C9A227;
     /* much darker light purple */
-    --color-secondary-foreground: #0F1419;
+    --color-secondary-foreground: #2A1A14;
     /* even darker gray for maximum contrast */
 
     /* Destructive Colors */
-    --color-destructive: #E8A8A0;
+    --color-destructive: #B3261E;
     /* much darker soft pink */
-    --color-destructive-foreground: #4A1010;
+    --color-destructive-foreground: #FFF8EC;
     /* darker red for better contrast */
 
     /* Accent Colors */
-    --color-accent: #fee0df;
+    --color-accent: #FBEBD2;
     /* much darker pale yellow */
-    --color-accent-foreground: #0F1419;
+    --color-accent-foreground: #5C3310;
     /* even darker gray for maximum contrast */
 
     /* Success Colors */
-    --color-success: #A3D9A5;
+    --color-success: #2F7D53;
     /* much darker mint green */
-    --color-success-foreground: #0A251A;
+    --color-success-foreground: #FFF8EC;
     /* darker emerald for better contrast */
 
     /* Warning Colors */
-    --color-warning: #D9DB7A;
+    --color-warning: #9A6112;
     /* much darker pale yellow */
-    --color-warning-foreground: #4A1A08;
+    --color-warning-foreground: #3D2306;
     /* darker amber for better contrast */
 
     /* Error Colors */
-    --color-error: #E8A8A0;
+    --color-error: #B3261E;
     /* much darker soft pink */
-    --color-error-foreground: #4A1010;
+    --color-error-foreground: #FFF8EC;
     /* darker red for better contrast */
 
     /* Brand Colors — the deep accent used by the sidebar, chips and the login
@@ -268,6 +273,124 @@
   }
 }
 
+/* Fireworks. Only opacity and transform animate, so both stay on the
+   compositor and cost nothing per frame. */
+@keyframes firework-twinkle {
+  0%,
+  100% {
+    opacity: var(--spark-opacity, 0.7);
+    transform: scale(1);
+  }
+  45% {
+    opacity: calc(var(--spark-opacity, 0.7) * 0.45);
+    transform: scale(0.94);
+  }
+}
+
+@keyframes firework-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  18% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-26px);
+  }
+}
+
+/* String lights. Opacity only, so it stays off the main thread. */
+@keyframes bulb-glow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Diwali crackers. Rocket and burst run on the SAME duration and delay;
+   the split between them lives in the keyframe percentages, so they cannot
+   drift apart the way two independently-timed animations would.
+
+   Rocket climbs and is gone by 64%. Flash fires at 66%. Sparks fly 66%-100%. */
+@keyframes cracker-rise {
+  0% {
+    transform: translateY(0) scaleY(0.5);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  58% {
+    opacity: 1;
+  }
+  64% {
+    transform: translateY(calc(-1 * var(--rise, 60vh))) scaleY(1.1);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(calc(-1 * var(--rise, 60vh))) scaleY(1.1);
+    opacity: 0;
+  }
+}
+
+@keyframes cracker-flash {
+  0%,
+  63% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  68% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  80%,
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+@keyframes cracker-spark {
+  0%,
+  64% {
+    transform: translate(0, 0) scale(0.5);
+    opacity: 0;
+  }
+  68% {
+    opacity: 1;
+  }
+  100% {
+    /* --dx/--dy are set per spark, so one keyframe drives the whole ring. */
+    transform: translate(var(--dx), var(--dy)) scale(1);
+    opacity: 0;
+  }
+}
+
+/* A crisper blink than `bulb-glow`: it holds lit, drops quickly to a dim
+   ember and comes back, rather than easing evenly up and down. Fairy lights
+   switch, they do not breathe. */
+@keyframes bulb-twinkle {
+  0%,
+  38% {
+    opacity: 1;
+  }
+  52% {
+    opacity: 0.2;
+  }
+  66%,
+  100% {
+    opacity: 1;
+  }
+}
+
 @keyframes badge-pop {
   0%,
   100% {
@@ -327,6 +450,174 @@
       var(--split-strong) 58%,
       var(--split-strong) 100%
     );
+  }
+
+  /* A maroon rim around nothing: the fill is fully transparent, so whatever
+     the button sits on shows straight through. The ring is a gradient masked
+     out of a padded box, which is the only way to put a gradient on the
+     border of a rounded element — `border-image` squares the corners off.
+
+     Every colour derives from --color-brand, so the pink theme repaints the
+     button along with the rest of the CRM. */
+  .glow-ring-button {
+    position: relative;
+    isolation: isolate;
+    border-radius: 14px;
+    background: transparent;
+    box-shadow:
+      0 0 12px -3px color-mix(in srgb, var(--color-brand) 35%, transparent),
+      0 6px 16px -10px color-mix(in srgb, var(--color-brand) 45%, transparent);
+    transition:
+      box-shadow 220ms ease-out,
+      transform 160ms ease-out;
+  }
+
+  .glow-ring-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 1.5px;
+    /* Lit from the top-left and falling away towards the bottom-right before
+       catching again — that asymmetry is what reads as a rim catching light
+       rather than a flat outline. */
+    background: linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--color-brand) 45%, white) 0%,
+      var(--color-brand) 24%,
+      var(--color-brand-strong) 52%,
+      color-mix(in srgb, var(--color-brand-strong) 55%, transparent) 72%,
+      var(--color-brand) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .glow-ring-button:hover {
+    box-shadow:
+      0 0 18px -2px color-mix(in srgb, var(--color-brand) 55%, transparent),
+      0 8px 20px -10px color-mix(in srgb, var(--color-brand) 60%, transparent);
+  }
+
+  .glow-ring-button:active {
+    transform: scale(0.95);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glow-ring-button:active {
+      transform: none;
+    }
+  }
+
+  .firework-twinkle {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: firework-twinkle 4.5s ease-in-out infinite;
+  }
+
+  .firework-rise {
+    animation: firework-rise 5.5s ease-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .firework-twinkle,
+    .firework-rise {
+      animation: none;
+    }
+  }
+
+  .bulb-glow {
+    animation: bulb-glow 3.2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bulb-glow {
+      animation: none;
+    }
+  }
+
+  /* One hairline rule in champagne gold, fading at both ends. Used wherever
+     a plain grey divider would break the warm palette. */
+  .gold-rule {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(201, 162, 39, 0.45) 18%,
+      rgba(201, 162, 39, 0.45) 82%,
+      transparent
+    );
+  }
+
+  /* Card surface for the festive theme: ivory with a champagne edge and a
+     light that catches along the top. Applied through the tokens, so a card
+     using `bg-card border-border` already looks right — this is for the few
+     surfaces that want the extra lift. */
+  .festive-surface {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(253, 246, 234, 0.9) 100%),
+      var(--color-card);
+    border: 1px solid rgba(201, 162, 39, 0.28);
+    box-shadow:
+      0 1px 2px rgba(92, 51, 16, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+
+  /* Table headers across the app: a champagne band under maroon type. */
+  .festive-thead {
+    background: linear-gradient(180deg, rgba(251, 235, 210, 0.85) 0%, rgba(250, 242, 228, 0.7) 100%);
+    border-bottom: 1px solid rgba(201, 162, 39, 0.35);
+  }
+
+  .cracker-rise,
+  .cracker-flash,
+  .cracker-spark {
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+    will-change: transform, opacity;
+  }
+
+  .cracker-rise {
+    animation-name: cracker-rise;
+    /* Decelerating, so the rocket slows as it reaches the top of its arc. */
+    animation-timing-function: cubic-bezier(0.22, 0.7, 0.3, 1);
+  }
+
+  .cracker-flash {
+    animation-name: cracker-flash;
+    animation-timing-function: ease-out;
+  }
+
+  .cracker-spark {
+    animation-name: cracker-spark;
+    /* Fast out of the burst, drifting at the end — sparks lose energy. */
+    animation-timing-function: cubic-bezier(0.1, 0.8, 0.3, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cracker-rise,
+    .cracker-flash,
+    .cracker-spark {
+      animation: none;
+      opacity: 0;
+    }
+  }
+
+  .bulb-twinkle {
+    animation-name: bulb-twinkle;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bulb-twinkle {
+      animation: none;
+    }
   }
 
   /* Faint mandala pressed into a card's bottom-right corner. */

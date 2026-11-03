@@ -5,12 +5,12 @@ import Button from "components/ui/Button";
 import Icon from "components/AppIcon";
 
 const COLORS = [
-  "#1877F2",
-  "#22c55e",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#06b6d4",
+  "#8C1226",
+  "#2F7D53",
+  "#C9A227",
+  "#B3261E",
+  "#6B2D5C",
+  "#1F6F7A",
 ];
 const IndustryChart = ({ leads = [] }) => {
   const [viewType, setViewType] = useState("monthly");

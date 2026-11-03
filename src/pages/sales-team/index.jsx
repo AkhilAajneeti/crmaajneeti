@@ -1,535 +1,335 @@
-import React, { useState, useMemo, useEffect } from "react";
-import Header from "../../components/ui/Header";
-import Sidebar from "../../components/ui/Sidebar";
-import Icon from "../../components/AppIcon";
-import Button from "../../components/ui/Button";
-import ContactsTable from "./components/ContactsTable";
-import ContactFilters from "./components/ContactFilters";
-import ContactDrawer from "./components/ContactDrawer";
-import BulkActions from "./components/BulkActions";
-import ContactsPagination from "./components/ContactsPagination";
-import toast from "react-hot-toast";
+// Sales team performance board.
+//
+// The page answers one question — who is working their leads well — and it
+// answers it with RATES, not raw counts. Ranking on volume would only measure
+// how leads were handed out. Every rate therefore shows its denominator, and
+// reps under the volume floor are listed separately rather than ranked, so a
+// new joiner with six leads does not sit at the bottom of a leaderboard.
+
+import React, { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+
+import Header from "components/ui/Header";
+import Sidebar from "components/ui/Sidebar";
+import Icon from "components/AppIcon";
+import KPICard from "pages/dashboard/components/KPICard";
+
+import TeamTable from "./components/TeamTable";
+import Leaderboard from "./components/Leaderboard";
+import TeamPerformanceChart from "./components/TeamPerformanceChart";
+import TargetsDialog from "./components/TargetsDialog";
+import { loadTargets, saveTargets } from "./utils/performanceScore";
+import TeamPagination from "./components/TeamPagination";
+import { useTeamMetrics } from "./hooks/useTeamMetrics";
 import {
-  bulkDeleteContacts,
-  deleteContact,
-  fetchContactById,
-  updateContact,
-} from "services/contact.service";
-import { fetchUser } from "services/user.service";
-import { fetchLeads } from "services/leads.service";
-import { useUsers } from "hooks/useUsers";
-import { useLeads } from "hooks/useLeads";
-import { useQueryClient } from "@tanstack/react-query";
-import { FestiveRule } from "../../components/FestiveOrnament";
+  DEFAULT_PERIOD,
+  MIN_VOLUME_FOR_RANK,
+  PERIODS,
+  TONE_LEGEND,
+  pct,
+} from "./utils/teamConstants";
+
+// Ten rows is about what fits above the fold next to the KPI strip; past that
+// the board stops being a glance and becomes a scroll.
+const PAGE_SIZE = 10;
 
 const SalesTeam = () => {
-  const [drawerMode, setDrawerMode] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedContacts, setSelectedContacts] = useState([]);
-  const [selectedContact, setSelectedContact] = useState(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
-  const { data: usersData, isLoading: usersLoading } = useUsers();
-  const { data: leadsData, isLoading: leadsLoading } = useLeads();
-  const loading = usersLoading || leadsLoading;
-  const mockContacts = usersData?.list || [];
-  const allLeads = leadsData?.list || [];
-  const [sortConfig, setSortConfig] = useState({
-    key: "name",
-    direction: "asc",
-  });
-  // function for fetchUser
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    const loadContact = async () => {
-      try {
-        const data = await fetchUser();
-        console.log(data.list);
-      } catch (error) {
-        console.log("failed to fetch data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadContact();
-  }, []);
-  // useEffect(() => {
-  //   if (!isDrawerOpen || !selectedContact?.id || drawerMode !== "view") return;
+  const [periodId, setPeriodId] = useState(DEFAULT_PERIOD);
+  const [sort, setSort] = useState({ key: "score", dir: "desc" });
+  const [page, setPage] = useState(1);
+  const [targets, setTargets] = useState(() => loadTargets());
+  const [isTargetsOpen, setIsTargetsOpen] = useState(false);
 
-  //   const loadContactDetail = async () => {
-  //     try {
-  //       const res = await fetchContactById(selectedContact.id);
-  //       setContactDetail(res);
-  //     } catch (err) {
-  //       console.error("Failed to fetch contact detail", err);
-  //     }
-  //   };
+  const period = PERIODS.find((p) => p.id === periodId) || PERIODS[2];
+  const {
+    rows,
+    totals,
+    seesWholeTeam,
+    isLoading,
+    isScoring,
+    isFetching,
+    hasError,
+    refresh,
+  } = useTeamMetrics(period.dateType, targets);
 
-  //   loadContactDetail();
-  // }, [isDrawerOpen, selectedContact?.id, drawerMode]);
-  useEffect(() => {
-    if (mockContacts.length > 0) {
-      console.log("SAMPLE CONTACT 👉", mockContacts[0]);
-    }
-  }, [mockContacts]);
-
-  const [filters, setFilters] = useState({
-    performance: "",
-    leadsVolume: "",
-  });
-
-  // operational
-
-  // leads
-  useEffect(() => {
-    const loadContact = async () => {
-      try {
-        const data = await fetchLeads();
-      } catch (error) {
-        console.log("failed to fetch data", error);
-      } finally {
-      }
-    };
-    loadContact();
-  }, []);
-  // ✅ 1️⃣ Lead Stats (Optimized Grouping)
-  const leadStats = useMemo(() => {
-    const stats = {};
-
-    allLeads.forEach((lead) => {
-      const userId = lead.assignedUserId;
-      if (!userId) return;
-
-      if (!stats[userId]) {
-        stats[userId] = {
-          leadsAssigned: 0,
-          dealsClosed: 0,
-          siteVisits: 0,
-        };
-      }
-
-      stats[userId].leadsAssigned++;
-
-      if (lead.status === "Deal Closed") {
-        stats[userId].dealsClosed++;
-      }
-
-      if (lead.status === "Site Visit Done") {
-        stats[userId].siteVisits++;
-      }
-    });
-
-    return stats;
-  }, [allLeads]);
-
-  // ✅ 2️⃣ Filter Sales Team Users (FROM mockContacts, NOT salesStats)
-
-  const salesTeamUsers = useMemo(() => {
-    return mockContacts.filter(
-      (contact) => contact.defaultTeamId === "6944587d5d068f5a0",
+  // Any reordering invalidates the current page — page 3 of a differently
+  // sorted list is a different set of people.
+  const handleSort = (key) => {
+    setPage(1);
+    setSort((s) =>
+      s.key === key
+        ? { key, dir: s.dir === "desc" ? "asc" : "desc" }
+        : { key, dir: "desc" }
     );
-  }, [mockContacts]);
+  };
 
-  // ✅ 3️⃣ Merge Lead Stats Into Users
-  const salesStats = useMemo(() => {
-    return salesTeamUsers.map((user) => {
-      const stats = leadStats[user.id] || {
-        leadsAssigned: 0,
-        dealsClosed: 0,
-        siteVisits: 0,
-      };
-
-      const conversionRate =
-        stats.leadsAssigned > 0
-          ? ((stats.dealsClosed / stats.leadsAssigned) * 100).toFixed(1)
-          : 0;
-
-      return {
-        ...user,
-        ...stats,
-        conversionRate,
-      };
+  // Everyone is ranked. An earlier version held reps under the volume floor
+  // out of the ranking entirely, which on a month where nobody reaches 20
+  // leads meant a leaderboard with no numbers in it at all. The floor now
+  // marks a row as low-volume instead of unranking it, so the caution is kept
+  // without the table going blank.
+  const sortedRows = useMemo(() => {
+    const dir = sort.dir === "asc" ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      // Null values sort last whichever direction is active — "no data" is not
+      // a score, and letting it win the top row would be a lie.
+      const av = a[sort.key];
+      const bv = b[sort.key];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return (av - bv) * dir;
     });
-  }, [salesTeamUsers, leadStats]);
+  }, [rows, sort]);
 
-  // ✅ 4️⃣ Search + Safe Sorting
-  const filteredUsers = useMemo(() => {
-    let users = [...salesStats];
+  const allRows = sortedRows;
+  const pageCount = Math.max(1, Math.ceil(allRows.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const offset = (safePage - 1) * PAGE_SIZE;
+  const pageRows = allRows.slice(offset, offset + PAGE_SIZE);
 
-    // 🔎 Search
-    if (searchTerm) {
-      users = users.filter(
-        (user) =>
-          user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.emailAddress?.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
-    }
-
-    // 🎯 Performance Filter
-    if (filters.performance) {
-      users = users.filter((user) => {
-        const rate = Number(user.conversionRate);
-
-        if (filters.performance === "high") return rate > 40;
-        if (filters.performance === "medium") return rate >= 10 && rate <= 40;
-        if (filters.performance === "low") return rate > 0 && rate < 10;
-        if (filters.performance === "none") return rate === 0;
-
-        return true;
-      });
-    }
-
-    // 📊 Leads Volume Filter
-    if (filters.leadsVolume) {
-      users = users.filter((user) => {
-        const leads = user.leadsAssigned;
-
-        if (filters.leadsVolume === "heavy") return leads >= 30;
-        if (filters.leadsVolume === "medium") return leads >= 10 && leads < 30;
-        if (filters.leadsVolume === "low") return leads > 0 && leads < 10;
-        if (filters.leadsVolume === "none") return leads === 0;
-
-        return true;
-      });
-    }
-
-    // 🔽 Sorting
-    if (sortConfig.key) {
-      users.sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
-
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return users;
-  }, [salesStats, searchTerm, filters, sortConfig]);
-  // end
-  // Pagination
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-
-  const paginatedContacts = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+  // The leaderboard is always ordered by score, whatever the table beside it
+  // is sorted by — a "leaderboard" ordered by something else is a
+  // contradiction. Reps with no score are left out rather than ranked last.
+  const byScore = useMemo(
+    () =>
+      rows
+        .filter((r) => r.score != null)
+        .sort((a, b) => b.score - a.score),
+    [rows]
   );
 
-  // Active filters count
-  const activeFiltersCount = Object.values(filters)?.filter(
-    (value) => value !== "",
-  )?.length;
+  const teamConversion = pct(totals?.won, totals?.assigned);
+  const teamConnect = pct(totals?.callsHeld, totals?.calls);
 
-  const handleMenuToggle = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  const handleSidebarClose = () => {
-    setIsSidebarOpen(false);
-  };
-
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-    setCurrentPage(1);
-  };
-
-  const handleClearFilters = () => {
-    setFilters({ accounts: "", assignUser: "", status: "" });
-    setCurrentPage(1);
-  };
-
-  const handleSelectContact = (contactId, checked) => {
-    if (checked) {
-      setSelectedContacts((prev) => [...prev, contactId]);
-    } else {
-      setSelectedContacts((prev) => prev?.filter((id) => id !== contactId));
-    }
-  };
-
-  const handleSelectAllContacts = (checked) => {
-    if (checked) {
-      setSelectedContacts(paginatedContacts?.map((contact) => contact?.id));
-    } else {
-      setSelectedContacts([]);
-    }
-  };
-
-  const handleContactClick = (contact) => {
-    setSelectedContact(contact);
-    setIsDrawerOpen(true);
-    setDrawerMode("view");
-  };
-
-  const handleDrawerClose = () => {
-    setIsDrawerOpen(false);
-    setSelectedContact(null);
-    // setContactDetail(null);
-  };
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    setSelectedContacts([]);
-  };
-
-  const handleItemsPerPageChange = (newItemsPerPage) => {
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1);
-    setSelectedContacts([]);
-  };
-
-  const handleBulkExport = () => {
-    console.log("Exporting contacts:", selectedContacts);
-    // Implement export functionality
-  };
-
-  const handleBulkEmail = () => {
-    console.log("Sending bulk email to contacts:", selectedContacts);
-    // Implement bulk email functionality
-  };
-
-  const handleBulkTag = (tag) => {
-    console.log("Adding tag to contacts:", selectedContacts, tag);
-    // Implement bulk tagging functionality
-  };
-  const handleSort = (key) => {
-    setSortConfig((prev) => ({
-      key,
-      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
-    }));
-  };
-  const handleBulkDelete = async () => {
-    if (selectedContacts.length === 0) return;
-
-    const confirmDelete = window.confirm(
-      `Delete ${selectedContacts.length} contacts?`,
-    );
-
-    if (!confirmDelete) return;
-
-    try {
-      await bulkDeleteContacts(selectedContacts);
-
-      // Remove deleted contacts from UI
-      queryClient.invalidateQueries(["users"]);
-
-      setSelectedContacts([]);
-    } catch (error) {
-      console.error("Bulk delete failed", error);
-      alert("Failed to delete contacts");
-    }
-  };
-
-  const handleAddContact = () => {
-    console.log("Add new contact");
-    // Implement add contact functionality
-    setSelectedContact(null);
-    setDrawerMode("create");
-    setIsDrawerOpen(true);
-  };
-  const handleEditContact = (contact) => {
-    setSelectedContact(contact); // 🔥 important
-    setDrawerMode("edit"); // 🔥 edit mode
-    setIsDrawerOpen(true);
-  };
-  const handleImportContacts = () => {
-    console.log("Import contacts");
-    // Implement import functionality
-  };
-  const handleDeleteContact = async (id) => {
-    if (!id) return;
-
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this contact?",
-    );
-    if (!confirmDelete) return;
-
-    try {
-      await deleteContact(id);
-      toast.success("Contact deleted successfully");
-
-      queryClient.invalidateQueries(["users"]);
-
-      // agar paginatedContacts derive ho raha hai → auto update ho jayega
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to delete contact");
-    }
-  };
-  const handleBulkUpdateContact = async (payload) => {
-    if (!selectedContacts.length) return;
-
-    try {
-      toast.loading("Updating contacts...", { id: "bulk-update" });
-
-      // 🔁 update each contact
-      await Promise.all(
-        selectedContacts.map((id) => updateContact(id, payload)),
-      );
-
-      // 🔄 update local state
-      queryClient.invalidateQueries(["users"]);
-
-      toast.success(`${selectedContacts.length} contacts updated`, {
-        id: "bulk-update",
-      });
-
-      setSelectedContacts([]);
-    } catch (err) {
-      console.error(err);
-      toast.error("Mass update failed", { id: "bulk-update" });
-    }
-  };
-  const handleMassUpdate = () => {
-    if (selectedContacts.length === 0) return;
-
-    setDrawerMode("mass-update");
-    setIsDrawerOpen(true);
-  };
-
-  //
-  const siteVisits = allLeads.filter(
-    (l) => l.status === "Site Visit Done",
-  ).length;
-  const closedDeals = allLeads.filter((l) => l.status === "Deal Closed").length;
+  const kpis = [
+    {
+      title: "Leads assigned",
+      value: totals?.assigned ?? 0,
+      change: `${rows.length} reps`,
+      changeType: "neutral",
+      icon: "Users",
+      iconBg: "bg-blue-100",
+      iconColor: "#3B82F6",
+      comparisonLabel: period.label.toLowerCase(),
+    },
+    {
+      title: "Team conversion",
+      value: teamConversion == null ? "—" : `${teamConversion}%`,
+      change: `${totals?.won ?? 0} won`,
+      changeType: "neutral",
+      icon: "TrendingUp",
+      iconBg: "bg-green-100",
+      iconColor: "#10B981",
+      comparisonLabel: period.label.toLowerCase(),
+    },
+    {
+      title: "Calls connected",
+      value: teamConnect == null ? "—" : `${teamConnect}%`,
+      change: `${totals?.calls ?? 0} dialled`,
+      changeType: "neutral",
+      icon: "PhoneCall",
+      iconBg: "bg-violet-100",
+      iconColor: "#8B5CF6",
+      comparisonLabel: period.label.toLowerCase(),
+    },
+    {
+      title: "Missed follow-ups",
+      value: totals?.overdue ?? 0,
+      change: "due in period",
+      changeType: "neutral",
+      icon: "AlarmClock",
+      iconBg: "bg-red-100",
+      iconColor: "#EF4444",
+      comparisonLabel: "across the team",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onMenuToggle={handleMenuToggle} isSidebarOpen={isSidebarOpen} />
-      <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
-      <main className="lg:ml-64 pt-16">
-        <div className="p-6 lg:p-6">
-          {/* Page Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+      <Header
+        onMenuToggle={() => setIsSidebarOpen((v) => !v)}
+        isSidebarOpen={isSidebarOpen}
+      />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      <main className="relative pt-16 lg:ml-64">
+        <div className="m-4 sm:m-6">
+          {/* Title + period. Every figure on the page now respects this
+              selector — nothing is silently all-time. */}
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="flex items-center gap-3 text-2xl font-bold text-foreground">
-                Sales Team
-                <FestiveRule />
+              <h1 className="text-2xl font-bold text-foreground lg:text-3xl">
+                Sales team
               </h1>
-              <p className="text-muted-foreground mt-1">
-                Manage your individual contacts and relationships
+              <p className="mt-1 text-sm text-muted-foreground">
+                {seesWholeTeam
+                  ? "How each rep is working the leads they hold."
+                  : "Your own numbers. Team-wide figures need wider lead access."}
               </p>
             </div>
-            <div className="flex items-center space-x-3 mt-4 sm:mt-0">
-              <Button variant="outline" onClick={handleImportContacts}>
-                <Icon name="Upload" size={16} className="mr-2" />
-                Import
-              </Button>
-              <Button onClick={handleAddContact} className="hidden">
-                <Icon name="Plus" size={16} className="mr-2" />
-                Add Contact
-              </Button>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsTargetsOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
+              >
+                <Icon name="Target" size={13} />
+                Targets
+              </button>
+
+              <button
+                type="button"
+                onClick={refresh}
+                disabled={isFetching}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+              >
+                <Icon
+                  name="RefreshCw"
+                  size={13}
+                  className={isFetching ? "animate-spin" : ""}
+                />
+                Refresh
+              </button>
+
+            <div className="flex flex-wrap items-center gap-1 rounded-full border border-border bg-card p-1">
+              {PERIODS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => {
+                    setPeriodId(p.id);
+                    setPage(1);
+                  }}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                    p.id === periodId
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
             </div>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-card rounded-xl border border-border p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Total Sales Members
-                  </p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {salesStats?.length}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Icon name="Users" size={24} className="text-primary" />
-                </div>
-              </div>
             </div>
-
-            <div className="bg-card rounded-xl border border-border p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Site Visits</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {siteVisits}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
-                  <Icon name="MapPin" size={24} className="text-amber-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-card rounded-xl border border-border p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Total Deals Closed
-                  </p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {closedDeals}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-warning/10 rounded-full flex items-center justify-center">
-                  <Icon name="Target" size={24} className="text-warning" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Filters */}
-          <ContactFilters
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            activeFiltersCount={activeFiltersCount}
-            onClearFilters={handleClearFilters}
-          />
-
-          {/* Bulk Actions */}
-          <BulkActions
-            selectedCount={selectedContacts?.length}
-            onExport={handleBulkExport}
-            onBulkEmail={handleBulkEmail}
-            onBulkTag={handleBulkTag}
-            onBulkDelete={handleBulkDelete}
-            onMassUpdate={handleMassUpdate}
-          />
-
-          {/* Contacts Table */}
-          <ContactsTable
-            contacts={paginatedContacts}
-            selectedContacts={selectedContacts}
-            onSelectContact={handleSelectContact}
-            onSelectAllContacts={handleSelectAllContacts}
-            onContactClick={handleContactClick}
-            sortConfig={sortConfig}
-            onSort={handleSort}
-            onEditContact={handleEditContact}
-            onDeleteContact={handleDeleteContact}
-            isLoading={loading}
-          />
-
-          {/* Pagination */}
-          <div className="mt-6">
-            <ContactsPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={filteredUsers?.length}
-              itemsPerPage={itemsPerPage}
-              onPageChange={handlePageChange}
-              onItemsPerPageChange={handleItemsPerPageChange}
-            />
           </div>
         </div>
+
+        {/* Team totals */}
+        <div className="m-4 grid grid-cols-1 gap-3 sm:m-6 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+          {kpis.map((kpi, i) => (
+            <motion.div
+              key={kpi.title}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: i * 0.06 }}
+            >
+              <KPICard {...kpi} isLoading={isLoading} />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Leaderboard + funnel. Score first, because it is the answer; the
+            chart beside it is the working. */}
+        <div className="m-4 grid grid-cols-1 gap-3 sm:m-6 sm:gap-5 xl:grid-cols-2">
+          <Leaderboard
+            rows={byScore}
+            isLoading={isLoading || isScoring}
+            onViewAll={() => {
+              setSort({ key: "score", dir: "desc" });
+              setPage(1);
+              document
+                .getElementById("team-table")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          />
+          <TeamPerformanceChart rows={byScore} isLoading={isLoading || isScoring} />
+        </div>
+
+        {/* Legend. Three colours mean nothing until the page says what they
+            mean, and a board people misread is worse than no board. */}
+        <div className="mx-4 mb-3 flex flex-wrap items-center gap-2 sm:mx-6">
+          <span className="text-[11px] font-semibold text-muted-foreground">
+            Colour scale:
+          </span>
+          {TONE_LEGEND.map((t) => (
+            <span
+              key={t.label}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${t.chip}`}
+            >
+              {t.label}
+            </span>
+          ))}
+          <span className="text-[11px] text-muted-foreground">
+            · under {MIN_VOLUME_FOR_RANK} leads is flagged low volume — rates
+            swing too far to compare
+          </span>
+        </div>
+
+        {hasError && (
+          <div className="mx-4 mb-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 sm:mx-6">
+            <Icon name="TriangleAlert" size={16} className="mt-0.5 shrink-0 text-red-600" />
+            <p className="text-xs text-red-700">
+              Could not read the counts for any rep. The figures below are not
+              zero — they are unknown. Check the console for the failing
+              request.
+            </p>
+          </div>
+        )}
+
+        <div id="team-table" className="mx-4 mb-10 sm:mx-6">
+          {isLoading && rows.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-10 text-center">
+              <Icon
+                name="Loader"
+                size={22}
+                className="mx-auto animate-spin text-muted-foreground"
+              />
+              <p className="mt-3 text-sm text-muted-foreground">
+                Counting leads and calls per rep…
+              </p>
+            </div>
+          ) : rows.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                No active sales users found.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <TeamTable
+                items={pageRows.map((row, i) => ({
+                  row,
+                  rank: offset + i,
+                }))}
+                sort={sort}
+                onSort={handleSort}
+              />
+
+              <TeamPagination
+                page={safePage}
+                pageSize={PAGE_SIZE}
+                totalItems={allRows.length}
+                onPageChange={setPage}
+              />
+            </div>
+          )}
+        </div>
       </main>
-      {/* Contact Drawer */}
-      <ContactDrawer
-        // contactDetail={contactDetail}
-        mode={drawerMode}
-        contact={selectedContact}
-        isOpen={isDrawerOpen}
-        onClose={handleDrawerClose}
-        onBulkUpdate={handleBulkUpdateContact}
-        allLeads={allLeads}
-      />
+
+      {isTargetsOpen && (
+        <TargetsDialog
+          targets={targets}
+          onClose={() => setIsTargetsOpen(false)}
+          onSave={(next) => {
+            saveTargets(next);
+            setTargets(next);
+            setIsTargetsOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 };

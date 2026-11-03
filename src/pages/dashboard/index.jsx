@@ -8,6 +8,9 @@ import PipelineChart from "./components/PipelineChart";
 import Icon from "../../components/AppIcon";
 import RightRail from "./components/RightRail";
 import FollowUpPanel from "./components/FollowUpPanel";
+import FestiveDecor from "components/FestiveDecor";
+import DiwaliWordmark from "components/DiwaliWordmark";
+import RisingCrackers from "components/RisingCrackers";
 import { fetchLeads } from "services/leads.service";
 import MultiLineChart from "./components/MultiLineChart";
 import { fetchMeeting } from "services/meeting.service";
@@ -233,17 +236,29 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <RisingCrackers />
       <Header onMenuToggle={handleMenuToggle} isSidebarOpen={isSidebarOpen} />
       <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
       <main className="relative lg:ml-64 pt-16">
-        <div className="relative m-6">
-          <h1 className="mb-2 flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
-            Dashboard
-            <FestiveRule />
-          </h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here's what's happening with your sales today.
-          </p>
+        {/* Festival layer. First child so every real element paints over it,
+            and pointer-events-none so it can never swallow a click. */}
+        <FestiveDecor className="h-[260px]" />
+
+        <div className="relative m-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="mb-2 flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
+              Dashboard
+              <FestiveRule />
+            </h1>
+            <p className="text-muted-foreground">
+              Welcome back! Here's what's happening with your sales today.
+            </p>
+          </div>
+
+          {/* Greeting sits level with the heading, on the right, as in the
+              reference — set as type so it stays sharp and needs no white
+              background knocked out. */}
+          <DiwaliWordmark className="hidden shrink-0 lg:block xl:mr-[16%]" />
         </div>
         {/* Follow-ups that need acting on now. Sits above the KPI cards:
             the numbers below describe what happened, this says what to do. */}
@@ -452,7 +467,7 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full">
-                        <thead className="bg-muted/50 border-b border-border">
+                        <thead className="festive-thead/50 border-b border-border">
                           <tr>
                             <th className="text-left px-6 py-3 text-sm font-medium">
                               Name

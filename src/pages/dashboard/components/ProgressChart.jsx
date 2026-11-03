@@ -125,18 +125,18 @@ const ProgressChart = ({ leads = [] }) => {
           {/* 🔥 Gradients */}
           <defs>
             <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+              <stop offset="5%" stopColor="#8C1226" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#8C1226" stopOpacity={0} />
             </linearGradient>
 
             <linearGradient id="colorVisit" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+              <stop offset="5%" stopColor="#C9A227" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#C9A227" stopOpacity={0} />
             </linearGradient>
 
             <linearGradient id="colorClosed" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+              <stop offset="5%" stopColor="#2F7D53" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#2F7D53" stopOpacity={0} />
             </linearGradient>
           </defs>
 
@@ -157,7 +157,7 @@ const ProgressChart = ({ leads = [] }) => {
           <Area
             type="monotone"
             dataKey="leads"
-            stroke="#3b82f6"
+            stroke="#8C1226"
             strokeWidth={1}
             fill="url(#colorLeads)"
           />
@@ -166,7 +166,7 @@ const ProgressChart = ({ leads = [] }) => {
           <Area
             type="monotone"
             dataKey="visit"
-            stroke="#f59e0b"
+            stroke="#C9A227"
             strokeWidth={1}
             fill="url(#colorVisit)"
           />
@@ -175,7 +175,7 @@ const ProgressChart = ({ leads = [] }) => {
           <Area
             type="monotone"
             dataKey="closed"
-            stroke="#22c55e"
+            stroke="#2F7D53"
             strokeWidth={1}
             fill="url(#colorClosed)"
           />

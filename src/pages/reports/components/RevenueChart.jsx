@@ -132,13 +132,13 @@ const RevenueChart = () => {
               <Tooltip content={<CustomTooltip />} />
               <Bar 
                 dataKey="actual" 
-                fill="#10B981" 
+                fill="#2F7D53" 
                 radius={[4, 4, 0, 0]}
                 animationDuration={1000}
               />
               <Bar 
                 dataKey="forecast" 
-                fill="#8B5CF6" 
+                fill="#6B2D5C" 
                 radius={[4, 4, 0, 0]}
                 animationDuration={1200}
               />
@@ -166,18 +166,18 @@ const RevenueChart = () => {
               <Line
                 type="monotone"
                 dataKey="actual"
-                stroke="#10B981"
+                stroke="#2F7D53"
                 strokeWidth={3}
-                dot={{ fill: '#10B981', strokeWidth: 2, r: 6 }}
+                dot={{ fill: '#2F7D53', strokeWidth: 2, r: 6 }}
                 animationDuration={1000}
               />
               <Line
                 type="monotone"
                 dataKey="forecast"
-                stroke="#8B5CF6"
+                stroke="#6B2D5C"
                 strokeWidth={3}
                 strokeDasharray="5 5"
-                dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 6 }}
+                dot={{ fill: '#6B2D5C', strokeWidth: 2, r: 6 }}
                 animationDuration={1200}
               />
               <Line

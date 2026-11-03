@@ -114,7 +114,7 @@ const DealsPage = () => {
     () =>
       loadLeadsView().filters || {
         search: "",
-        status: "",
+        status: [],
         sector: "",
         projectName: "",
         source: "",
@@ -123,6 +123,10 @@ const DealsPage = () => {
         closeDateFrom: "",
         closeDateTo: "",
         xDays: "",
+        nextContactType: "",
+        nextContactFrom: "",
+        nextContactTo: "",
+        nextContactXDays: "",
       }
   );
 
@@ -306,7 +310,7 @@ const DealsPage = () => {
   const handleClearFilters = () => {
     setFilters({
       search: "",
-      status: "",
+      status: [],
       projectName: "",
       source: "",
       sector: "",
@@ -314,7 +318,11 @@ const DealsPage = () => {
       dateType: "",        // 👈 NEW (today, before, between, etc.)
       closeDateFrom: "",
       closeDateTo: "",
-      xDays: ""
+      xDays: "",
+      nextContactType: "",
+      nextContactFrom: "",
+      nextContactTo: "",
+      nextContactXDays: ""
     });
     setSortConfig(DEFAULT_SORT);
     setPage(1);

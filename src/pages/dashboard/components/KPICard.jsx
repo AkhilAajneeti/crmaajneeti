@@ -53,10 +53,19 @@ const KPICard = ({
         // A wash of the card's own colour over the card surface, lit along the
         // top edge so it catches light instead of reading as a flat rectangle.
         background: `linear-gradient(155deg, rgba(${glow},0.10) 0%, rgba(${glow},0.03) 42%, rgba(255,255,255,0.75) 100%), var(--color-card)`,
-        border: `1px solid rgba(${glow},0.22)`,
+        border: "1px solid rgba(201,162,39,0.32)",
         boxShadow: `0 1px 2px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.85)`,
       }}
     >
+      {/* Mandala pressed into the top-right corner. Decoration only —
+          aria-hidden, pointer-events-none, and under the content layer. */}
+      <img
+        src="/assets/festival/festive-mandala-full.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-10 -top-10 w-[120px] select-none opacity-50"
+      />
+
       {/* Corner bloom — strengthens behind the icon, fades across the card */}
       <span
         aria-hidden="true"
