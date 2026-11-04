@@ -7,7 +7,7 @@ import NotFound from "pages/NotFound";
 import Settings from "./pages/settings";
 import IntegrationsPage from "./pages/integrations";
 import DealsPage from "./pages/deals";
-// import ContactsPage from "./pages/contacts";
+import ContactsPage from "./pages/contacts";
 import LoginPage from "./pages/login";
 import AccountsPage from "./pages/accounts";
 import Dashboard from "./pages/dashboard";
@@ -137,6 +137,14 @@ const Routes = () => {
           />
           <Route
             path="/contacts"
+            element={
+              <ProtectedRoute entity="Contact">
+                <ContactsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/call"
             element={
               <ProtectedRoute>
                 <CallPage />

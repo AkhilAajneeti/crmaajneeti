@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 /**
  * Fairy lights and hanging lanterns across the top of the app.
@@ -133,10 +133,55 @@ const Swag = ({
   );
 };
 
-const FestiveLights = ({ showLanterns = false }) => (
+/**
+ * True while any drawer or modal is open.
+ *
+ * The lights are fixed at z-60 so they can cross the top bar, but drawers in
+ * this app sit at z-50 with a z-40 backdrop — there is no gap between the
+ * header and the drawer to slot the lights into, and raising 25 panels plus
+ * 22 overlays to clear them would be a far wider change than this is worth.
+ *
+ * So instead the lights stand down while an overlay is up. Every drawer and
+ * dialog here dims the page with a `bg-black/NN` backdrop, which is the one
+ * reliable signal they all share.
+ */
+const useOverlayOpen = () => {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const check = () =>
+      setOpen(Boolean(document.querySelector('div[class*="bg-black/"]')));
+
+    check();
+
+    // Coalesced into one rAF: React can fire dozens of mutations per render
+    // and re-querying on each would be wasteful.
+    let queued = false;
+    const observer = new MutationObserver(() => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        check();
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
+  return open;
+};
+
+const FestiveLights = ({ showLanterns = false }) => {
+  const overlayOpen = useOverlayOpen();
+
+  return (
   <div
     aria-hidden="true"
-    className="pointer-events-none fixed inset-x-0 top-0 z-[60] h-[240px] select-none overflow-hidden"
+    className={`pointer-events-none fixed inset-x-0 top-0 z-[60] h-[240px] select-none overflow-hidden transition-opacity duration-200 ${
+      overlayOpen ? "opacity-0" : "opacity-100"
+    }`}
     style={{
       WebkitMaskImage:
         "linear-gradient(to right, transparent 0px, transparent 330px, #000 430px, #000 calc(100% - 330px), transparent calc(100% - 230px))",
@@ -251,7 +296,8 @@ const FestiveLights = ({ showLanterns = false }) => (
         />
       </>
     )}
-  </div>
-);
+    </div>
+  );
+};
 
 export default FestiveLights;

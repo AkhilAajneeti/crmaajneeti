@@ -10,6 +10,7 @@ const ICON_TONES = {
   "/dashboard": { border: "border-rose-200", bg: "bg-rose-50", text: "text-rose-500" },
   "/accounts": { border: "border-blue-200", bg: "bg-blue-50", text: "text-blue-500" },
   "/leads": { border: "border-emerald-200", bg: "bg-emerald-50", text: "text-emerald-500" },
+  "/contacts": { border: "border-teal-200", bg: "bg-teal-50", text: "text-teal-500" },
   "/pipeline": { border: "border-violet-200", bg: "bg-violet-50", text: "text-violet-500" },
   "/tasks": { border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-500" },
   "/meeting": { border: "border-pink-200", bg: "bg-pink-50", text: "text-pink-500" },
@@ -49,6 +50,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       items: [
         { label: "Accounts", path: "/accounts", icon: "Building2", entity: "Account" },
         { label: "Leads", path: "/leads", icon: "Target", entity: "Lead" },
+        { label: "Contacts", path: "/contacts", icon: "Contact", entity: "Contact" },
         { label: "Pipeline", path: "/pipeline", icon: "Filter" },
         { label: "Task", path: "/tasks", icon: "ListChecks", entity: "Task" },
         { label: "Meeting", path: "/meeting", icon: "Projector", entity: "Meeting" },

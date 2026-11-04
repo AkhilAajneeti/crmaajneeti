@@ -1,5 +1,6 @@
 import AccountsPage from "pages/accounts";
 import DealsPage from "pages/deals";
+import ContactsPage from "pages/contacts";
 import TaskPage from "pages/tasks";
 import MeetingPage from "pages/meeting";
 import Attendance from "pages/attendance";
@@ -22,6 +23,10 @@ export const ENTITY_REGISTRY = {
   Lead: {
     component: DealsPage,
     listPath: "/leads",
+  },
+  Contact: {
+    component: ContactsPage,
+    listPath: "/contacts",
   },
   Task: {
     component: TaskPage,
