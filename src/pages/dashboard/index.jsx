@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Header from "../../components/ui/Header";
 import { FestiveRule } from "../../components/FestiveOrnament";
 import Sidebar from "../../components/ui/Sidebar";
@@ -17,10 +17,87 @@ import { fetchMeeting } from "services/meeting.service";
 import Button from "../../components/ui/Button";
 import { useLeadsCount } from "hooks/useLeads";
 import { useQuery } from "@tanstack/react-query";
+import { UNWORKABLE_STATUS_VALUES } from "utils/leadStatus";
+
+// What counts as won. "Converted" is the only one of these in
+// LEAD_STATUS_OPTIONS; the other two are carried because ProgressChart already
+// treats them as won, and including them costs nothing — it is the same single
+// `in` filter either way.
+//
+// Module scope, not inside the component: this feeds a React Query key, and a
+// stable reference keeps that key stable.
+const CONVERTED_STATUSES = ["Converted", "Deal Closed", "Purchased"];
+
+// One shared empty array for the "not loaded yet" case. A fresh [] literal
+// each render is a new reference, which would invalidate the insightLists
+// memo below on every render and quietly undo it.
+const EMPTY = [];
+
+// Per-card styling for the insight popup, matched to each KPI card's colour.
+const insightThemes = {
+  meetings: {
+    title: "Today's Held Meetings",
+    icon: "Calendar",
+    text: "text-blue-700",
+    border: "border-blue-200",
+    headerBg: "bg-blue-50",
+    iconBg: "bg-blue-100",
+    shadow:
+      "0 0 0 1px rgba(59,130,246,0.25), 0 25px 50px -12px rgba(59,130,246,0.45)",
+  },
+  proposals: {
+    title: "Proposal Shared Leads",
+    icon: "FileText",
+    text: "text-purple-700",
+    border: "border-purple-200",
+    headerBg: "bg-purple-50",
+    iconBg: "bg-purple-100",
+    shadow:
+      "0 0 0 1px rgba(168,85,247,0.25), 0 25px 50px -12px rgba(168,85,247,0.45)",
+  },
+  visits: {
+    title: "Site Visits",
+    icon: "MapPin",
+    text: "text-amber-700",
+    border: "border-amber-200",
+    headerBg: "bg-amber-50",
+    iconBg: "bg-amber-100",
+    shadow:
+      "0 0 0 1px rgba(245,158,11,0.3), 0 25px 50px -12px rgba(245,158,11,0.45)",
+  },
+  deals: {
+    title: "Closed Deals",
+    icon: "CheckCircle",
+    text: "text-green-700",
+    border: "border-green-200",
+    headerBg: "bg-green-50",
+    iconBg: "bg-green-100",
+    shadow:
+      "0 0 0 1px rgba(34,197,94,0.25), 0 25px 50px -12px rgba(34,197,94,0.45)",
+  },
+};
+
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeInsight, setActiveInsight] = useState(null);
-  const [insightData, setInsightData] = useState([]);
+
+  // Close the insight popup on Escape and lock background scroll while open.
+  useEffect(() => {
+    if (!activeInsight) return;
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setActiveInsight(null);
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [activeInsight]);
 
   // update by filter
 
@@ -73,6 +150,42 @@ const Dashboard = () => {
     { type: "equals", attribute: "status", value: "Interested" }
   ]);
 
+  // Conversion rate — the won half of the funnel. Costs two extra count calls
+  // and nothing more: the denominators reuse the This Month / Last Month
+  // totals the cards above already fetched, and fetchLeadsCount is a
+  // maxSize=1 request sitting behind a 10-minute memory + localStorage cache
+  // (plus React Query's 5-minute staleTime), so a revisit inside that window
+  // costs no network at all.
+  //
+  // Deliberately NOT derived from the `leads` list further down: that request
+  // returns a single page, so a rate computed from it would quietly be a rate
+  // over a sample rather than over the month.
+  const convertedThisMonthQuery = useLeadsCount([
+    { type: "currentMonth", attribute: "createdAt" },
+    { type: "in", attribute: "status", value: CONVERTED_STATUSES },
+  ]);
+
+  const convertedLastMonthQuery = useLeadsCount([
+    { type: "lastMonth", attribute: "createdAt" },
+    { type: "in", attribute: "status", value: CONVERTED_STATUSES },
+  ]);
+
+  // Invalid / Duplicate / archived imports, subtracted from the denominator so
+  // the rate matches how the Sales Team board scores a rep. A rep handed ten
+  // junk IVR records should not have their conversion divided by them —
+  // teamAggregate.service.js drops them for exactly this reason, and a
+  // dashboard quoting a different number than the board it feeds is worse
+  // than no number.
+  const unworkableThisMonthQuery = useLeadsCount([
+    { type: "currentMonth", attribute: "createdAt" },
+    { type: "in", attribute: "status", value: UNWORKABLE_STATUS_VALUES },
+  ]);
+
+  const unworkableLastMonthQuery = useLeadsCount([
+    { type: "lastMonth", attribute: "createdAt" },
+    { type: "in", attribute: "status", value: UNWORKABLE_STATUS_VALUES },
+  ]);
+
   // ✅ 2. EXTRACT DATA
   const thisMonth = thisMonthQuery.data || 0;
   const today = todayQuery.data || 0;
@@ -97,20 +210,50 @@ const Dashboard = () => {
         ((interested - interestedLastMonth) / interestedLastMonth) * 100
       );
 
+  const convertedThisMonth = convertedThisMonthQuery.data || 0;
+  const convertedLastMonth = convertedLastMonthQuery.data || 0;
+
+  // Math.max guards the case where the two counts disagree because a lead
+  // changed status between the two cached requests — a negative denominator
+  // would flip the rate's sign rather than just being slightly stale.
+  const workableThisMonth = Math.max(
+    0,
+    thisMonth - (unworkableThisMonthQuery.data || 0),
+  );
+  const workableLastMonth = Math.max(
+    0,
+    lastMonth - (unworkableLastMonthQuery.data || 0),
+  );
+
+  // A month with no workable leads reads as 0%, matching the other cards on
+  // the row — they show 0 rather than a placeholder when there is nothing to
+  // count. The `total > 0` guard stays regardless: it is what stops a
+  // zero-lead month producing NaN%.
+  const rateOf = (won, total) => (total > 0 ? (won / total) * 100 : 0);
+
+  const conversionRate = rateOf(convertedThisMonth, workableThisMonth);
+  const conversionRateLastMonth = rateOf(convertedLastMonth, workableLastMonth);
+
+  // Two rates are compared in percentage POINTS, not percent. Going from 12%
+  // to 18% is +6pp; calling it "+50%" is the classic way this metric gets
+  // misread in a review.
+  const conversionDiff =
+    Math.round((conversionRate - conversionRateLastMonth) * 10) / 10;
+
 
   // leads
   const { data, isLoading } = useQuery({
     queryKey: ["leads"],
     queryFn: fetchLeads
   });
-  const leads = data?.list || [];
+  const leads = data?.list || EMPTY;
 
   const { data: meetingData = [] } = useQuery({
     queryKey: ["meetings"],
     queryFn: fetchMeeting
   });
 
-  const meetingsList = meetingData?.list || [];
+  const meetingsList = meetingData?.list || EMPTY;
   const isSameMonth = (date1, date2) => {
     const d1 = new Date(date1);
     return (
@@ -171,24 +314,49 @@ const Dashboard = () => {
     setIsSidebarOpen(false);
   };
 
-  const meetings = meetingsList.filter(
-    (m) =>
-      m.status === "Held" &&
-      m.dateStart &&
-      isToday(m.dateStart.replace(" ", "T")),
-  ).length;
+  // Each of these lists is built ONCE and used for both the number on the
+  // card and the rows in its popup.
+  //
+  // They used to be two separate filters — one here for the count, another
+  // inside the card's onClick — and the pair had already drifted: the
+  // Client Onboarded card counted "Deal Closed" but its popup asked for
+  // "Lead Closed", so the number and the rows behind it could never agree.
+  // One list per card makes that class of bug impossible, and filters the
+  // leads array four times per render instead of four plus a repeat on
+  // every click.
+  const insightLists = useMemo(() => {
+    const closedToday = (status) =>
+      leads.filter((l) => l.status === status && isToday(l.modifiedAt));
 
-  const proposals = leads.filter(
-    (l) => l.status === "Proposal Shared" && isToday(l.modifiedAt),
-  ).length;
+    return {
+      proposals: closedToday("Proposal Shared"),
+      visits: closedToday("Site Visit Done"),
+      // Matched against the same won-status list the conversion rate uses,
+      // so "Client Onboarded" and the Conversion Rate card can never count
+      // different things.
+      deals: leads.filter(
+        (l) => CONVERTED_STATUSES.includes(l.status) && isToday(l.modifiedAt),
+      ),
+      meetings: meetingsList.filter(
+        (m) =>
+          m.status === "Held" &&
+          m.dateStart &&
+          isToday(m.dateStart.replace(" ", "T")),
+      ),
+    };
+  }, [leads, meetingsList]);
 
-  const siteVisits = leads.filter(
-    (l) => l.status === "Site Visit Done" && isToday(l.modifiedAt),
-  ).length;
+  // Derived, not stored in state. While the popup is open a background
+  // refetch of `leads` now flows straight through to the rows on screen;
+  // a useState copy taken at click time would sit there stale.
+  const insightData = activeInsight
+    ? insightLists[activeInsight] || []
+    : [];
 
-  const closedDeals = leads.filter(
-    (l) => l.status === "Deal Closed" && isToday(l.modifiedAt),
-  ).length;
+  const meetings = insightLists.meetings.length;
+  const proposals = insightLists.proposals.length;
+  const siteVisits = insightLists.visits.length;
+  const closedDeals = insightLists.deals.length;
   // Close sidebar on escape key
   useEffect(() => {
     const handleEscape = (e) => {
@@ -210,7 +378,8 @@ const Dashboard = () => {
       icon: "Users",
       iconBg: "bg-blue-100",
       iconColor: "#3B82F6",
-      comparisonLabel: "compared to last month",
+      comparisonLabel: "last month",
+      isLoading: thisMonthQuery.isLoading || lastMonthQuery.isLoading,
     },
     {
       title: "Today Leads",
@@ -220,7 +389,8 @@ const Dashboard = () => {
       icon: "Calendar",
       iconBg: "bg-green-100",
       iconColor: "#10B981",
-      comparisonLabel: "since yesterday",
+      comparisonLabel: "yesterday",
+      isLoading: todayQuery.isLoading || yesterdayQuery.isLoading,
     },
     {
       title: "Interested Leads (This Month)",
@@ -230,7 +400,36 @@ const Dashboard = () => {
       icon: "Star",
       iconBg: "bg-yellow-100",
       iconColor: "#F59E0B",
-      comparisonLabel: "compared to last month",
+      comparisonLabel: "last month",
+      isLoading:
+        interestedQuery.isLoading || interestedLastMonthQuery.isLoading,
+    },
+    {
+      // Closes the funnel the first three cards open: leads in, leads warm,
+      // leads won. The only ratio on the row, and the only number here that
+      // measures the selling rather than the supply.
+      title: "Conversion Rate",
+      value: `${conversionRate.toFixed(1)}%`,
+      change: `${conversionDiff > 0 ? "+" : ""}${conversionDiff}pp`,
+      // Flat is its own state. An unchanged rate rendered green with an
+      // up-arrow claims an improvement that did not happen.
+      changeType:
+        conversionDiff > 0
+          ? "positive"
+          : conversionDiff < 0
+            ? "negative"
+            : "neutral",
+      icon: "Target",
+      iconBg: "bg-teal-100",
+      iconColor: "#14B8A6",
+      comparisonLabel: "last month",
+      isLoading:
+        convertedThisMonthQuery.isLoading ||
+        convertedLastMonthQuery.isLoading ||
+        unworkableThisMonthQuery.isLoading ||
+        unworkableLastMonthQuery.isLoading ||
+        thisMonthQuery.isLoading ||
+        lastMonthQuery.isLoading,
     },
   ];
 
@@ -267,7 +466,7 @@ const Dashboard = () => {
         </div>
 
         {/* KPI Cards */}
-        <div className="relative grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5 m-3 sm:m-5">
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-5 m-3 sm:m-5">
           {kpiData?.map((kpi, index) => (
             <motion.div
               key={index}
@@ -275,11 +474,10 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <KPICard {...kpi} isLoading={
-                thisMonthQuery.isLoading ||
-                todayQuery.isLoading ||
-                interestedQuery.isLoading
-              } />
+              {/* Each card shimmers on its own query, not on the slowest of
+                  all four. Previously one slow count held every card in the
+                  skeleton state, which made the row feel slower than it was. */}
+              <KPICard {...kpi} />
             </motion.div>
           ))}
         </div>
@@ -307,17 +505,7 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Meetings Held */}
                   <div
-                    onClick={() => {
-                      const filtered = meetingsList.filter(
-                        (m) =>
-                          m.status === "Held" &&
-                          m.dateStart &&
-                          isToday(m.dateStart.replace(" ", "T")),
-                      );
-
-                      setInsightData(filtered);
-                      setActiveInsight("meetings");
-                    }}
+                    onClick={() => setActiveInsight("meetings")}
                     className="cursor-pointer bg-blue-50 border border-blue-100 rounded-2xl p-6 
   hover:shadow-lg transition-all duration-300 
   flex items-center justify-between min-h-[110px]"
@@ -342,16 +530,7 @@ const Dashboard = () => {
 
                   {/* Proposals Shared */}
                   <div
-                    onClick={() => {
-                      const filtered = leads.filter(
-                        (l) =>
-                          l.status === "Proposal Shared" &&
-                          isToday(l.modifiedAt),
-                      );
-
-                      setInsightData(filtered);
-                      setActiveInsight("proposals");
-                    }}
+                    onClick={() => setActiveInsight("proposals")}
                     className="cursor-pointer bg-purple-50 border border-purple-100 rounded-2xl p-6 
 hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[110px]"
                   >
@@ -375,16 +554,7 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
 
                   {/* Site Visits */}
                   <div
-                    onClick={() => {
-                      const filtered = leads.filter(
-                        (l) =>
-                          l.status === "Site Visit Done" &&
-                          isToday(l.modifiedAt),
-                      );
-
-                      setInsightData(filtered);
-                      setActiveInsight("visits");
-                    }}
+                    onClick={() => setActiveInsight("visits")}
                     className="cursor-pointer bg-amber-50 border border-amber-100 rounded-2xl p-6 
 hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[110px]"
                   >
@@ -408,15 +578,7 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
 
                   {/* Deals Closed */}
                   <div
-                    onClick={() => {
-                      const filtered = leads.filter(
-                        (l) =>
-                          l.status === "Lead Closed" && isToday(l.modifiedAt),
-                      );
-
-                      setInsightData(filtered);
-                      setActiveInsight("deals");
-                    }}
+                    onClick={() => setActiveInsight("deals")}
                     className="cursor-pointer bg-green-50 border border-green-100 rounded-2xl p-6 
 hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[110px]"
                   >
@@ -440,142 +602,189 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
                 </div>
                 {/* <RecentActivities activities={activities} /> */}
               </div>
-              {activeInsight && (
-                <div className="m-5 bg-card border border-border rounded-lg overfl ow-hidden">
-                  {/* Header */}
-                  <div className="flex justify-between items-center px-6 py-4 border-b border-border bg-muted/40">
-                    <h3 className="text-base font-semibold text-foreground">
-                      {activeInsight === "meetings" && "Today's Held Meetings"}
-                      {activeInsight === "proposals" && "Proposal Shared Leads"}
-                      {activeInsight === "visits" && "Site Visits"}
-                      {activeInsight === "deals" && "Closed Deals"}
-                    </h3>
+              <AnimatePresence>
+                {activeInsight && (
+                  <motion.div
+                    className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={insightThemes[activeInsight].title}
+                    onClick={() => setActiveInsight(null)}
+                  >
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" />
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setActiveInsight(null)}
+                    {/* Panel */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 16 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.96, y: 12 }}
+                      transition={{ duration: 0.22, ease: "easeOut" }}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ boxShadow: insightThemes[activeInsight].shadow }}
+                      className={`relative w-full max-w-4xl max-h-[85vh] flex flex-col bg-card rounded-2xl border overflow-hidden ${insightThemes[activeInsight].border}`}
                     >
-                      Close
-                    </Button>
-                  </div>
-
-                  {insightData.length === 0 ? (
-                    <div className="p-6 text-center text-muted-foreground text-sm">
-                      No records found.
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="festive-thead/50 border-b border-border">
-                          <tr>
-                            <th className="text-left px-6 py-3 text-sm font-medium">
-                              Name
-                            </th>
-
-                            {activeInsight === "meetings" ? (
-                              <>
-                                <th className="text-left px-6 py-3 text-sm font-medium">
-                                  Join URL
-                                </th>
-                                <th className="text-left px-6 py-3 text-sm font-medium">
-                                  Start
-                                </th>
-                                <th className="text-left px-6 py-3 text-sm font-medium">
-                                  End
-                                </th>
-                              </>
-                            ) : (
-                              <>
-                                <th className="text-left px-6 py-3 text-sm font-medium">
-                                  Assigned User
-                                </th>
-                                <th className="text-left px-6 py-3 text-sm font-medium">
-                                  Created By
-                                </th>
-                                <th className="text-left px-6 py-3 text-sm font-medium">
-                                  Created
-                                </th>
-                              </>
-                            )}
-                          </tr>
-                        </thead>
-
-                        <tbody className="divide-y divide-border">
-                          {insightData.map((item) => (
-                            <tr
-                              key={item.id}
-                              className="hover:bg-muted/30 transition"
+                      {/* Header */}
+                      <div
+                        className={`flex justify-between items-center gap-4 px-6 py-4 border-b ${insightThemes[activeInsight].border} ${insightThemes[activeInsight].headerBg}`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center ${insightThemes[activeInsight].iconBg}`}
+                          >
+                            <Icon
+                              name={insightThemes[activeInsight].icon}
+                              size={20}
+                              className={insightThemes[activeInsight].text}
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <h3
+                              className={`text-base font-semibold truncate ${insightThemes[activeInsight].text}`}
                             >
-                              {/* Name */}
-                              <td className="px-6 py-4">
-                                <div className="font-medium text-foreground">
-                                  {item.name}
-                                </div>
-                              </td>
+                              {insightThemes[activeInsight].title}
+                            </h3>
+                            <p className="text-xs text-muted-foreground">
+                              {insightData.length}{" "}
+                              {insightData.length === 1 ? "record" : "records"}
+                            </p>
+                          </div>
+                        </div>
 
-                              {/* Dynamic Column */}
-                              {activeInsight === "meetings" ? (
-                                <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setActiveInsight(null)}
+                        >
+                          Close
+                        </Button>
+                      </div>
+
+                      {/* Body */}
+                      <div className="flex-1 overflow-auto">
+                        {insightData.length === 0 ? (
+                          <div className="p-10 text-center text-muted-foreground text-sm">
+                            No records found.
+                          </div>
+                        ) : (
+                          <table className="w-full">
+                            <thead
+                              className={`sticky top-0 z-10 border-b ${insightThemes[activeInsight].border} ${insightThemes[activeInsight].headerBg}`}
+                            >
+                              <tr>
+                                <th className="text-left px-6 py-3 text-sm font-medium">
+                                  Name
+                                </th>
+
+                                {activeInsight === "meetings" ? (
+                                  <>
+                                    <th className="text-left px-6 py-3 text-sm font-medium">
+                                      Join URL
+                                    </th>
+                                    <th className="text-left px-6 py-3 text-sm font-medium">
+                                      Start
+                                    </th>
+                                    <th className="text-left px-6 py-3 text-sm font-medium">
+                                      End
+                                    </th>
+                                  </>
+                                ) : (
+                                  <>
+                                    <th className="text-left px-6 py-3 text-sm font-medium">
+                                      Assigned User
+                                    </th>
+                                    <th className="text-left px-6 py-3 text-sm font-medium">
+                                      Created By
+                                    </th>
+                                    <th className="text-left px-6 py-3 text-sm font-medium">
+                                      Created
+                                    </th>
+                                  </>
+                                )}
+                              </tr>
+                            </thead>
+
+                            <tbody className="divide-y divide-border">
+                              {insightData.map((item) => (
+                                <tr
+                                  key={item.id}
+                                  className="hover:bg-muted/30 transition"
+                                >
+                                  {/* Name */}
                                   <td className="px-6 py-4">
-                                    {item.joinUrl ? (
-                                      <div className="flex items-center gap-2 max-w-xs">
-                                        <a
-                                          href={item.joinUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-primary text-sm truncate hover:underline"
-                                        >
-                                          {item.joinUrl}
-                                        </a>
-
-                                        <button
-                                          onClick={() => {
-                                            navigator.clipboard.writeText(
-                                              item.joinUrl,
-                                            );
-                                          }}
-                                          className="p-1 rounded hover:bg-muted transition"
-                                        >
-                                          <Icon name="Copy" size={16} />
-                                        </button>
-                                      </div>
-                                    ) : (
-                                      "—"
-                                    )}
+                                    <div className="font-medium text-foreground">
+                                      {item.name}
+                                    </div>
                                   </td>
 
-                                  <td className="px-6 py-4 text-sm">
-                                    {formatTime(item.dateStart)}
-                                  </td>
+                                  {/* Dynamic Column */}
+                                  {activeInsight === "meetings" ? (
+                                    <>
+                                      <td className="px-6 py-4">
+                                        {item.joinUrl ? (
+                                          <div className="flex items-center gap-2 max-w-xs">
+                                            <a
+                                              href={item.joinUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-primary text-sm truncate hover:underline"
+                                            >
+                                              {item.joinUrl}
+                                            </a>
 
-                                  <td className="px-6 py-4 text-sm">
-                                    {formatTime(item.dateEnd)}
-                                  </td>
-                                </>
-                              ) : (
-                                <>
-                                  <td className="px-6 py-4 text-sm">
-                                    {item.assignedUserName || "—"}
-                                  </td>
+                                            <button
+                                              onClick={() => {
+                                                navigator.clipboard.writeText(
+                                                  item.joinUrl,
+                                                );
+                                              }}
+                                              className="p-1 rounded hover:bg-muted transition"
+                                            >
+                                              <Icon name="Copy" size={16} />
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          "—"
+                                        )}
+                                      </td>
 
-                                  <td className="px-6 py-4 text-sm">
-                                    {item.createdByName || "—"}
-                                  </td>
+                                      <td className="px-6 py-4 text-sm">
+                                        {formatTime(item.dateStart)}
+                                      </td>
 
-                                  <td className="px-6 py-4 text-sm">
-                                    {formatDate(item.createdAt)}
-                                  </td>
-                                </>
-                              )}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              )}
+                                      <td className="px-6 py-4 text-sm">
+                                        {formatTime(item.dateEnd)}
+                                      </td>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <td className="px-6 py-4 text-sm">
+                                        {item.assignedUserName || "—"}
+                                      </td>
+
+                                      <td className="px-6 py-4 text-sm">
+                                        {item.createdByName || "—"}
+                                      </td>
+
+                                      <td className="px-6 py-4 text-sm">
+                                        {formatDate(item.createdAt)}
+                                      </td>
+                                    </>
+                                  )}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           </div>
 

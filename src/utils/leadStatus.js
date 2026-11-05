@@ -90,6 +90,17 @@ export const LEAD_STATUS_OPTIONS = [
   { value: "Z Old Leads", label: "Z Old Leads" } // ✅ added
 ];
 
+// The exact stored values that count as unworkable, derived from the option
+// list rather than typed out again, so this can never drift from
+// UNWORKABLE_LEAD_STATUSES above.
+//
+// Needed because an API `in` filter matches exact values, while
+// isUnworkableLeadStatus() is a lowercased substring test for data already in
+// memory. Add a status to UNWORKABLE_LEAD_STATUSES and it flows through here.
+export const UNWORKABLE_STATUS_VALUES = LEAD_STATUS_OPTIONS
+  .map((option) => option.value)
+  .filter(isUnworkableLeadStatus);
+
 // Per-colour chip styling. Written out as literal class strings because
 // Tailwind's JIT can't see `bg-${colour}-50` and would purge it.
 export const CHIP_PALETTE = {

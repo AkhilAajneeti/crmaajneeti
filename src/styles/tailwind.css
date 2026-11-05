@@ -574,6 +574,22 @@
     border-bottom: 1px solid rgba(201, 162, 39, 0.35);
   }
 
+  /* The same band, but opaque — the two stops above flattened onto the card
+     colour. A sticky header cell needs this: .festive-thead is translucent,
+     so the columns sliding underneath a pinned cell would ghost through it. */
+  .festive-thead-solid {
+    background: linear-gradient(180deg, #FCEED9 0%, #FCF6EC 100%);
+  }
+
+  /* Left edge of a pinned column — a soft fade only, no hard rule.
+     A crisp 1px line here read as a table border that did not line up with
+     the others, which made the pinned column look like a separate table.
+     A wide, low-opacity shadow says "content passes under this" without
+     drawing an edge of its own. */
+  .sticky-col-divider {
+    box-shadow: -14px 0 16px -12px rgba(15, 23, 42, 0.13);
+  }
+
   .cracker-rise,
   .cracker-flash,
   .cracker-spark {
