@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 
 import Header from "components/ui/Header";
 import Sidebar from "components/ui/Sidebar";
@@ -10,6 +11,7 @@ import Icon from "components/AppIcon";
 import Button from "components/ui/Button";
 import { FestiveRule } from "components/FestiveOrnament";
 import TablePagination from "pages/deals/components/TablePagination";
+import KPICard from "pages/dashboard/components/KPICard";
 
 import ContactsTable from "./components/ContactsTable";
 import ContactsFilters, { EMPTY_FILTERS } from "./components/ContactsFilters";
@@ -119,6 +121,57 @@ const ContactsPage = () => {
     return { withEmail, withPhone, unassigned };
   }, [contacts]);
 
+  // Cards describe the CURRENT page, not the whole table, and say so — a total
+  // that silently meant something else would be worse than none. Each card's
+  // colour also drives its hover glow (see KPICard), so the maroon card lifts
+  // in maroon and the violet one in violet.
+  const pageRows = contacts.length;
+  const shareOfPage = (count) =>
+    pageRows ? `${Math.round((count / pageRows) * 100)}% of page` : "no rows";
+
+  const kpis = [
+    {
+      title: "Total contacts",
+      value: total,
+      change: `${pageRows} on page`,
+      changeType: "neutral",
+      icon: "Users",
+      iconBg: "bg-primary/10",
+      iconColor: "#8C1226",
+      comparisonLabel: "across all pages",
+    },
+    {
+      title: "With email",
+      value: summary.withEmail,
+      change: shareOfPage(summary.withEmail),
+      changeType: "neutral",
+      icon: "AtSign",
+      iconBg: "bg-violet-100",
+      iconColor: "#8B5CF6",
+      comparisonLabel: "this page",
+    },
+    {
+      title: "With phone",
+      value: summary.withPhone,
+      change: shareOfPage(summary.withPhone),
+      changeType: "neutral",
+      icon: "Phone",
+      iconBg: "bg-blue-100",
+      iconColor: "#3B82F6",
+      comparisonLabel: "this page",
+    },
+    {
+      title: "Unassigned",
+      value: summary.unassigned,
+      change: shareOfPage(summary.unassigned),
+      changeType: "neutral",
+      icon: "UserMinus",
+      iconBg: "bg-amber-100",
+      iconColor: "#F59E0B",
+      comparisonLabel: "this page",
+    },
+  ];
+
   return (
     <>
       <Helmet>
@@ -161,35 +214,19 @@ const ContactsPage = () => {
               )}
             </div>
 
-            {/* At-a-glance counts for the page in view. These describe the
-                CURRENT page, not the whole table, and say so — a total that
-                silently meant something else would be worse than none. */}
-            <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-              {[
-                { label: "Total contacts", value: total, hint: "all pages", icon: "Users", tone: "bg-primary/10 text-primary" },
-                { label: "With email", value: summary.withEmail, hint: "this page", icon: "AtSign", tone: "bg-violet-100 text-violet-700" },
-                { label: "With phone", value: summary.withPhone, hint: "this page", icon: "Phone", tone: "bg-blue-100 text-blue-700" },
-                { label: "Unassigned", value: summary.unassigned, hint: "this page", icon: "UserMinus", tone: "bg-amber-100 text-amber-800" },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-elevation-1 sm:p-4"
+            {/* At-a-glance counts for the page in view, using the same card as
+                the dashboard / sales-team KPI row: value, one supporting chip
+                and the scope it describes. */}
+            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+              {kpis.map((kpi, index) => (
+                <motion.div
+                  key={kpi.title}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.06 }}
                 >
-                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${s.tone}`}>
-                    <Icon name={s.icon} size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {s.label}
-                    </p>
-                    <p className="text-xl font-bold tabular-nums text-foreground">
-                      {isLoading ? "—" : s.value}
-                      <span className="ml-1.5 text-[10px] font-medium text-muted-foreground">
-                        {s.hint}
-                      </span>
-                    </p>
-                  </div>
-                </div>
+                  <KPICard {...kpi} isLoading={isLoading} />
+                </motion.div>
               ))}
             </div>
 

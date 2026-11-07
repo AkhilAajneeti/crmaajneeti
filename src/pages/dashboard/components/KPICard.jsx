@@ -30,10 +30,28 @@ const KPICard = ({
   iconBg,
   iconColor,
   comparisonLabel,
+  description,
+  compact,
   isLoading
 }) => {
   const glow = hexToRgb(iconColor) || NEUTRAL_GLOW;
   const tone = DELTA_TONES[changeType] || DELTA_TONES.neutral;
+  // A card either compares its number (delta chip + "vs ...") or explains it
+  // (description). Cards with neither — a bare count — end after the value.
+  const hasComparison = Boolean(change || comparisonLabel);
+  const hasSecondary = Boolean(description || hasComparison);
+
+  // `compact` is the same card drawn at settings-row scale: identical surface,
+  // wash, icon badge and hover glow, but it keeps the footprint that row of
+  // counters already had instead of growing into a dashboard tile.
+  const shell = compact ? 'rounded-xl p-4' : 'rounded-2xl p-4 sm:p-5';
+  const badge = compact
+    ? 'h-10 w-10 rounded-lg'
+    : 'h-11 w-11 rounded-xl sm:h-12 sm:w-12';
+  const titleSize = compact
+    ? 'text-[10.5px] tracking-[0.08em]'
+    : 'text-[11px] tracking-[0.1em] sm:text-[12px]';
+  const valueSize = compact ? 'text-2xl' : 'text-[26px] sm:text-[30px]';
 
   return (
     <motion.div
@@ -48,7 +66,7 @@ const KPICard = ({
         boxShadow: `0 18px 34px -14px rgba(${glow},0.6), 0 0 0 1px rgba(${glow},0.35), inset 0 1px 0 rgba(255,255,255,0.9)`,
       }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className={`group relative overflow-hidden rounded-2xl p-4 sm:p-5 ${isLoading ? 'kpi-shimmer kpi-glow' : ''}`}
+      className={`group relative h-full overflow-hidden ${shell} ${isLoading ? 'kpi-shimmer kpi-glow' : ''}`}
       style={{
         // A wash of the card's own colour over the card surface, lit along the
         // top edge so it catches light instead of reading as a flat rectangle.
@@ -63,20 +81,26 @@ const KPICard = ({
         src="/assets/festival/festive-mandala-full.png"
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute -right-10 -top-10 w-[120px] select-none opacity-50"
+        className={`pointer-events-none absolute select-none ${
+          compact
+            ? '-right-8 -top-8 w-[92px] opacity-40'
+            : '-right-10 -top-10 w-[120px] opacity-50'
+        }`}
       />
 
       {/* Corner bloom — strengthens behind the icon, fades across the card */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute -left-10 -top-12 h-28 w-28 rounded-full blur-2xl transition-opacity duration-300 group-hover:opacity-100"
+        className={`pointer-events-none absolute rounded-full blur-2xl transition-opacity duration-300 group-hover:opacity-100 ${
+          compact ? '-left-8 -top-10 h-24 w-24' : '-left-10 -top-12 h-28 w-28'
+        }`}
         style={{ background: `rgba(${glow},0.35)`, opacity: 0.55 }}
       />
 
       <div className="relative">
         <div className="flex items-center gap-3 sm:gap-3.5">
           <div
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12 transition-transform duration-300 group-hover:scale-105 ${isLoading ? `animate-pulse ${iconBg || 'bg-muted'}` : ''}`}
+            className={`flex shrink-0 items-center justify-center transition-transform duration-300 group-hover:scale-105 ${badge} ${isLoading ? `animate-pulse ${iconBg || 'bg-muted'}` : ''}`}
             style={
               isLoading
                 ? undefined
@@ -86,48 +110,78 @@ const KPICard = ({
                   }
             }
           >
-            <Icon name={icon} size={20} color="white" className="sm:hidden" />
-            <Icon name={icon} size={23} color="white" className="hidden sm:block" />
+            {compact ? (
+              <Icon name={icon} size={19} color="white" />
+            ) : (
+              <>
+                <Icon name={icon} size={20} color="white" className="sm:hidden" />
+                <Icon name={icon} size={23} color="white" className="hidden sm:block" />
+              </>
+            )}
           </div>
 
           <div className="min-w-0">
-            <h3 className="truncate text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground sm:text-[12px]">
+            <h3 className={`truncate font-semibold uppercase text-muted-foreground ${titleSize}`}>
               {title || 'Loading...'}
             </h3>
-            <p className="mt-0.5 text-[26px] font-bold leading-none tracking-tight tabular-nums text-foreground sm:text-[30px]">
+            <p
+              className={`mt-0.5 font-bold leading-none tracking-tight tabular-nums text-foreground ${valueSize}`}
+            >
               {isLoading ? '0' : value}
             </p>
           </div>
         </div>
 
-        {/* Hairline in the card's own tint, fading out to the right */}
-        <span
-          aria-hidden="true"
-          className="mt-3.5 block h-px w-full sm:mt-4"
-          style={{
-            background: `linear-gradient(to right, rgba(${glow},0.35), rgba(${glow},0.05) 60%, transparent)`,
-          }}
-        />
-
-        {/* The comparison sits where MetricsCard puts its description, with the
-            delta kept as a chip — it is the part worth reading first. */}
-        <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+        {/* Hairline in the card's own tint, fading out to the right. Only drawn
+            when something follows it — on a compact counter it would read as a
+            divider with nothing to divide. */}
+        {hasSecondary && (
           <span
-            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${tone}`}
-          >
-            {!isLoading && changeType === 'positive' && (
-              <Icon name="TrendingUp" size={12} />
-            )}
-            {!isLoading && changeType === 'negative' && (
-              <Icon name="TrendingDown" size={12} />
-            )}
-            <span>{isLoading ? '--' : change}</span>
-          </span>
+            aria-hidden="true"
+            className="mt-3.5 block h-px w-full sm:mt-4"
+            style={{
+              background: `linear-gradient(to right, rgba(${glow},0.35), rgba(${glow},0.05) 60%, transparent)`,
+            }}
+          />
+        )}
 
-          <span className="truncate text-[11px] text-muted-foreground sm:text-[12.5px]">
-            vs {comparisonLabel || '...'}
-          </span>
-        </div>
+        {/* Secondary line, in whichever form the card has: the delta chip for a
+            comparison, or a short description for a card that explains itself.
+            The chip stays first where both exist — it is the part worth reading
+            first. */}
+        {hasSecondary && (
+          <div className="mt-2.5">
+            {hasComparison && (
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${tone}`}
+                >
+                  {!isLoading && changeType === 'positive' && (
+                    <Icon name="TrendingUp" size={12} />
+                  )}
+                  {!isLoading && changeType === 'negative' && (
+                    <Icon name="TrendingDown" size={12} />
+                  )}
+                  <span>{isLoading ? '--' : change}</span>
+                </span>
+
+                <span className="truncate text-[11px] text-muted-foreground sm:text-[12.5px]">
+                  vs {comparisonLabel || '...'}
+                </span>
+              </div>
+            )}
+
+            {description && (
+              <p
+                className={`text-[11px] leading-snug text-muted-foreground sm:text-[12.5px] ${
+                  hasComparison ? 'mt-2' : ''
+                }`}
+              >
+                {description}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </motion.div>
   );

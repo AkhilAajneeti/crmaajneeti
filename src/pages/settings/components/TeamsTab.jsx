@@ -8,6 +8,7 @@ import Avatar from "react-avatar";
 import ReactSelect from "react-select";
 import CreatableSelect from "react-select/creatable";
 import TablePagination from "./TablePagination";
+import TeamMembersModal from "./models/TeamMembersModal";
 import {
   deleteUser,
   fetchUser,
@@ -737,64 +738,19 @@ const TeamsTab = ({ deepLink }) => {
         </>
       )}
 
-      {isTeamModalOpen && (
-        <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-black/50 z-50"
-            onClick={() => {
-              setIsTeamModalOpen(false);
-              clearDeepLinkUrl();
-            }}
-          />
-
-          {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-card border border-border rounded-xl w-full max-w-2xl shadow-xl">
-              {/* Header */}
-              <div className="flex justify-between items-center p-4 border-b">
-                <h3 className="text-lg font-semibold">
-                  {selectedTeam?.name} - Team Members
-                </h3>
-                <button onClick={() => {
-              setIsTeamModalOpen(false);
-              clearDeepLinkUrl();
-            }}>
-                  <Icon name="X" />
-                </button>
-              </div>
-
-              {/* Body */}
-              <div className="p-4 max-h-[400px] overflow-y-auto">
-                {isLoading ? (
-                  <p>Loading...</p>
-                ) : !teamUsers.length ? (
-                  <p className="text-center text-gray-400">
-                    No users in this team
-                  </p>
-                ) : (
-                  teamUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center justify-between p-3 border-b"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar name={user.name} size="35" round />
-                        <div>
-                          <p className="font-medium">{user.name}</p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
-                        </div>
-                      </div>
-
-                      {getStatusBadge(user.status)}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      {/* Team members popup. Always mounted: the modal owns its own
+          AnimatePresence, so flipping `open` plays the exit animation. */}
+      <TeamMembersModal
+        open={isTeamModalOpen}
+        team={selectedTeam}
+        members={teamUsers}
+        loading={isLoading && isTeamModalOpen}
+        onClose={() => {
+          setIsTeamModalOpen(false);
+          clearDeepLinkUrl();
+        }}
+        getStatusBadge={getStatusBadge}
+      />
 
       {isDeleteModalOpen && (
         <>

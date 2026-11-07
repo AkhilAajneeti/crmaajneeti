@@ -207,32 +207,35 @@ const Reports = () => {
     };
 
     return [
+      // iconColor is the card's hex colour — it drives the icon badge, the
+      // surface wash and the hover glow in the shared KPICard. These are the
+      // same hues the old report cards used (success / primary / purple / red).
       buildMetric(
         "Follow Up",
         "Follow up",
         "TrendingUp",
-        "bg-success",
+        "#2F7D53",
         "Leads awaiting action",
       ),
       buildMetric(
         "Call Not Picked",
         "Call Not Picked",
         "PhoneOff",
-        "bg-primary",
+        "#8C1226",
         "Leads not reachable on call",
       ),
       buildMetric(
         "Call Later",
         "Call Later",
         "Clock",
-        "bg-purple-400",
+        "#C084FC",
         "Leads scheduled for future follow-up",
       ),
       buildMetric(
         "Not Interested",
         "Not Interested",
         "XCircle",
-        "bg-red-400",
+        "#F87171",
         "Leads marked as not interested",
       ),
     ];
@@ -554,27 +557,31 @@ const Reports = () => {
               </div>
             </motion.div>
 
-            {/* Key Metrics Cards */}
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8"
-            >
+            {/* Key Metrics Cards — the same card as the dashboard / contacts
+                KPI row: colour-matched wash, icon badge, corner mandala, hover
+                glow. These explain their number instead of comparing it, so
+                they carry a description and no delta chip — the report has no
+                comparable previous period yet, and a green "0%" would claim
+                one. */}
+            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
               {metricsData?.map((metric, index) => (
-                <MetricsCard
+                <motion.div
                   key={metric?.title}
-                  title={metric?.title}
-                  value={metric?.value}
-                  change={metric?.change}
-                  changeType={metric?.changeType}
-                  icon={metric?.icon}
-                  iconColor={metric?.iconColor}
-                  description={metric?.description}
-                /> 
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.06 }}
+                >
+                  <MetricsCard
+                    title={metric?.title}
+                    value={metric?.value}
+                    icon={metric?.icon}
+                    iconColor={metric?.iconColor}
+                    description={metric?.description}
+                    isLoading={isLoading}
+                  />
+                </motion.div>
               ))}
-            </motion.div>
+            </div>
 
             {/* Filter Controls */}
             <FilterControls

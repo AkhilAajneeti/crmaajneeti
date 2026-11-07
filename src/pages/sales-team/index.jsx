@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 
 import Header from "components/ui/Header";
 import Sidebar from "components/ui/Sidebar";
+import SegmentedControl from "components/ui/SegmentedControl";
 import Icon from "components/AppIcon";
 import KPICard from "pages/dashboard/components/KPICard";
 
@@ -194,25 +195,20 @@ const SalesTeam = () => {
                 Refresh
               </button>
 
-            <div className="flex flex-wrap items-center gap-1 rounded-full border border-border bg-card p-1">
-              {PERIODS.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => {
-                    setPeriodId(p.id);
-                    setPage(1);
-                  }}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-                    p.id === periodId
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
+              {/* Sliding thumb rather than a background swap: the movement
+                  itself shows which way the selection went, and the thumb
+                  breathes while the period is still being tallied. */}
+              <SegmentedControl
+                options={PERIODS}
+                value={periodId}
+                onChange={(id) => {
+                  setPeriodId(id);
+                  setPage(1);
+                }}
+                ariaLabel="Performance period"
+                icon={<Icon name="CalendarRange" size={13} />}
+                isBusy={isFetching}
+              />
             </div>
           </div>
         </div>

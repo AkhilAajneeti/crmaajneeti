@@ -18,6 +18,7 @@ import { fetchTeam } from "services/team.service";
 import { createUser, fetchRoles } from "services/setting.service";
 import toast from "react-hot-toast";
 import UserDetailsModal from "./models/UserDetailsModal";
+import KPICard from "pages/dashboard/components/KPICard";
 import {
   canCreate,
   canDeleteRecord,
@@ -767,6 +768,36 @@ const UserTab = ({ deepLink }) => {
       </td>
     </tr>
   );
+  // Team totals, rendered with the same card language as the dashboard and
+  // contacts KPI strips (colour wash, mandala, colour-matched hover glow). The
+  // `compact` flag keeps this row at the size it has always been.
+  const teamStats = [
+    {
+      title: "Total Members",
+      value: teamMembers?.length ?? 0,
+      icon: "Users",
+      iconColor: "#8C1226",
+    },
+    {
+      title: "Active",
+      value: teamMembers?.filter((m) => m?.isActive)?.length ?? 0,
+      icon: "CheckCircle",
+      iconColor: "#2F7D53",
+    },
+    {
+      title: "Regular",
+      value: teamMembers?.filter((m) => m?.type === "regular")?.length ?? 0,
+      icon: "Clock",
+      iconColor: "#9A6112",
+    },
+    {
+      title: "Admins",
+      value: teamMembers?.filter((m) => m?.type === "admin")?.length ?? 0,
+      icon: "Shield",
+      iconColor: "#B3261E",
+    },
+  ];
+
   return (
     <div>
       {/* Team Overview */}
@@ -797,58 +828,16 @@ const UserTab = ({ deepLink }) => {
 
         {/* Team Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-muted rounded-lg p-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Icon name="Users" size={20} className="text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-card-foreground">
-                  {teamMembers?.length}
-                </p>
-                <p className="text-sm text-muted-foreground">Total Members</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-muted rounded-lg p-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
-                <Icon name="CheckCircle" size={20} className="text-success" />
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-card-foreground">
-                  {teamMembers?.filter((m) => m?.isActive)?.length}
-                </p>
-                <p className="text-sm text-muted-foreground">Active</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-muted rounded-lg p-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-warning/10 rounded-lg flex items-center justify-center">
-                <Icon name="Clock" size={20} className="text-warning" />
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-card-foreground">
-                  {teamMembers?.filter((m) => m?.type === "regular")?.length}
-                </p>
-                <p className="text-sm text-muted-foreground">Regular</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-muted rounded-lg p-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-error/10 rounded-lg flex items-center justify-center">
-                <Icon name="Shield" size={20} className="text-error" />
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-card-foreground">
-                  {teamMembers?.filter((m) => m?.type === "admin")?.length}
-                </p>
-                <p className="text-sm text-muted-foreground">Admins</p>
-              </div>
-            </div>
-          </div>
+          {teamStats.map((stat) => (
+            <KPICard
+              key={stat.title}
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              iconColor={stat.iconColor}
+              compact
+            />
+          ))}
         </div>
 
         {/* Team Members Table */}
@@ -1345,16 +1334,17 @@ const UserTab = ({ deepLink }) => {
           </div>
         </>
       )}
-      {isShowDetails && selectedUser && (
-        <UserDetailsModal
-          user={selectedUser}
-          onClose={() => {
-            setIsShowDetails(false);
-            clearDeepLinkUrl();
-          }}
-          getStatusBadge={getStatusBadge}
-        />
-      )}
+      {/* Always mounted: the modal owns its own AnimatePresence, so flipping
+          `open` plays the exit animation instead of unmounting mid-fade. */}
+      <UserDetailsModal
+        open={isShowDetails}
+        user={selectedUser}
+        onClose={() => {
+          setIsShowDetails(false);
+          clearDeepLinkUrl();
+        }}
+        getStatusBadge={getStatusBadge}
+      />
 
       {isDeleteModalOpen && (
         <>
