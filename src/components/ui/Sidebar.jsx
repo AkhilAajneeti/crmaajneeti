@@ -275,26 +275,14 @@ const Sidebar = ({ isOpen = false, onClose }) => {
             </div>
           </nav>
 
-          {/* Footer — the lotus banner, with its maroon wave continued
-              underneath to carry the credit line.
+          {/* Footer — a maroon band carrying the credit line.
 
-              The block below is NOT an approximation of the artwork's colour:
-              the banner's bottom row is opaque maroon sampled across its
-              width at #5C062D / #59052C / #840738 / #9B0641 / #800639, and
-              those same stops are repeated here, so the seam between image
-              and div is invisible. Re-export the banner and these have to be
-              re-sampled. */}
+              The gradient stops were sampled from the bottom row of the lotus
+              banner that used to sit above this block, so the colour still
+              matches the rest of the brand even though the artwork is gone. */}
           <div className="relative mt-auto">
-            <img
-              src="/assets/festival/Ornate Glowing Diwali Lotus Mandala.png"
-              alt=""
-              aria-hidden="true"
-              className="relative block w-full select-none mix-blend-multiply"
-              style={{ filter: "brightness(1.07) contrast(1.03)" }}
-            />
-
             <div
-              className="relative z-10 -mt-[2px] px-4 pb-4 pt-1 text-center"
+              className="relative z-10 px-4 pb-4 pt-3 text-center"
               style={{
                 background:
                   "linear-gradient(90deg,#5C062D 0%,#59052C 25%,#840738 50%,#9B0641 75%,#800639 100%)",
