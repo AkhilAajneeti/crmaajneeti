@@ -75,19 +75,6 @@ const KPICard = ({
         boxShadow: `0 1px 2px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.85)`,
       }}
     >
-      {/* Mandala pressed into the top-right corner. Decoration only —
-          aria-hidden, pointer-events-none, and under the content layer. */}
-      <img
-        src="/assets/festival/festive-mandala-full.png"
-        alt=""
-        aria-hidden="true"
-        className={`pointer-events-none absolute select-none ${
-          compact
-            ? '-right-8 -top-8 w-[92px] opacity-40'
-            : '-right-10 -top-10 w-[120px] opacity-50'
-        }`}
-      />
-
       {/* Corner bloom — strengthens behind the icon, fades across the card */}
       <span
         aria-hidden="true"

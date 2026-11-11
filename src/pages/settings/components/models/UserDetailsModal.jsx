@@ -179,18 +179,6 @@ const UserDetailsModal = ({ open = true, user, onClose, getStatusBadge }) => {
                 "0 34px 80px -34px rgba(42,26,20,0.42), 0 0 0 1px rgba(201,162,39,0.22), inset 0 1px 0 rgba(255,255,255,0.95)",
             }}
           >
-            {/* Festive wash + mandala, kept faint so the panel still reads light */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-[#fee0df]/80 via-[#FDF3E4]/60 to-transparent"
-            />
-            <img
-              src="/assets/festival/festive-mandala-full.png"
-              alt=""
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-10 -top-12 w-[190px] select-none opacity-[0.22]"
-            />
-
             {/* Header */}
             <div className="relative flex items-center justify-between gap-3 px-5 pt-5 sm:px-6">
               <div className="flex items-center gap-3">
