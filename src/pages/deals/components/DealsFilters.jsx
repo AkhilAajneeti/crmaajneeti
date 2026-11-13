@@ -70,7 +70,7 @@ const DealsFilters = ({
     { value: "Duplicate", label: "Duplicate" },
     { value: "Follow up", label: "Follow Up" },
     { value: "Future Prospect", label: "Future Prospect" },
-    { value: "In Process", label: "In Process" },
+    // { value: "In Process", label: "In Process" },
     { value: "Interested", label: "Interested" },
     { value: "Invalid", label: "Invalid" },
     { value: "Low Budget | Low Intent", label: "Low Budget | Low Intent" },
