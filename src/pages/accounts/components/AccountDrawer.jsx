@@ -22,6 +22,47 @@ import { fetchAccStreamById } from "services/account.service";
 import { deleteTasks } from "services/tasks.service";
 import { useAccountById } from "hooks/useAccounts";
 
+// Sections hidden from the create and edit forms because everyday users do
+// not fill them. Hidden, not deleted: the inputs, the form state and the save
+// payload are all untouched below, so flipping one of these back to `true` is
+// the only change needed to bring a section back.
+//
+// Nothing here is required by validateForm() — only `name` is — so hiding
+// them cannot block a save. On edit, formData is seeded from the account, so
+// a hidden field keeps whatever value the record already had rather than
+// being cleared.
+//
+// The read-only detail view is deliberately NOT governed by these: accounts
+// that already carry an address or website still show it there.
+const SHOW_WEBSITE_FIELD = false;
+const SHOW_BILLING_ADDRESS = false;
+const SHOW_SHIPPING_ADDRESS = false;
+const SHOW_ASSIGNMENT = false;
+
+// Link (relationship) fields. The API wants a real id or null for these — an
+// empty string is neither, and is rejected rather than read as "nobody".
+const LINK_ID_FIELDS = ["assignedUserId", "teamId"];
+
+/** Turn blank link ids into null, in place of the form's empty strings. */
+const normaliseLinkIds = (payload) => {
+  LINK_ID_FIELDS.forEach((key) => {
+    if (payload[key] === "") payload[key] = null;
+  });
+  return payload;
+};
+
+/**
+ * Drop keys the user never filled in. Only safe on create: on an update a
+ * blank means "clear this field", and removing it would silently discard the
+ * change. `false` and `0` are real values and are kept.
+ */
+const stripEmpty = (payload) =>
+  Object.fromEntries(
+    Object.entries(payload).filter(
+      ([, value]) => value !== "" && value !== null && value !== undefined,
+    ),
+  );
+
 // Field-row chrome shared with the leads drawer: a coloured icon tile, the
 // label above and the value below, so both drawers read as one system.
 const INLINE_TONES = {
@@ -93,6 +134,13 @@ const AccountDrawer = ({
  
 
   const { data: account, isLoading } = useAccountById(accounts);
+
+  // Saving is its own state. `isLoading` above belongs to the account FETCH,
+  // so it is false while a create is in flight and cannot drive the button.
+  // handleCreate used to call a `setIsLoading` that was never declared, which
+  // threw a ReferenceError on the first line of the try — before the request
+  // was ever sent — and the catch reported it as "Failed to create account".
+  const [isSaving, setIsSaving] = useState(false);
 
 
   // Form state for create/edit mode
@@ -404,7 +452,12 @@ const AccountDrawer = ({
     if (!validateForm()) return;
 
     try {
-      const payload = { ...formData };
+      setIsSaving(true);
+
+      // Link fields only. Every other blank is left exactly as typed, because
+      // on an update a blank is a deliberate "clear this" and stripping it
+      // would make the field impossible to empty.
+      const payload = normaliseLinkIds({ ...formData });
 
       console.log("UPDATE ACCOUNT PAYLOAD", payload);
       console.log("UPDATE versionNumber", account?.versionNumber);
@@ -415,21 +468,32 @@ const AccountDrawer = ({
       onClose(); // close drawer
     } catch (err) {
       console.error("Update failed:", err);
-      alert("Failed to update account");
+      toast.error(err?.message || "Failed to update account");
+    } finally {
+      setIsSaving(false);
     }
   };
   const handleCreate = async () => {
     if (!validateForm()) return;
 
     try {
-      setIsLoading(true);
-      if (formData.phoneNumber.length !== 10) {
+      setIsSaving(true);
+
+      // Phone is optional — the form never marks it required, only `name` is.
+      // This used to read `formData.phoneNumber.length !== 10`, which is 0 for
+      // an empty field, so leaving phone blank silently blocked every create
+      // behind a toast. Validate the digits only when something was typed.
+      const phoneDigits = String(formData.phoneNumber || "").replace(/\D/g, "");
+      if (phoneDigits && phoneDigits.length !== 10) {
         toast.error("Phone number must be 10 digits");
         return;
       }
-      const payload = {
-        ...formData,
-      };
+
+      // On create there is nothing to clear, so untouched blanks are just
+      // noise — and a blank link id ("" for assignedUserId / teamId, now that
+      // Assignment is hidden) is the kind of value the API rejects outright.
+      // Dropping them sends only what the user actually filled in.
+      const payload = stripEmpty(normaliseLinkIds({ ...formData }));
 
       console.log("CREATE ACCOUNT PAYLOAD", payload);
 
@@ -439,9 +503,12 @@ const AccountDrawer = ({
       onClose(); // close drawer
     } catch (err) {
       console.error("Create failed:", err);
-      alert("Failed to create account");
+      // Show what the server actually said rather than a blanket failure —
+      // a rejected field name is the difference between a fixable form and a
+      // dead button.
+      toast.error(err?.message || "Failed to create account");
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -766,7 +833,11 @@ const AccountDrawer = ({
                 <div className="bg-background border rounded-xl p-5 shadow-sm space-y-4">
                   <h3 className="text-sm font-semibold text-primary">Basic Information</h3>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div
+                    className={`grid gap-4 ${
+                      SHOW_WEBSITE_FIELD ? "grid-cols-2" : "grid-cols-1"
+                    }`}
+                  >
                     <Input
                       name="name"
                       value={formData?.name}
@@ -775,14 +846,16 @@ const AccountDrawer = ({
                       className="h-11 rounded-lg"
                     />
 
-                    <Input
-                      name="website"
-                      type="url"
-                      value={formData?.website}
-                      onChange={handleInputChange}
-                      placeholder="Website URL"
-                      className="h-11 rounded-lg"
-                    />
+                    {SHOW_WEBSITE_FIELD && (
+                      <Input
+                        name="website"
+                        type="url"
+                        value={formData?.website}
+                        onChange={handleInputChange}
+                        placeholder="Website URL"
+                        className="h-11 rounded-lg"
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -811,6 +884,7 @@ const AccountDrawer = ({
                 </div>
 
                 {/* 🔹 Billing Address */}
+                {SHOW_BILLING_ADDRESS && (
                 <div className="bg-background border rounded-xl p-5 shadow-sm space-y-4">
                   <h3 className="text-sm font-semibold text-primary">Billing Address</h3>
 
@@ -824,8 +898,10 @@ const AccountDrawer = ({
                     </div>
                   </div>
                 </div>
+                )}
 
                 {/* 🔹 Shipping Address */}
+                {SHOW_SHIPPING_ADDRESS && (
                 <div className="bg-background border rounded-xl p-5 shadow-sm space-y-4">
                   <h3 className="text-sm font-semibold text-primary">Shipping Address</h3>
 
@@ -839,8 +915,10 @@ const AccountDrawer = ({
                     </div>
                   </div>
                 </div>
+                )}
 
                 {/* 🔹 Assignment */}
+                {SHOW_ASSIGNMENT && (
                 <div className="bg-background border rounded-xl p-5 shadow-sm space-y-4">
                   <h3 className="text-sm font-semibold text-primary">Assignment</h3>
 
@@ -862,6 +940,7 @@ const AccountDrawer = ({
                     />
                   </div>
                 </div>
+                )}
 
                 {/* 🔹 Details */}
                 <div className="bg-background border rounded-xl p-5 shadow-sm space-y-4">
@@ -901,10 +980,10 @@ const AccountDrawer = ({
                 <div className="flex items-center gap-3 pt-4 sticky bottom-0 bg-background/80 backdrop-blur-md">
                   <Button
                     onClick={handleSave}
-                    disabled={isLoading}
+                    disabled={isSaving}
                     className="flex-1 h-11 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:scale-[1.02] transition shadow-lg"
                   >
-                    {isLoading
+                    {isSaving
                       ? "Saving..."
                       : drawerMode === "edit"
                         ? "Update Account"
@@ -1037,14 +1116,16 @@ const AccountDrawer = ({
                             className="h-11 rounded-xl"
                           />
 
-                          <Input
-                            name="website"
-                            type="url"
-                            value={formData?.website}
-                            onChange={handleInputChange}
-                            placeholder="Website URL"
-                            className="h-11 rounded-xl"
-                          />
+                          {SHOW_WEBSITE_FIELD && (
+                            <Input
+                              name="website"
+                              type="url"
+                              value={formData?.website}
+                              onChange={handleInputChange}
+                              placeholder="Website URL"
+                              className="h-11 rounded-xl"
+                            />
+                          )}
 
                           <div className="grid grid-cols-2 gap-4">
                             <Input
@@ -1065,6 +1146,7 @@ const AccountDrawer = ({
                         </div>
 
                         {/* ===== BILLING ===== */}
+                        {SHOW_BILLING_ADDRESS && (
                         <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-sm transition-all">
                           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                             Billing Address
@@ -1080,8 +1162,10 @@ const AccountDrawer = ({
                             </div>
                           </div>
                         </div>
+                        )}
 
                         {/* ===== SHIPPING ===== */}
+                        {SHOW_SHIPPING_ADDRESS && (
                         <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadows-sm transition-all">
                           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                             Shipping Address
@@ -1097,8 +1181,10 @@ const AccountDrawer = ({
                             </div>
                           </div>
                         </div>
+                        )}
 
                         {/* ===== ASSIGNMENT ===== */}
+                        {SHOW_ASSIGNMENT && (
                         <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-sm transition-all">
                           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                             Assignment
@@ -1119,6 +1205,7 @@ const AccountDrawer = ({
                             />
                           </div>
                         </div>
+                        )}
 
                         {/* ===== DETAILS ===== */}
                         <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-sm transition-all">
@@ -1158,10 +1245,10 @@ const AccountDrawer = ({
                         <div className="flex items-center gap-3 pt-4 sticky bottom-0 bg-background/80 backdrop-blur-md">
                           <Button
                             onClick={handleSave}
-                            disabled={isLoading}
+                            disabled={isSaving}
                             className="flex-1 h-11 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:scale-[1.02] transition shadow-lg"
                           >
-                            {isLoading
+                            {isSaving
                               ? "Saving..."
                               : drawerMode === "edit"
                                 ? "Update Account"

@@ -204,22 +204,26 @@ export const fetchAccountById = async (id) => {
 /* CREATE */
 export const createAccount = async (payload) => {
   const token = localStorage.getItem("auth_token");
-  try {
-    const res = await fetch("https://gateway.aajneetiadvertising.com/Account", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", token: token },
 
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("Create Account API Error:", err?.response || err);
-    throw err; // 🔥 ORIGINAL error rethrow
+  // `res` is declared out here on purpose. It used to be `const res` inside a
+  // try block, which put it out of scope by the time the response was read.
+  const res = await fetch("https://gateway.aajneetiadvertising.com/Account", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", token: token },
+    body: JSON.stringify(payload),
+  });
+
+  const text = await res.text();
+
+  // Previously this check was commented out and the function went straight to
+  // `return text ? ... : null` with `text` never declared. That threw a
+  // ReferenceError *after* the POST had already succeeded, so the account was
+  // created on the server while the caller showed "Failed to create account"
+  // and never refreshed the table. Reading the body and checking status —
+  // exactly as updateAccount does — is what makes the result truthful.
+  if (!res.ok) {
+    throw new Error(text || "Account creation failed");
   }
-
-  // const text = await res.text();
-  // if (!res.ok) {
-  //   throw new Error("account is not created");
-  // }
 
   return text ? JSON.parse(text) : null;
 };
