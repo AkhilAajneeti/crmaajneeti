@@ -189,7 +189,7 @@ const ContactsPage = () => {
         />
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-        <main className="pt-16 lg:ml-64">
+        <main className="pt-16 app-main">
           <div className="p-4 lg:p-6">
             {/* Page header */}
             <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">

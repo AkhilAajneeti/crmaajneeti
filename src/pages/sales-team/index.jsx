@@ -155,7 +155,7 @@ const SalesTeam = () => {
       />
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <main className="relative pt-16 lg:ml-64">
+      <main className="relative pt-16 app-main">
         <div className="m-4 sm:m-6">
           {/* Title + period. Every figure on the page now respects this
               selector — nothing is silently all-time. */}

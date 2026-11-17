@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useLayoutEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Icon from "../AppIcon";
 import Button from "./Button";
@@ -29,6 +29,25 @@ const DEFAULT_ICON_TONE = {
   bg: "bg-slate-50",
   text: "text-slate-500",
 };
+
+// Rail widths. These two strings are the only place the number lives: the
+// aside uses them as Tailwind classes, and the matching rem value goes into
+// the `--sidebar-w` variable that `.app-main` reads to offset every page.
+const COLLAPSED_W = "5rem"; // lg:w-20
+const EXPANDED_W = "16rem"; // lg:w-64
+
+const COLLAPSE_KEY = "sidebar_collapsed";
+
+/** Read the saved preference, tolerating storage being unavailable. */
+const readCollapsed = () => {
+  try {
+    return localStorage.getItem(COLLAPSE_KEY) === "true";
+  } catch {
+    // Private windows and blocked site data throw on access rather than
+    // returning null, so the default has to survive an exception.
+    return false;
+  }
+};
 const Sidebar = ({ isOpen = false, onClose }) => {
   const user = JSON.parse(localStorage.getItem("login_object") || "{}");
   const isAdmin = String(user?.type).toLowerCase() === "admin";
@@ -37,6 +56,41 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isUpgradeCardVisible, setIsUpgradeCardVisible] = useState(true);
+
+  // Desktop-only collapse. On mobile the sidebar is an overlay that slides in
+  // and out, so a narrow icon rail there would be a second, conflicting idea
+  // of "closed" — every collapsed style below is therefore `lg:` prefixed and
+  // the drawer keeps its full labels.
+  const [isCollapsed, setIsCollapsed] = useState(readCollapsed);
+
+  // Publish the width so `.app-main` can offset the page. Set on the root
+  // element rather than passed through props, which keeps all 18 pages free
+  // of any knowledge of the sidebar's state.
+  // Layout effect, not effect: this runs before the browser paints, so a
+  // session that starts collapsed never flashes the full-width layout first.
+  useLayoutEffect(() => {
+    document.documentElement.style.setProperty(
+      "--sidebar-w",
+      isCollapsed ? COLLAPSED_W : EXPANDED_W,
+    );
+  }, [isCollapsed]);
+
+  const toggleCollapsed = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(COLLAPSE_KEY, String(next));
+      } catch {
+        // A blocked store only costs the preference, never the toggle.
+      }
+      return next;
+    });
+  };
+
+  // Applied to anything that only makes sense beside an icon: labels, section
+  // headings, the footer credit. Hidden from `lg` up while collapsed, still
+  // visible in the mobile drawer.
+  const hideWhenCollapsed = isCollapsed ? "lg:hidden" : "";
 
   const navigationGroups = [
     {
@@ -126,8 +180,9 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       <aside
         className={`
           fixed top-0 left-0 h-full w-64 overflow-hidden bg-gradient-to-b from-[color:var(--sidebar-from)] to-[color:var(--sidebar-to)] border-r border-border shadow-sm z-50 lg:z-30
-          transform transition-transform duration-300 ease-out
+          transform transition-all duration-300 ease-out
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          ${isCollapsed ? "lg:w-20" : "lg:w-64"}
         `}
       >
         {/* A single mandala closes the rail. It is a background layer, placed
@@ -136,7 +191,9 @@ const Sidebar = ({ isOpen = false, onClose }) => {
         {/* The wrapper owns the centring translate and the image owns the
             spin — both are `transform`, so they would overwrite each other
             on a single element. */}
-        <div className="pointer-events-none absolute bottom-[200px] left-1/2 w-[118px] -translate-x-1/2">
+        <div
+          className={`pointer-events-none absolute bottom-[200px] left-1/2 w-[118px] -translate-x-1/2 ${hideWhenCollapsed}`}
+        >
           <img
             src="/assets/festival/festive-mandala-full.png"
             alt=""
@@ -147,12 +204,16 @@ const Sidebar = ({ isOpen = false, onClose }) => {
 
         <div className="relative flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border">
+          <div
+            className={`flex items-center justify-between border-b border-border p-6 ${
+              isCollapsed ? "lg:flex-col lg:gap-3 lg:px-0 lg:py-4" : ""
+            }`}
+          >
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
                 <Icon name="Zap" size={20} color="white" />
               </div>
-              <div className="flex items-center space-x-2">
+              <div className={`flex items-center space-x-2 ${hideWhenCollapsed}`}>
                 <span className="text-lg font-semibold text-foreground">
                   CRM
                 </span>
@@ -182,7 +243,9 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                 <div key={group.title}>
 
                   {/* SECTION TITLE */}
-                  <p className="px-3 mb-2 text-xs font-semibold text-[color:var(--sidebar-heading)] uppercase tracking-wider">
+                  <p
+                    className={`px-3 mb-2 text-xs font-semibold text-[color:var(--sidebar-heading)] uppercase tracking-wider ${hideWhenCollapsed}`}
+                  >
                     {group.title}
                   </p>
 
@@ -197,9 +260,11 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                           {/* 🔴 PARENT */}
                           <button
                             onClick={() => handleNavigation(item.path)}
+                            title={isCollapsed ? item.label : undefined}
                             className={`
                     shine-hover group w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm
                     transition-all duration-200 ease-out
+                    ${isCollapsed ? "lg:justify-center lg:space-x-0 lg:px-0" : ""}
                     ${isActive
                                 ? "bg-gradient-to-r from-black to-mahroon text-white"
                                 : "text-gray-600 hover:bg-[color:var(--sidebar-hover)]"}
@@ -219,12 +284,13 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                             </span>
                             <span className={`
     transition-all duration-300 ease-out group-hover:-translate-y-0.1 group-hover:rotate-3 group-hover:scale-110 group-active:scale-95
+    ${hideWhenCollapsed}
     ${isActive ? "text-white" : "text-gray-800 group-hover:text-[color:var(--sidebar-hover-text)] font-semibold"}`}>{item.label}</span>
                           </button>
 
                           {/* 🌳 CHILD TREE (ONLY if exists) */}
                           {item.children && (
-                            <div className="ml-6 mt-2 relative">
+                            <div className={`ml-6 mt-2 relative ${hideWhenCollapsed}`}>
 
                               {/* Vertical line */}
                               <div className="absolute left-3 top-0 bottom-0 w-px bg-gray-300"></div>
@@ -289,16 +355,44 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                 filter: "brightness(1.07) contrast(1.03)",
               }}
             >
-              <p className="text-[11px] font-semibold tracking-wide text-white">
-                Developed by Aajneeti connect ltd.
-              </p>
-              <p className="mt-0.5 text-[11px] text-white/70">
-                © 2026 All rights reserved.
-              </p>
+              <div className={hideWhenCollapsed}>
+                <p className="text-[11px] font-semibold tracking-wide text-white">
+                  Developed by Aajneeti connect ltd.
+                </p>
+                <p className="mt-0.5 text-[11px] text-white/70">
+                  © 2026 All rights reserved.
+                </p>
+              </div>
+              {/* Collapsed: a bare mark, so the band still reads as a footer. */}
+              {isCollapsed && (
+                <p className="hidden lg:block text-[11px] font-semibold text-white">
+                  ©
+                </p>
+              )}
             </div>
           </div>
         </div>
       </aside>
+
+      {/* Collapse handle, desktop only. It sits OUTSIDE the <aside> on
+          purpose, for two reasons: the aside is `overflow-hidden`, which would
+          clip a button straddling its right edge, and the app Header is
+          `fixed ... z-40` while the sidebar is `lg:z-30`, so anything inside
+          the rail's top region is painted over. As a fixed sibling at z-50 it
+          is visible and clickable, and `.sidebar-toggle-anchor` keeps it glued
+          to the rail's edge as the width animates. */}
+      <button
+        type="button"
+        onClick={toggleCollapsed}
+        aria-expanded={!isCollapsed}
+        aria-label={
+          isCollapsed ? "Expand navigation menu" : "Collapse navigation menu"
+        }
+        title={isCollapsed ? "Expand menu" : "Collapse menu"}
+        className="sidebar-toggle-anchor top-[104px] z-50 hidden h-7 w-7 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-md transition-colors hover:bg-muted hover:text-foreground lg:flex"
+      >
+        <Icon name={isCollapsed ? "ChevronRight" : "ChevronLeft"} size={16} />
+      </button>
     </>
   );
 };

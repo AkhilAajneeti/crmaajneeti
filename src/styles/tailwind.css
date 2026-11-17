@@ -309,6 +309,51 @@
    element still wins on `position` — otherwise this rule, being later in the
    sheet at equal specificity, would drop the panel back into normal flow. */
 @layer components {
+  /* ── App shell ───────────────────────────────────────────────────────────
+     The page content sits beside the sidebar. Its offset is driven by a
+     variable the Sidebar sets, rather than the `lg:ml-64` that used to be
+     repeated across 18 page files: collapsing the rail then moves every page
+     with it, and the width lives in exactly one place.
+
+     The margin only applies from `lg` up. Below that the sidebar is an
+     overlay that slides in over the content, so the content must not be
+     pushed at all. */
+  /* Collapse handle. It is a SIBLING of the sidebar, not a child: the aside
+     is `overflow-hidden`, so a button straddling its right edge would be
+     clipped in half. Being fixed and positioned off the same --sidebar-w
+     variable, it tracks the rail's width with the same 300ms easing, and
+     `translateX(-50%)` makes it sit centred on the border line. */
+  .sidebar-toggle-anchor {
+    position: fixed;
+    left: var(--sidebar-w, 16rem);
+    transform: translateX(-50%);
+    transition: left 300ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar-toggle-anchor {
+      transition: none;
+    }
+  }
+
+  .app-main {
+    transition: margin-left 300ms ease-out;
+  }
+
+  @media (min-width: 1024px) {
+    .app-main {
+      margin-left: var(--sidebar-w, 16rem);
+    }
+  }
+
+  /* Someone who has asked the OS for less motion gets the layout change
+     without the slide. */
+  @media (prefers-reduced-motion: reduce) {
+    .app-main {
+      transition: none;
+    }
+  }
+
   /* Saffron page wash — the ivory token alone is flat, this gives the page the
      same warm falloff the festival artwork has. */
   .festive-page {

@@ -332,7 +332,7 @@ const AccountsPage = () => {
         isSidebarOpen={isSidebarOpen}
       />
       <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
-      <main className="lg:ml-64 pt-16">
+      <main className="app-main pt-16">
         <div className="p-4 lg:p-6">
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">

@@ -239,6 +239,7 @@ const FilterControls = ({
           options={statusOptions}
           value={filters?.status || ""}
           onChange={(value) => handleFilterChange("status", value)}
+          searchable
         />
 
         <Select

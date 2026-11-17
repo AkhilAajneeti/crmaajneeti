@@ -224,7 +224,7 @@ const Pipeline = () => {
         isSidebarOpen={isSidebarOpen}
       />
       <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
-      <main className="lg:ml-64 pt-16">
+      <main className="app-main pt-16">
         <div className="p-6 space-y-6">
           {/* Page Header */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">

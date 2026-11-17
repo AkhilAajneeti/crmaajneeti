@@ -251,7 +251,7 @@ const Profile = () => {
         isSidebarOpen={isSidebarOpen}
       />
       <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
-      <main className="lg:ml-64 pt-16">
+      <main className="app-main pt-16">
         <div className="p-4 lg:p-8">
 
           {/* Page Header — gradient card with decorative blobs */}

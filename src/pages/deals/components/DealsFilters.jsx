@@ -390,6 +390,7 @@ const DealsFilters = ({
           // multi-select existed still holds a bare string.
           value={toStatusArray(filters?.status)}
           onChange={(value) => handleFilterChange("status", value)}
+          searchable
         />
 
 

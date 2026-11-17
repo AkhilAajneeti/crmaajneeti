@@ -351,7 +351,7 @@ const KnowledgeBase = () => {
         <Header onMenuToggle={handleMenuToggle} isSidebarOpen={isSidebarOpen} />
         <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
 
-        <main className="lg:ml-64 pt-16">
+        <main className="app-main pt-16">
           <div className="p-4 lg:p-6">
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">

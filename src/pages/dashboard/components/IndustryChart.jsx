@@ -13,12 +13,12 @@ import Select from "../../../components/ui/Select";
 import Input from "../../../components/ui/Input";
 import { fetchLeadsCount } from "services/leads.service";
 const COLORS = [
-  "#8C1226",
-  "#2F7D53",
-  "#C9A227",
-  "#B3261E",
-  "#6B2D5C",
-  "#1F6F7A",
+  "#1877F2", // blue
+  "#22c55e", // green
+  "#f59e0b", // amber
+  "#ef4444", // red
+  "#8b5cf6", // purple
+  "#06b6d4", // cyan
 ];
 
 
@@ -257,7 +257,7 @@ const IndustryChart = () => {
                 (entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={isEmpty ? "rgba(201,162,39,0.22)" : COLORS[index % COLORS.length]}
+                    fill={isEmpty ? "#d1d5db" : COLORS[index % COLORS.length]}
                     opacity={isEmpty ? 0.4 : 1}
                   />
                 ),

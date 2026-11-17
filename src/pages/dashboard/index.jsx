@@ -434,7 +434,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <Header onMenuToggle={handleMenuToggle} isSidebarOpen={isSidebarOpen} />
       <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
-      <main className="relative lg:ml-64 pt-16">
+      <main className="relative app-main pt-16">
         <div className="relative m-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="mb-2 flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
