@@ -480,11 +480,22 @@ const AccountDrawer = ({
       setIsSaving(true);
 
       // Phone is optional — the form never marks it required, only `name` is.
-      // This used to read `formData.phoneNumber.length !== 10`, which is 0 for
-      // an empty field, so leaving phone blank silently blocked every create
-      // behind a toast. Validate the digits only when something was typed.
+      //
+      // Two earlier versions of this check were both wrong:
+      //   `formData.phoneNumber.length !== 10` — 0 for an empty field, so
+      //      leaving phone blank silently blocked every create.
+      //   `phoneDigits.length !== 10` — the onChange handler above always
+      //      keeps a "91" country prefix on the value, so a real number is
+      //      12 raw digits and an untouched field is 2 ("+91"). Neither can
+      //      ever equal 10, so this rejected every account.
+      //
+      // Validate the NATIONAL part, after dropping that prefix. An untouched
+      // field reduces to "", which skips the check entirely.
       const phoneDigits = String(formData.phoneNumber || "").replace(/\D/g, "");
-      if (phoneDigits && phoneDigits.length !== 10) {
+      const nationalDigits = phoneDigits.startsWith("91")
+        ? phoneDigits.slice(2)
+        : phoneDigits;
+      if (nationalDigits && nationalDigits.length !== 10) {
         toast.error("Phone number must be 10 digits");
         return;
       }

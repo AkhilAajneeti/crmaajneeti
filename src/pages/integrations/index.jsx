@@ -16,6 +16,9 @@ import DealDrawer from "./components/DealDrawer";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { FestiveRule } from "../../components/FestiveOrnament";
 
+// Support address shown in the Help section.
+const SUPPORT_EMAIL = "contact@aajneeti.com";
+
 const IntegrationsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
@@ -409,10 +412,11 @@ const IntegrationsPage = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    iconName="MessageCircle"
+                    iconName="Mail"
                     iconPosition="left"
+                    asChild
                   >
-                    Contact Support
+                    <a href={`mailto:${SUPPORT_EMAIL}`}>Contact Support</a>
                   </Button>
                   <Button
                     variant="outline"
