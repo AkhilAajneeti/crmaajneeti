@@ -19,6 +19,14 @@ import {
 } from "services/contact.service";
 import ContactStream from "./ContactStream";
 
+// Fields hidden from the form. They stay in the payload shape and in the
+// read-only view, so nothing is lost on an existing record — flipping a flag
+// back to true restores the input.
+const SHOW_MIDDLE_NAME = false;
+const SHOW_JOB_TITLE = false;
+const SHOW_DO_NOT_CALL = false;
+const SHOW_OWNERSHIP = false;
+
 const EMPTY = {
   salutationName: "",
   firstName: "",
@@ -38,6 +46,16 @@ const EMPTY = {
   teamsIds: [],
   doNotCall: false,
   description: "",
+};
+
+// The field previously passed e.target.value straight through: no digit
+// filtering, no length cap, so "+91abcdefg" or a 40-digit number saved
+// happily. Keep only digits, hold one "91" country code, and stop at 10
+// national digits.
+const sanitisePhone = (value) => {
+  let digits = String(value || "").replace(/\D/g, "");
+  if (digits.startsWith("91")) digits = digits.slice(2);
+  return "+91" + digits.slice(0, 10);
 };
 
 const SALUTATIONS = ["Mr.", "Ms.", "Mrs.", "Dr."].map((s) => ({
@@ -400,12 +418,14 @@ const ContactDrawer = ({ isOpen, contact, mode = "view", onClose }) => {
                     value={form.firstName}
                     onChange={(e) => set("firstName", e.target.value)}
                   />
-                  <Input
-                    label="Middle name"
-                    placeholder="Middle"
-                    value={form.middleName}
-                    onChange={(e) => set("middleName", e.target.value)}
-                  />
+                  {SHOW_MIDDLE_NAME && (
+                    <Input
+                      label="Middle name"
+                      placeholder="Middle"
+                      value={form.middleName}
+                      onChange={(e) => set("middleName", e.target.value)}
+                    />
+                  )}
                   <Input
                     label="Last name"
                     placeholder="Last"
@@ -424,14 +444,16 @@ const ContactDrawer = ({ isOpen, contact, mode = "view", onClose }) => {
                       clearable
                     />
                   </div>
-                  <div className="sm:col-span-2">
-                    <Input
-                      label="Job title"
-                      placeholder="e.g. Procurement Head"
-                      value={form.title}
-                      onChange={(e) => set("title", e.target.value)}
-                    />
-                  </div>
+                  {SHOW_JOB_TITLE && (
+                    <div className="sm:col-span-2">
+                      <Input
+                        label="Job title"
+                        placeholder="e.g. Procurement Head"
+                        value={form.title}
+                        onChange={(e) => set("title", e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -464,21 +486,25 @@ const ContactDrawer = ({ isOpen, contact, mode = "view", onClose }) => {
                       label="Phone"
                       placeholder="+91 00000 00000"
                       value={form.phoneNumber}
-                      onChange={(e) => set("phoneNumber", e.target.value)}
+                      onChange={(e) =>
+                        set("phoneNumber", sanitisePhone(e.target.value))
+                      }
                     />
                   </div>
 
-                  <div className="sm:col-span-3">
-                    <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
-                      <input
-                        type="checkbox"
-                        checked={!!form.doNotCall}
-                        onChange={(e) => set("doNotCall", e.target.checked)}
-                        className="h-4 w-4 rounded border-border accent-[color:var(--color-primary)]"
-                      />
-                      Do not call
-                    </label>
-                  </div>
+                  {SHOW_DO_NOT_CALL && (
+                    <div className="sm:col-span-3">
+                      <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                        <input
+                          type="checkbox"
+                          checked={!!form.doNotCall}
+                          onChange={(e) => set("doNotCall", e.target.checked)}
+                          className="h-4 w-4 rounded border-border accent-[color:var(--color-primary)]"
+                        />
+                        Do not call
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -528,44 +554,46 @@ const ContactDrawer = ({ isOpen, contact, mode = "view", onClose }) => {
               </div>
 
               {/* ── Ownership ────────────────────────────────────── */}
-              <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
-                <h3 className="mb-5 flex items-center gap-2 text-base font-semibold text-foreground">
-                  <Icon name="UserCog" size={17} className="text-primary" />
-                  Ownership &amp; notes
-                </h3>
+              {SHOW_OWNERSHIP && (
+                <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+                  <h3 className="mb-5 flex items-center gap-2 text-base font-semibold text-foreground">
+                    <Icon name="UserCog" size={17} className="text-primary" />
+                    Ownership &amp; notes
+                  </h3>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Select
-                    label="Assigned user"
-                    options={userOptions}
-                    value={form.assignedUserId}
-                    onChange={(v) => set("assignedUserId", v)}
-                    searchable
-                    clearable
-                  />
-                  <Select
-                    label="Teams"
-                    options={teamOptions}
-                    value={form.teamsIds}
-                    onChange={(v) => set("teamsIds", Array.isArray(v) ? v : v ? [v] : [])}
-                    multiple
-                    searchable
-                    clearable
-                  />
-                  <div className="sm:col-span-2">
-                    <label className="mb-1 block text-sm font-medium text-foreground">
-                      Description
-                    </label>
-                    <textarea
-                      rows={4}
-                      value={form.description}
-                      onChange={(e) => set("description", e.target.value)}
-                      placeholder="Anything worth remembering about this contact…"
-                      className="w-full rounded-xl border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Select
+                      label="Assigned user"
+                      options={userOptions}
+                      value={form.assignedUserId}
+                      onChange={(v) => set("assignedUserId", v)}
+                      searchable
+                      clearable
                     />
+                    <Select
+                      label="Teams"
+                      options={teamOptions}
+                      value={form.teamsIds}
+                      onChange={(v) => set("teamsIds", Array.isArray(v) ? v : v ? [v] : [])}
+                      multiple
+                      searchable
+                      clearable
+                    />
+                    <div className="sm:col-span-2">
+                      <label className="mb-1 block text-sm font-medium text-foreground">
+                        Description
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={form.description}
+                        onChange={(e) => set("description", e.target.value)}
+                        placeholder="Anything worth remembering about this contact…"
+                        className="w-full rounded-xl border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={onClose}>

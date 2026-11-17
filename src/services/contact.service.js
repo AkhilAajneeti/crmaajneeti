@@ -45,9 +45,40 @@ export const createContact = async (payload) => {
     body: JSON.stringify(payload),
   });
   const text = await res.text();
-  if (!res.ok) {
-    throw new Error("Contact is not created");
+
+  // EspoCRM answers a duplicate-looking record with 409 and a BODY LISTING
+  // THE EXISTING MATCHES — not an error message. Translate it into something
+  // the user can act on, and flag it so the caller can offer "create anyway".
+  if (res.status === 409) {
+    let matches = [];
+    try {
+      matches = JSON.parse(text);
+    } catch {
+      matches = [];
+    }
+    const names = matches
+      .map((m) => [m?.firstName, m?.lastName].filter(Boolean).join(" ") || m?.name)
+      .filter(Boolean)
+      .join(", ");
+
+    const err = new Error(
+      names
+        ? `A contact named "${names}" already exists.`
+        : "A matching contact already exists.",
+    );
+    err.isDuplicate = true;
+    err.duplicates = matches;
+    throw err;
   }
+
+  // This used to throw a flat "Contact is not created" while `text` — which
+  // holds the server's actual reason, such as a rejected field name — was
+  // read and then discarded. Every failure looked identical, which is the
+  // difference between a fixable form and a dead button.
+  if (!res.ok) {
+    throw new Error(text || "Contact is not created");
+  }
+
   // EspoCRM returns array
   return text ? JSON.parse(text) : null;
 };
