@@ -177,6 +177,40 @@ export const fetchAccounts = async ({ limit, page, filters = {} }) => {
 
   return res.json();
 };
+// Count-only lookup for the KPI row. It reuses the same whereGroup shape as
+// fetchAccounts but asks for maxSize=1 and reads `total`, so the server does
+// the counting and no rows cross the wire. That keeps the cards describing
+// EVERY account of that type rather than whatever happens to be on the
+// current page, without adding a second heavy request to the page load.
+export const fetchAccountsCountByType = async (type) => {
+  const token = localStorage.getItem("auth_token");
+
+  // "all" is the unfiltered total, so the KPI percentages share a denominator
+  // with their own numerators. Using the list page's `total` instead would
+  // drift the moment a table filter is applied: the counts below ignore
+  // filters, the list total does not.
+  const query = (type && type !== "all")
+    ? "&whereGroup[0][type]=in" +
+      "&whereGroup[0][attribute]=type" +
+      `&whereGroup[0][value][0]=${encodeURIComponent(type)}`
+    : "";
+
+  const res = await fetch(
+    `https://gateway.aajneetiadvertising.com/Account?maxSize=1${query}`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json", token: token },
+    },
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch account count");
+  }
+
+  const data = await res.json();
+  return data?.total || 0;
+};
+
 export const fetchAccountById = async (id) => {
   const token = localStorage.getItem("auth_token");
   // console.log("AUTH TOKEN:", token); // 🔍 debug

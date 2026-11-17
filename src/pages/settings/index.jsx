@@ -94,7 +94,10 @@ const Settings = () => {
       />
       <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
       <main className="app-main pt-16">
-        <div className="p-4 lg:p-8">
+        {/* Page padding, tab-content padding and each tab's own card padding
+            used to stack to ~56px a side on a phone. Trimmed on small screens
+            only; `lg:p-8` keeps the desktop layout identical. */}
+        <div className="p-3 lg:p-8">
           {/* Page Header */}
           <div className="mb-8">
             <div className="flex items-center space-x-4 mb-2">
@@ -162,7 +165,7 @@ const Settings = () => {
             </div>
 
             {/* Tab Content */}
-            <div className="p-4 lg:p-8">
+            <div className="p-2 lg:p-8">
               {/* Tab Description - Desktop Only */}
 
               {/* Render Active Tab Content */}

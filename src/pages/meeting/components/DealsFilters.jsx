@@ -92,7 +92,9 @@ const DealsFilters = ({
           )}
         </div>
 
-        <div className="flex items-center space-x-2">
+        {/* Centred while the header is stacked; back to the right edge once it
+            becomes a row at lg. */}
+        <div className="flex items-center justify-center space-x-2 lg:justify-end">
           {selectedCount > 0 && bulkActions.length > 0 && (
             <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground">

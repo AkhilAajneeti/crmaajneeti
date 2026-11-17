@@ -824,7 +824,7 @@ const AttendanceDrawer = ({
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border gap-4">
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border gap-4">
             <div className="flex items-center space-x-4 min-w-0">
               <div className="w-12 h-12 shrink-0 bg-primary/10 rounded-lg flex items-center justify-center">
                 <Icon
@@ -883,10 +883,15 @@ const AttendanceDrawer = ({
             )}
           </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          {/* Content.
+              This container and the form inside it both carried `p-6`, so on a
+              phone the fields sat behind 48px of padding a side — 96px of a
+              375px screen — which is what squeezed the inputs. The nesting is
+              fine on a wide drawer; it only needed to stop doubling on small
+              screens. */}
+          <div className="flex-1 overflow-y-auto p-3 sm:p-6">
             {drawerMode === "create" && (
-              <div className="p-6 space-y-4">
+              <div className="p-0 sm:p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Reason <span className="text-destructive">*</span>

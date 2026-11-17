@@ -157,6 +157,19 @@ const ContactDrawer = ({ isOpen, contact, mode = "view", onClose }) => {
     }
   }, [contact, mode, isOpen]);
 
+  // Freeze the list behind the drawer while it is open. Without this the page
+  // underneath is still scrollable, so a touch that starts on the drawer can
+  // chain to the body once the drawer's own scroll reaches an end — the
+  // gesture appears to do nothing, which reads as "it will not scroll".
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const canEdit = mode === "add" || canEditRecord("Contact", contact);
@@ -423,7 +436,13 @@ const ContactDrawer = ({ isOpen, contact, mode = "view", onClose }) => {
           </div>
         )}
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:p-6">
+        {/* `h-dvh` on the shell tracks the dynamic viewport, but a mobile
+            browser resizes it only after the toolbar finishes animating, so
+            the final rows can sit under the chrome for a moment with nothing
+            left to scroll. The extra bottom padding keeps the last field
+            reachable, and `env(safe-area-inset-bottom)` clears the home
+            indicator on notched phones. */}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:p-6 sm:pb-10">
           {mode !== "add" && !isEditing && tab === "stream" ? (
             <ContactStream contactId={contact?.id} />
           ) : isEditing ? (

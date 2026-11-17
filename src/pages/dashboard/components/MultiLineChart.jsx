@@ -14,6 +14,19 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { fetchLeadsCount } from "services/leads.service";
 
+// Softer than the festive hues these replace (#8C1226 / #2F7D53 / #C9A227),
+// which read as heavy blocks of colour at 2px on a cream background. These
+// are the same three families, lightened and desaturated, so the lines stay
+// distinguishable from each other without dominating the panel.
+//
+// Lines and legend swatches both read from here — they drifted apart easily
+// when the hex was written out at six separate call sites.
+const SERIES_COLORS = {
+  facebook: "#C2576B",
+  ivr: "#52A07C",
+  website: "#D8B34A",
+};
+
 const MultiLineChart = ({ leads = [] }) => {
   // const [selectedYear, setSelectedYear] = useState(2024);
   const [viewType, setViewType] = useState("monthly");
@@ -431,7 +444,7 @@ const MultiLineChart = ({ leads = [] }) => {
                   : { top: 20, right: 30, left: 20, bottom: 5 }
               }
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#2e2e2e" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
 
               <XAxis dataKey="label" stroke="#888" fontSize={12} />
 
@@ -451,7 +464,7 @@ const MultiLineChart = ({ leads = [] }) => {
               <Line
                 type="monotone"
                 dataKey="facebook"
-                stroke="#8C1226"
+                stroke={SERIES_COLORS.facebook}
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
@@ -460,7 +473,7 @@ const MultiLineChart = ({ leads = [] }) => {
               <Line
                 type="monotone"
                 dataKey="ivr"
-                stroke="#2F7D53"
+                stroke={SERIES_COLORS.ivr}
                 strokeWidth={2}
                 dot={{ r: 4 }}
               />
@@ -468,7 +481,7 @@ const MultiLineChart = ({ leads = [] }) => {
               <Line
                 type="monotone"
                 dataKey="website"
-                stroke="#C9A227"
+                stroke={SERIES_COLORS.website}
                 strokeWidth={2}
                 dot={{ r: 4 }}
               />
@@ -481,17 +494,26 @@ const MultiLineChart = ({ leads = [] }) => {
       <div className="mt-4 pt-4 border-t border-border">
         <div className="flex gap-6 overflow-x-auto no-scrollbar sm:justify-center text-sm px-2">
           <div className="flex items-center gap-2 min-w-max">
-            <div className="w-3 h-3 rounded-full bg-[#8C1226]" />
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: SERIES_COLORS.facebook }}
+            />
             <span>Facebook: {facebookTotal}</span>
           </div>
 
           <div className="flex items-center gap-2 min-w-max">
-            <div className="w-3 h-3 rounded-full bg-[#2F7D53]" />
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: SERIES_COLORS.ivr }}
+            />
             <span>IVR: {ivrTotal}</span>
           </div>
 
           <div className="flex items-center gap-2 min-w-max">
-            <div className="w-3 h-3 rounded-full bg-[#C9A227]" />
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: SERIES_COLORS.website }}
+            />
             <span>Website: {websiteTotal}</span>
           </div>
 

@@ -801,7 +801,7 @@ const UserTab = ({ deepLink }) => {
   return (
     <div>
       {/* Team Overview */}
-      <div className="bg-card border border-border rounded-xl p-6">
+      <div className="bg-card border border-border rounded-xl p-3 sm:p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             <Icon name="Users" size={24} className="text-primary" />
@@ -827,7 +827,10 @@ const UserTab = ({ deepLink }) => {
         </div>
 
         {/* Team Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {/* Two across on a phone. Four full-width cards pushed the user list
+            itself below the fold, and these are bare counts — a single number
+            each, with no supporting line that needs the width. */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
           {teamStats.map((stat) => (
             <KPICard
               key={stat.title}
@@ -920,7 +923,10 @@ const UserTab = ({ deepLink }) => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop table. Below `md` a six-column table only showed its first
+            column and hid the rest behind a sideways scroll nobody finds, so
+            the phone gets the card list underneath instead. */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
@@ -1062,6 +1068,120 @@ const UserTab = ({ deepLink }) => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile cards — every column of the row above, stacked. */}
+        <div className="space-y-3 py-3 md:hidden">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-28 animate-pulse rounded-2xl border border-border bg-muted/40"
+              />
+            ))
+          ) : !paginatedMembers?.length ? (
+            <div className="flex h-[160px] w-full items-center justify-center text-sm text-gray-400">
+              No users found
+            </div>
+          ) : (
+            paginatedMembers?.map((member) => (
+              <div
+                key={member?.id}
+                className="rounded-2xl border border-border bg-card p-4 shadow-sm"
+              >
+                {/* Identity */}
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                    {member?.avatar ? (
+                      <Image
+                        src={member.avatar}
+                        alt={member?.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <Avatar
+                        name={member?.name || member?.userName || "User"}
+                        size="40"
+                        round
+                        textSizeRatio={2}
+                        className="font-medium"
+                      />
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="truncate font-medium text-card-foreground"
+                      onClick={() => fetchuserById(member)}
+                    >
+                      {member?.name}
+                    </p>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {member?.emailAddress}
+                    </p>
+                  </div>
+
+                  {/* Actions stay on the identity row so the card does not
+                      grow a third band just to hold two icon buttons. */}
+                  <div className="flex shrink-0 items-center gap-1">
+                    {canEditSettingRecord("User", member) ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(member)}
+                        aria-label="Edit member"
+                      >
+                        <Icon name="Edit" size={16} />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => fetchuserById(member)}
+                        aria-label="View member"
+                        loading={detailsLoadingId === member.id}
+                      >
+                        <Icon name="Eye" size={16} />
+                      </Button>
+                    )}
+                    {canDeleteSettingRecord("User", member) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedUserId(member?.id);
+                          setIsDeleteModalOpen(true);
+                        }}
+                        aria-label="Remove member"
+                      >
+                        <Icon name="Trash2" size={16} />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Role / status / username */}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {member?.type && (
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize ${getRoleColor(
+                        member?.type,
+                      )}`}
+                    >
+                      {member?.type}
+                    </span>
+                  )}
+                  {getStatusBadge(member?.isActive ? "Active" : "InActive")}
+                </div>
+
+                {member?.createdAt && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Created {member?.createdAt}
+                  </p>
+                )}
+              </div>
+            ))
+          )}
         </div>
 
         {/* Teams Pagination */}

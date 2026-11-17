@@ -15,7 +15,21 @@ import {
 } from "services/account.service";
 import toast from "react-hot-toast";
 import ImportModel from "./components/ImportModel";
-import { useAccounts } from "hooks/useAccounts";
+import { useAccounts, useAccountTypeCounts } from "hooks/useAccounts";
+import { useIsMobile } from "hooks/useIsMobile";
+import { motion } from "framer-motion";
+import KPICard from "pages/dashboard/components/KPICard";
+
+// The three billing arrangements the Account `type` enum uses. Order here
+// drives the order of the KPI row.
+const ACCOUNT_TYPES = ["Hybrid", "CPL", "Retainer"];
+
+// "all" is the unfiltered account total, fetched the same cheap way, so the
+// percentages below are not measured against a list total that table filters
+// can move underneath them.
+const COUNT_KEYS = [...ACCOUNT_TYPES, "all"];
+
+
 import { useMetaData } from "hooks/useMetaData";
 import { useQueryClient } from "@tanstack/react-query";
 import { canCreate, canDelete, canEdit, canGlobal } from "utils/permissions";
@@ -83,12 +97,83 @@ const AccountsPage = () => {
   const industry = meta?.type || [];
   const accType = meta?.type || [];
   const total = data?.total || 0;
+
+  // Server-side counts, one maxSize=1 request each, so these describe EVERY
+  // account of that type — not just the rows on the current page the way a
+  // client-side filter over `mockAccounts` would.
+  const { counts: typeCounts, isLoading: countsLoading } =
+    useAccountTypeCounts(COUNT_KEYS);
+
+  const isMobile = useIsMobile();
+  const allAccounts = typeCounts.all ?? 0;
+
+  // The card itself is never altered — it is the same KPICard, with the same
+  // props, that the dashboard and contacts rows use. Only the TITLE shortens
+  // on a phone, because "Hybrid clients" truncates to "HYBRID CLIE..." at
+  // half width while "Hybrid" fits.
+  const detail = (change, comparisonLabel, description) => ({
+    change,
+    comparisonLabel,
+    description,
+  });
+
+  // Math.round() turns a real but small share into a flat "0% of all" — the
+  // 2 Hybrid accounts out of ~520 rounded to 0%, which reads as "none".
+  // Anything above zero that rounds down shows "<1%" instead.
+  const shareOfTotal = (count) => {
+    if (!allAccounts) return "no accounts";
+    const pct = (count / allAccounts) * 100;
+    if (count > 0 && pct < 1) return "<1% of all";
+    return `${Math.round(pct)}% of all`;
+  };
+
+  // Same card as the dashboard / contacts / sales-team rows: one colour per
+  // card drives the icon badge, the surface wash and the hover glow.
+  const typeKpis = [
+    {
+      title: isMobile ? "Hybrid" : "Hybrid clients",
+      value: typeCounts.Hybrid ?? 0,
+      changeType: "neutral",
+      icon: "Layers",
+      iconBg: "bg-primary/10",
+      iconColor: "#8C1226",
+      ...detail(
+        shareOfTotal(typeCounts.Hybrid ?? 0),
+        "across all accounts",
+        "Retainer plus per-lead billing",
+      ),
+    },
+    {
+      title: isMobile ? "CPL" : "CPL clients",
+      value: typeCounts.CPL ?? 0,
+      changeType: "neutral",
+      icon: "Target",
+      iconBg: "bg-blue-100",
+      iconColor: "#3B82F6",
+      ...detail(
+        shareOfTotal(typeCounts.CPL ?? 0),
+        "across all accounts",
+        "Billed per qualified lead",
+      ),
+    },
+    {
+      title: isMobile ? "Retainer" : "Retainer clients",
+      value: typeCounts.Retainer ?? 0,
+      changeType: "neutral",
+      icon: "RefreshCw",
+      iconBg: "bg-emerald-100",
+      iconColor: "#2F7D53",
+      ...detail(
+        shareOfTotal(typeCounts.Retainer ?? 0),
+        "across all accounts",
+        "Fixed recurring fee",
+      ),
+    },
+  ];
   const handleAccountSuccess = async () => {
     queryClient.invalidateQueries({ queryKey: ["accounts"] });
 
   };
-
-
 
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -346,7 +431,7 @@ const AccountsPage = () => {
               </p>
             </div>
 
-            <div className="flex items-center flex-wrap space-x-3 mt-4 sm:mt-0 justify-end">
+            <div className="mt-4 flex flex-wrap items-center justify-end gap-3 sm:mt-0 sm:space-x-3">
               <Button
                 className="hidden"
                 variant="outline"
@@ -373,6 +458,24 @@ const AccountsPage = () => {
                 </Button>
               )}
             </div>
+          </div>
+
+          {/* At-a-glance counts by account type, using the same KPICard the
+              dashboard and contacts pages use so the row reads identically. */}
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
+            {typeKpis.map((kpi, index) => (
+              <motion.div
+                key={kpi.title}
+                // Two side by side, the third full width beneath them, until
+                // the row has space for all three at xl.
+                className={index === 2 ? "col-span-2 xl:col-span-1" : ""}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.06 }}
+              >
+                <KPICard {...kpi} isLoading={countsLoading} />
+              </motion.div>
+            ))}
           </div>
 
           {/* Filters */}

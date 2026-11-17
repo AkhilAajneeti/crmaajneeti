@@ -391,19 +391,21 @@ const DealsTable = ({
           </tbody>
         </table>
       </div>
-      {/* Mobile Cards */}
+      {/* Mobile Cards.
+          The empty state below used to be a `<tr><td colSpan=...>` even though
+          this block is a plain <div>, not a <table>. Outside a table those
+          elements do not form a row and a cell; the browser wraps them in an
+          anonymous table box that shrink-wraps to its content, so the message
+          sat left-aligned and ignored its 200px height. Plain elements fix
+          both the horizontal and the vertical centring. */}
 
       <div className="md:hidden">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
         ) : !paginatedDeals?.length ? (
-          <tr>
-            <td colSpan="6">
-              <div className="flex items-center justify-center h-[200px] text-gray-400 text-sm">
-                No leads available
-              </div>
-            </td>
-          </tr>
+          <div className="flex h-[200px] w-full items-center justify-center px-4 text-center text-sm text-gray-400">
+            No leads available
+          </div>
         ) : (
           paginatedDeals?.map((deal) => (
             <div

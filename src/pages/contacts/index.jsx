@@ -12,6 +12,7 @@ import Button from "components/ui/Button";
 import { FestiveRule } from "components/FestiveOrnament";
 import TablePagination from "pages/deals/components/TablePagination";
 import KPICard from "pages/dashboard/components/KPICard";
+import { useIsMobile } from "hooks/useIsMobile";
 
 import ContactsTable from "./components/ContactsTable";
 import ContactsFilters, { EMPTY_FILTERS } from "./components/ContactsFilters";
@@ -125,13 +126,16 @@ const ContactsPage = () => {
   // that silently meant something else would be worse than none. Each card's
   // colour also drives its hover glow (see KPICard), so the maroon card lifts
   // in maroon and the violet one in violet.
+  // Half-width cards cannot hold "Total contacts" without truncating, so the
+  // labels shorten on a phone. The card itself is unchanged.
+  const isMobile = useIsMobile();
   const pageRows = contacts.length;
   const shareOfPage = (count) =>
     pageRows ? `${Math.round((count / pageRows) * 100)}% of page` : "no rows";
 
   const kpis = [
     {
-      title: "Total contacts",
+      title: isMobile ? "Total" : "Total contacts",
       value: total,
       change: `${pageRows} on page`,
       changeType: "neutral",
@@ -141,7 +145,7 @@ const ContactsPage = () => {
       comparisonLabel: "across all pages",
     },
     {
-      title: "With email",
+      title: isMobile ? "Email" : "With email",
       value: summary.withEmail,
       change: shareOfPage(summary.withEmail),
       changeType: "neutral",
@@ -151,7 +155,7 @@ const ContactsPage = () => {
       comparisonLabel: "this page",
     },
     {
-      title: "With phone",
+      title: isMobile ? "Phone" : "With phone",
       value: summary.withPhone,
       change: shareOfPage(summary.withPhone),
       changeType: "neutral",
@@ -203,21 +207,27 @@ const ContactsPage = () => {
                 </p>
               </div>
 
-              {canAdd && (
-                <Button
-                  className="linearbg-1 text-white hover:text-white"
-                  onClick={() => navigate("/Contact/create")}
-                >
-                  <Icon name="Plus" size={16} className="mr-2" />
-                  New Contact
-                </Button>
-              )}
+              {/* The button was a direct child of a `flex-col` container, so
+                  align-items: stretch blew it out to the full page width on a
+                  phone. Wrapping it in a row — the same wrapper the Leads page
+                  uses — gives it its natural width, aligned right. */}
+              <div className="flex items-center justify-end space-x-3">
+                {canAdd && (
+                  <Button
+                    className="linearbg-1 text-white hover:text-white"
+                    onClick={() => navigate("/Contact/create")}
+                  >
+                    <Icon name="Plus" size={16} className="mr-2" />
+                    New Contact
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* At-a-glance counts for the page in view, using the same card as
                 the dashboard / sales-team KPI row: value, one supporting chip
                 and the scope it describes. */}
-            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+            <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
               {kpis.map((kpi, index) => (
                 <motion.div
                   key={kpi.title}

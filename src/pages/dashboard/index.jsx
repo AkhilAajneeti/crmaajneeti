@@ -4,6 +4,7 @@ import Header from "../../components/ui/Header";
 import { FestiveRule } from "../../components/FestiveOrnament";
 import Sidebar from "../../components/ui/Sidebar";
 import KPICard from "./components/KPICard";
+import { useIsMobile } from "hooks/useIsMobile";
 import PipelineChart from "./components/PipelineChart";
 import Icon from "../../components/AppIcon";
 import RightRail from "./components/RightRail";
@@ -366,9 +367,14 @@ const Dashboard = () => {
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
+  // Half-width cards cannot hold the full titles — "Interested Leads (This
+  // Month)" truncates to "INTERESTED LEADS (THIS..." — so the label shortens
+  // on a phone. The card itself is unchanged.
+  const isMobile = useIsMobile();
+
   const kpiData = [
     {
-      title: "This Month Leads",
+      title: isMobile ? "This Month" : "This Month Leads",
       value: thisMonth,
       change: `${monthGrowth}%`,
       changeType: monthGrowth >= 0 ? "positive" : "negative",
@@ -379,7 +385,7 @@ const Dashboard = () => {
       isLoading: thisMonthQuery.isLoading || lastMonthQuery.isLoading,
     },
     {
-      title: "Today Leads",
+      title: isMobile ? "Today" : "Today Leads",
       value: today,
       change: todayDiff >= 0 ? `+${todayDiff}` : `${todayDiff}`,
       changeType: todayDiff >= 0 ? "positive" : "negative",
@@ -390,7 +396,7 @@ const Dashboard = () => {
       isLoading: todayQuery.isLoading || yesterdayQuery.isLoading,
     },
     {
-      title: "Interested Leads (This Month)",
+      title: isMobile ? "Interested" : "Interested Leads (This Month)",
       value: interested,
       change: `${interestedGrowth}%`,
       changeType: interestedGrowth >= 0 ? "positive" : "negative",
@@ -405,7 +411,7 @@ const Dashboard = () => {
       // Closes the funnel the first three cards open: leads in, leads warm,
       // leads won. The only ratio on the row, and the only number here that
       // measures the selling rather than the supply.
-      title: "Conversion Rate",
+      title: isMobile ? "Conversion" : "Conversion Rate",
       value: `${conversionRate.toFixed(1)}%`,
       change: `${conversionDiff > 0 ? "+" : ""}${conversionDiff}pp`,
       // Flat is its own state. An unchanged rate rendered green with an
@@ -453,7 +459,7 @@ const Dashboard = () => {
         </div>
 
         {/* KPI Cards */}
-        <div className="relative grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-5 m-3 sm:m-5">
+        <div className="relative grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-5 m-3 sm:m-5">
           {kpiData?.map((kpi, index) => (
             <motion.div
               key={index}
@@ -489,13 +495,13 @@ const Dashboard = () => {
 
               {/* Recent Activities */}
               <div className="sm:m-5 py-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                   {/* Meetings Held */}
                   <div
                     onClick={() => setActiveInsight("meetings")}
-                    className="cursor-pointer bg-blue-50 border border-blue-100 rounded-2xl p-6 
+                    className="cursor-pointer bg-blue-50 border border-blue-100 rounded-2xl p-4 sm:p-6 
   hover:shadow-lg transition-all duration-300 
-  flex items-center justify-between min-h-[110px]"
+  flex items-center justify-between min-h-[92px] sm:min-h-[110px]"
                   >
                     <div className="space-y-1">
                       <p className="text-xs font-medium tracking-wide text-blue-700 uppercase">
@@ -506,7 +512,7 @@ const Dashboard = () => {
                       </p>
                     </div>
 
-                    <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shrink-0 bg-blue-100 flex items-center justify-center">
                       <Icon
                         name="Calendar"
                         size={22}
@@ -518,8 +524,8 @@ const Dashboard = () => {
                   {/* Proposals Shared */}
                   <div
                     onClick={() => setActiveInsight("proposals")}
-                    className="cursor-pointer bg-purple-50 border border-purple-100 rounded-2xl p-6 
-hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[110px]"
+                    className="cursor-pointer bg-purple-50 border border-purple-100 rounded-2xl p-4 sm:p-6 
+hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[92px] sm:min-h-[110px]"
                   >
                     <div className="space-y-1">
                       <p className="text-xs font-medium tracking-wide text-purple-700 uppercase">
@@ -530,7 +536,7 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
                       </p>
                     </div>
 
-                    <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shrink-0 bg-purple-100 flex items-center justify-center">
                       <Icon
                         name="FileText"
                         size={22}
@@ -542,8 +548,8 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
                   {/* Site Visits */}
                   <div
                     onClick={() => setActiveInsight("visits")}
-                    className="cursor-pointer bg-amber-50 border border-amber-100 rounded-2xl p-6 
-hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[110px]"
+                    className="cursor-pointer bg-amber-50 border border-amber-100 rounded-2xl p-4 sm:p-6 
+hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[92px] sm:min-h-[110px]"
                   >
                     <div className="space-y-1">
                       <p className="text-xs font-medium tracking-wide text-amber-700 uppercase">
@@ -554,7 +560,7 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
                       </p>
                     </div>
 
-                    <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shrink-0 bg-amber-100 flex items-center justify-center">
                       <Icon
                         name="MapPin"
                         size={22}
@@ -566,8 +572,8 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
                   {/* Deals Closed */}
                   <div
                     onClick={() => setActiveInsight("deals")}
-                    className="cursor-pointer bg-green-50 border border-green-100 rounded-2xl p-6 
-hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[110px]"
+                    className="cursor-pointer bg-green-50 border border-green-100 rounded-2xl p-4 sm:p-6 
+hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[92px] sm:min-h-[110px]"
                   >
                     <div className="space-y-1">
                       <p className="text-xs font-medium tracking-wide text-green-700 uppercase">
@@ -578,7 +584,7 @@ hover:shadow-lg transition-all duration-300 flex items-center justify-between mi
                       </p>
                     </div>
 
-                    <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shrink-0 bg-green-100 flex items-center justify-center">
                       <Icon
                         name="CheckCircle"
                         size={22}

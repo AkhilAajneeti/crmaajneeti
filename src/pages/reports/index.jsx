@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet";
 import Header from "../../components/ui/Header";
 import Sidebar from "../../components/ui/Sidebar";
 import MetricsCard from "./components/MetricsCard";
+import { useIsMobile } from "hooks/useIsMobile";
 import FilterControls from "./components/FilterControls";
 import ConversionFunnelChart from "./components/ConversionFunnelChart";
 import WinRateChart from "./components/WinRateChart";
@@ -176,6 +177,9 @@ const Reports = () => {
     }));
   };
 
+  // KPICard truncates its title, so "Call Not Picked" clips at half width.
+  const isMobile = useIsMobile();
+
   const metricsData = useMemo(() => {
     const countByStatus = (data, statusName) =>
       data?.filter((deal) => deal?.status === statusName)?.length || 0;
@@ -218,7 +222,7 @@ const Reports = () => {
         "Leads awaiting action",
       ),
       buildMetric(
-        "Call Not Picked",
+        isMobile ? "Not Picked" : "Call Not Picked",
         "Call Not Picked",
         "PhoneOff",
         "#8C1226",
@@ -239,7 +243,7 @@ const Reports = () => {
         "Leads marked as not interested",
       ),
     ];
-  }, [leads]);
+  }, [leads, isMobile]);
 
   const repConversionData = useMemo(() => {
     if (!leads?.length) return [];
@@ -563,7 +567,7 @@ const Reports = () => {
                 they carry a description and no delta chip — the report has no
                 comparable previous period yet, and a green "0%" would claim
                 one. */}
-            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
               {metricsData?.map((metric, index) => (
                 <motion.div
                   key={metric?.title}

@@ -209,16 +209,22 @@ const Sidebar = ({ isOpen = false, onClose }) => {
               isCollapsed ? "lg:flex-col lg:gap-3 lg:px-0 lg:py-4" : ""
             }`}
           >
-            <div className="flex items-center space-x-3">
+            {/* `min-w-0` is what lets the caption truncate instead of forcing
+                the row wider: a flex child defaults to min-width:auto and
+                refuses to shrink below its content. */}
+            <div className="flex min-w-0 items-center space-x-3">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
                 <Icon name="Zap" size={20} color="white" />
               </div>
-              <div className={`flex items-center space-x-2 ${hideWhenCollapsed}`}>
-                <span className="text-lg font-semibold text-foreground">
+              {/* Stacked, not side by side. As an inline pill next to "CRM"
+                  the attribution had roughly 90px to work with on a phone and
+                  broke across three lines. On its own line it fits. */}
+              <div className={`flex min-w-0 flex-col ${hideWhenCollapsed}`}>
+                <span className="text-lg font-semibold leading-tight text-foreground">
                   CRM
                 </span>
-                <span className="px-2 py-0.5 text-xs font-medium bg-accent text-accent-foreground rounded-full">
-                  By Aajneeti Connect ltd.
+                <span className="truncate text-[11px] leading-tight text-muted-foreground">
+                  By Aajneeti Connect Ltd.
                 </span>
               </div>
             </div>
@@ -228,7 +234,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="lg:hidden"
+              className="lg:hidden shrink-0"
               aria-label="Close navigation menu"
             >
               <Icon name="X" size={20} />

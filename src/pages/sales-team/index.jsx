@@ -14,6 +14,7 @@ import Sidebar from "components/ui/Sidebar";
 import SegmentedControl from "components/ui/SegmentedControl";
 import Icon from "components/AppIcon";
 import KPICard from "pages/dashboard/components/KPICard";
+import { useIsMobile } from "hooks/useIsMobile";
 
 import TeamTable from "./components/TeamTable";
 import Leaderboard from "./components/Leaderboard";
@@ -104,9 +105,12 @@ const SalesTeam = () => {
   const teamConversion = pct(totals?.won, totals?.assigned);
   const teamConnect = pct(totals?.callsHeld, totals?.calls);
 
+  // KPICard truncates its title, so the longer labels clip at half width.
+  const isMobile = useIsMobile();
+
   const kpis = [
     {
-      title: "Leads assigned",
+      title: isMobile ? "Assigned" : "Leads assigned",
       value: totals?.assigned ?? 0,
       change: `${rows.length} reps`,
       changeType: "neutral",
@@ -116,7 +120,7 @@ const SalesTeam = () => {
       comparisonLabel: period.label.toLowerCase(),
     },
     {
-      title: "Team conversion",
+      title: isMobile ? "Conversion" : "Team conversion",
       value: teamConversion == null ? "—" : `${teamConversion}%`,
       change: `${totals?.won ?? 0} won`,
       changeType: "neutral",
@@ -126,7 +130,7 @@ const SalesTeam = () => {
       comparisonLabel: period.label.toLowerCase(),
     },
     {
-      title: "Calls connected",
+      title: isMobile ? "Connected" : "Calls connected",
       value: teamConnect == null ? "—" : `${teamConnect}%`,
       change: `${totals?.calls ?? 0} dialled`,
       changeType: "neutral",
@@ -136,7 +140,7 @@ const SalesTeam = () => {
       comparisonLabel: period.label.toLowerCase(),
     },
     {
-      title: "Missed follow-ups",
+      title: isMobile ? "Missed" : "Missed follow-ups",
       value: totals?.overdue ?? 0,
       change: "due in period",
       changeType: "neutral",
@@ -159,8 +163,8 @@ const SalesTeam = () => {
         <div className="m-4 sm:m-6">
           {/* Title + period. Every figure on the page now respects this
               selector — nothing is silently all-time. */}
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
+          <div className="flex w-full flex-wrap items-end justify-between gap-4">
+            <div className="min-w-0">
               <h1 className="text-2xl font-bold text-foreground lg:text-3xl">
                 Sales team
               </h1>
@@ -171,7 +175,13 @@ const SalesTeam = () => {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            {/* `min-w-0` and `max-w-full` are what let the period selector
+                stay inside the page. It scrolls internally, but as a flex item
+                this toolbar still sized itself to that selector's full
+                content width, so the row grew past the viewport and made the
+                whole PAGE scroll sideways — which is why the heading was
+                clipped on the left. */}
+            <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => setIsTargetsOpen(true)}
@@ -206,15 +216,20 @@ const SalesTeam = () => {
                   setPage(1);
                 }}
                 ariaLabel="Performance period"
-                icon={<Icon name="CalendarRange" size={13} />}
+                // The calendar glyph plus its divider cost ~26px — enough to
+                // push "Last month" out of view on a phone. The four labels
+                // say what the group filters without it.
                 isBusy={isFetching}
+                // Tighter padding on a phone so all four options fit the rail
+                // instead of needing a sideways scroll to reach the last one.
+                size={isMobile ? "sm" : "md"}
               />
             </div>
           </div>
         </div>
 
         {/* Team totals */}
-        <div className="m-4 grid grid-cols-1 gap-3 sm:m-6 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+        <div className="m-4 grid grid-cols-2 gap-3 sm:m-6 sm:gap-5 xl:grid-cols-4">
           {kpis.map((kpi, i) => (
             <motion.div
               key={kpi.title}

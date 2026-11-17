@@ -22,8 +22,12 @@ import { cn } from "../../utils/cn";
 // A softer spring reads as "laggy" at this size because the travel is short.
 const SLIDE = { type: "spring", stiffness: 460, damping: 36, mass: 0.7 };
 
+// `sm` buys its space back from PADDING, not type size. Dropping the label to
+// 11px while the buttons beside this control stay at 12px made the group look
+// like a secondary, lesser row; the horizontal padding is what the four
+// options actually needed to give up in order to fit a phone.
 const SIZES = {
-  sm: { track: "gap-1 p-0.5", item: "px-3 py-1 text-[11px]" },
+  sm: { track: "gap-1 p-0.5", item: "px-2.5 py-1 text-xs" },
   md: { track: "gap-1 p-1", item: "px-4 py-1.5 text-xs" },
 };
 
