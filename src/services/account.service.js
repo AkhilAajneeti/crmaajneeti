@@ -221,6 +221,32 @@ export const createAccount = async (payload) => {
   // created on the server while the caller showed "Failed to create account"
   // and never refreshed the table. Reading the body and checking status —
   // exactly as updateAccount does — is what makes the result truthful.
+  // EspoCRM answers a duplicate-looking record with 409 and a BODY LISTING
+  // THE EXISTING MATCHES — not an error message. Throwing `text` verbatim
+  // put that whole JSON array in the toast. Translate it into something a
+  // user can act on, and flag it so the caller can offer "create anyway".
+  if (res.status === 409) {
+    let matches = [];
+    try {
+      matches = JSON.parse(text);
+    } catch {
+      matches = [];
+    }
+    const names = matches
+      .map((m) => m?.name)
+      .filter(Boolean)
+      .join(", ");
+
+    const err = new Error(
+      names
+        ? `An account named "${names}" already exists.`
+        : "A matching account already exists.",
+    );
+    err.isDuplicate = true;
+    err.duplicates = matches;
+    throw err;
+  }
+
   if (!res.ok) {
     throw new Error(text || "Account creation failed");
   }

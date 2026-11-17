@@ -38,6 +38,7 @@ const SHOW_WEBSITE_FIELD = false;
 const SHOW_BILLING_ADDRESS = false;
 const SHOW_SHIPPING_ADDRESS = false;
 const SHOW_ASSIGNMENT = false;
+const SHOW_DESCRIPTION = false;
 
 // Link (relationship) fields. The API wants a real id or null for these — an
 // empty string is neither, and is rejected rather than read as "nobody".
@@ -171,43 +172,16 @@ const AccountDrawer = ({
     { value: "Retainer", label: "Retainer" },
     { value: "Hybrid", label: "Hybrid" },
   ];
+  // The server validates `industry` against EspoCRM's enum, and that enum
+  // stores the HUMAN-READABLE option ("Real Estate"), not a camel-case key.
+  // The old list sent values like "RealEstate", which is why the API replied
+  // validationFailure { field: "industry", type: "valid" } while the literal
+  // string "Real Estate" was accepted. Value and label are now identical, so
+  // what the dropdown shows is exactly what gets posted.
   const IndustryOptions = [
     { value: "", label: "All Types" },
-    { value: "AppDev", label: "App Development" },
-    { value: "Automobiles", label: "Automobiles" },
-    { value: "B2B", label: "B2B" },
-    { value: "BanquetHall", label: "Banquet Hall" },
-    { value: "BridalMakeup", label: "Bridal Makeup" },
-    { value: "CaseStudy", label: "Case Study" },
-    { value: "ContactForm", label: "Contact Form" },
-    { value: "ContentMarketing", label: "Content Marketing" },
-    { value: "CoWorking", label: "Co-Working" },
-    { value: "DJMusic", label: "DJ / Music" },
-    { value: "DubaiRELG", label: "Dubai Real Estate" },
-    { value: "FacebookAds", label: "Facebook Ads" },
-    { value: "FoodCatering", label: "Food Catering" },
-    { value: "GoogleAds", label: "Google Ads" },
-    { value: "HigherEducation", label: "Higher Education" },
-    { value: "Interior", label: "Interior Design" },
-    { value: "Leasing", label: "Leasing" },
-    { value: "LinkedinAds", label: "LinkedIn Ads" },
-    { value: "LogoDesign", label: "Logo Design" },
-    { value: "LuxuryEventPlanners", label: "Luxury Event Planners" },
-    { value: "LuxuryTransportation", label: "Luxury Transportation" },
-    { value: "ORM", label: "Online Reputation Management" },
-    { value: "PhotographersVideographers", label: "Photographers & Videographers" },
-    { value: "PlotsRELG", label: "Plots Real Estate" },
-    { value: "Political", label: "Political" },
-    { value: "PreWedding", label: "Pre-Wedding" },
-    { value: "RealEstate", label: "Real Estate" },
-    { value: "RealEstateCityPages", label: "Real Estate City Pages" },
-    { value: "SEO", label: "SEO" },
-    { value: "StudyAbroad", label: "Study Abroad" },
-    { value: "TourTravel", label: "Tour & Travel" },
-    { value: "WebDev", label: "Web Development" },
-    { value: "WeddingFloralDecor", label: "Wedding Floral Decor" },
-    { value: "WikipediaBrands", label: "Wikipedia Brands" },
-    { value: "WikipediaPoloticians", label: "Wikipedia Poloticians" }
+    { value: "Education", label: "Education" },
+    { value: "Real Estate", label: "Real Estate" },
   ];
 
   useEffect(() => {
@@ -330,6 +304,13 @@ const AccountDrawer = ({
       if (!clean.startsWith("91")) {
         clean = "91" + clean;
       }
+
+      // Cap at country code + 10 national digits. Without this the field
+      // accepted unlimited input (+91999999999999 and longer), and because
+      // the submit check only rejects a national part that is not exactly
+      // 10 digits, an over-long number was caught at save time instead of
+      // being prevented at the keystroke — or, on the edit form, not at all.
+      clean = clean.slice(0, 12);
 
       setFormData((prev) => ({
         ...prev,
@@ -974,16 +955,18 @@ const AccountDrawer = ({
                       searchable
                     />
 
-                    <div className="col-span-2">
-                      <textarea
-                        name="description"
-                        value={formData?.description}
-                        onChange={handleInputChange}
-                        placeholder="Write something about this company..."
-                        rows={4}
-                        className="w-full px-4 py-3 border rounded-lg bg-muted/20 focus:ring-2 focus:ring-primary outline-none"
-                      />
-                    </div>
+                    {SHOW_DESCRIPTION && (
+                      <div className="col-span-2">
+                        <textarea
+                          name="description"
+                          value={formData?.description}
+                          onChange={handleInputChange}
+                          placeholder="Write something about this company..."
+                          rows={4}
+                          className="w-full px-4 py-3 border rounded-lg bg-muted/20 focus:ring-2 focus:ring-primary outline-none"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
