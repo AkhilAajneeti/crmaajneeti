@@ -58,6 +58,20 @@ const sanitisePhone = (value) => {
   return "+91" + digits.slice(0, 10);
 };
 
+// EspoCRM scopes list access by assignment and team. A record created with
+// assignedUserId: null and teamsIds: [] is saved successfully but then falls
+// outside the current user's "own"/"team" read scope, so the POST returns 200
+// and the contact never appears in the table. Hiding the Ownership section
+// removed the only thing that populated those fields, so they have to be
+// filled in from the session instead.
+const currentUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("login_object") || "{}");
+  } catch {
+    return {};
+  }
+};
+
 const SALUTATIONS = ["Mr.", "Ms.", "Mrs.", "Dr."].map((s) => ({
   value: s,
   label: s,
@@ -176,6 +190,18 @@ const ContactDrawer = ({ isOpen, contact, mode = "view", onClose }) => {
       return;
     }
 
+    const me = currentUser();
+    const fallbackTeams = me?.defaultTeamId
+      ? [me.defaultTeamId]
+      : me?.teamsIds || [];
+    // Only on create. On edit the form already holds the record's real
+    // assignment (the state is seeded with `...contact`), and silently
+    // reassigning someone else's contact to whoever opened it would be wrong.
+    const ownerFallback =
+      SHOW_OWNERSHIP || mode !== "add"
+        ? { assignedUserId: null, teamsIds: [] }
+        : { assignedUserId: me?.id || null, teamsIds: fallbackTeams };
+
     setSaving(true);
     try {
       const payload = {
@@ -210,8 +236,13 @@ const ContactDrawer = ({ isOpen, contact, mode = "view", onClose }) => {
         addressPostalCode: form.addressPostalCode || null,
         addressCountry: form.addressCountry || null,
 
-        assignedUserId: form.assignedUserId || null,
-        teamsIds: form.teamsIds || [],
+        // When the Ownership section is visible the user picks these. When it
+        // is hidden, fall back to the logged-in user and their default team —
+        // matching what the EspoCRM backend form does — so the new contact is
+        // inside the creator's read scope and shows up in the list.
+        assignedUserId: form.assignedUserId || ownerFallback.assignedUserId,
+        teamsIds:
+          form.teamsIds?.length > 0 ? form.teamsIds : ownerFallback.teamsIds,
         doNotCall: !!form.doNotCall,
         description: form.description || null,
       };
