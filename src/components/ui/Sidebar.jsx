@@ -7,27 +7,27 @@ import { canGlobal, canRead, hasAcl } from "utils/permissions";
 // Per-item icon tint keyed by route. Full literal class strings so Tailwind's
 // JIT keeps them (a dynamic `border-${x}-200` would get purged).
 const ICON_TONES = {
-  "/dashboard": { border: "border-rose-200", bg: "bg-rose-50", text: "text-rose-500" },
-  "/accounts": { border: "border-blue-200", bg: "bg-blue-50", text: "text-blue-500" },
-  "/leads": { border: "border-emerald-200", bg: "bg-emerald-50", text: "text-emerald-500" },
-  "/contacts": { border: "border-teal-200", bg: "bg-teal-50", text: "text-teal-500" },
-  "/pipeline": { border: "border-violet-200", bg: "bg-violet-50", text: "text-violet-500" },
-  "/tasks": { border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-500" },
-  "/meeting": { border: "border-pink-200", bg: "bg-pink-50", text: "text-pink-500" },
-  "/reports": { border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-500" },
-  "/sales-team": { border: "border-fuchsia-200", bg: "bg-fuchsia-50", text: "text-fuchsia-500" },
-  "/integrations": { border: "border-cyan-200", bg: "bg-cyan-50", text: "text-cyan-500" },
-  "/attendance": { border: "border-red-200", bg: "bg-red-50", text: "text-red-500" },
-  "/profile": { border: "border-sky-200", bg: "bg-sky-50", text: "text-sky-500" },
-  "/workplace": { border: "border-amber-200", bg: "bg-amber-50", text: "text-amber-500" },
-  "/complaints": { border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-500" },
-  "/knowledge-base": { border: "border-blue-200", bg: "bg-blue-50", text: "text-blue-500" },
-  "/settings": { border: "border-slate-200", bg: "bg-slate-50", text: "text-slate-500" },
+  "/dashboard": { border: "border-rose-200 dark:border-white/10", bg: "bg-rose-50 dark:bg-white/[0.06]", text: "text-rose-500 dark:text-muted-foreground" },
+  "/accounts": { border: "border-blue-200 dark:border-white/10", bg: "bg-blue-50 dark:bg-white/[0.06]", text: "text-blue-500 dark:text-muted-foreground" },
+  "/leads": { border: "border-emerald-200 dark:border-white/10", bg: "bg-emerald-50 dark:bg-white/[0.06]", text: "text-emerald-500 dark:text-muted-foreground" },
+  "/contacts": { border: "border-teal-200 dark:border-white/10", bg: "bg-teal-50 dark:bg-white/[0.06]", text: "text-teal-500 dark:text-muted-foreground" },
+  "/pipeline": { border: "border-violet-200 dark:border-white/10", bg: "bg-violet-50 dark:bg-white/[0.06]", text: "text-violet-500 dark:text-muted-foreground" },
+  "/tasks": { border: "border-orange-200 dark:border-white/10", bg: "bg-orange-50 dark:bg-white/[0.06]", text: "text-orange-500 dark:text-muted-foreground" },
+  "/meeting": { border: "border-pink-200 dark:border-white/10", bg: "bg-pink-50 dark:bg-white/[0.06]", text: "text-pink-500 dark:text-muted-foreground" },
+  "/reports": { border: "border-indigo-200 dark:border-white/10", bg: "bg-indigo-50 dark:bg-white/[0.06]", text: "text-indigo-500 dark:text-muted-foreground" },
+  "/sales-team": { border: "border-fuchsia-200 dark:border-white/10", bg: "bg-fuchsia-50 dark:bg-white/[0.06]", text: "text-fuchsia-500 dark:text-muted-foreground" },
+  "/integrations": { border: "border-cyan-200 dark:border-white/10", bg: "bg-cyan-50 dark:bg-white/[0.06]", text: "text-cyan-500 dark:text-muted-foreground" },
+  "/attendance": { border: "border-red-200 dark:border-white/10", bg: "bg-red-50 dark:bg-white/[0.06]", text: "text-red-500 dark:text-muted-foreground" },
+  "/profile": { border: "border-sky-200 dark:border-white/10", bg: "bg-sky-50 dark:bg-white/[0.06]", text: "text-sky-500 dark:text-muted-foreground" },
+  "/workplace": { border: "border-amber-200 dark:border-white/10", bg: "bg-amber-50 dark:bg-white/[0.06]", text: "text-amber-500 dark:text-muted-foreground" },
+  "/complaints": { border: "border-orange-200 dark:border-white/10", bg: "bg-orange-50 dark:bg-white/[0.06]", text: "text-orange-500 dark:text-muted-foreground" },
+  "/knowledge-base": { border: "border-blue-200 dark:border-white/10", bg: "bg-blue-50 dark:bg-white/[0.06]", text: "text-blue-500 dark:text-muted-foreground" },
+  "/settings": { border: "border-slate-200 dark:border-white/10", bg: "bg-slate-50 dark:bg-white/[0.06]", text: "text-slate-500 dark:text-muted-foreground" },
 };
 const DEFAULT_ICON_TONE = {
-  border: "border-slate-200",
-  bg: "bg-slate-50",
-  text: "text-slate-500",
+  border: "border-slate-200 dark:border-white/10",
+  bg: "bg-slate-50 dark:bg-white/[0.06]",
+  text: "text-slate-500 dark:text-muted-foreground",
 };
 
 // Rail widths. These two strings are the only place the number lives: the
@@ -185,22 +185,9 @@ const Sidebar = ({ isOpen = false, onClose }) => {
           ${isCollapsed ? "lg:w-20" : "lg:w-64"}
         `}
       >
-        {/* A single mandala closes the rail. It is a background layer, placed
-            before the content so the nav always paints over it, and anchored
-            just above the footer card. */}
-        {/* The wrapper owns the centring translate and the image owns the
-            spin — both are `transform`, so they would overwrite each other
-            on a single element. */}
-        <div
-          className={`pointer-events-none absolute bottom-[200px] left-1/2 w-[118px] -translate-x-1/2 ${hideWhenCollapsed}`}
-        >
-          <img
-            src="/assets/festival/festive-mandala-full.png"
-            alt=""
-            aria-hidden="true"
-            className="festive-spin w-full select-none opacity-25"
-          />
-        </div>
+        {/* The mandala watermark used to sit here. Removed per the design
+            QA: it added noise behind the nav labels and, in dark mode, was
+            another accent competing with the active item. */}
 
         <div className="relative flex flex-col h-full">
           {/* Header */}
@@ -242,7 +229,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-4">
+          <nav className="thin-scroll flex-1 overflow-y-auto py-4">
             <div className="px-3 space-y-6">
 
               {navigationItems.map((group) => (
@@ -273,7 +260,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                     ${isCollapsed ? "lg:justify-center lg:space-x-0 lg:px-0" : ""}
                     ${isActive
                                 ? "bg-gradient-to-r from-black to-mahroon text-white"
-                                : "text-gray-600 hover:bg-[color:var(--sidebar-hover)]"}
+                                : "text-muted-foreground hover:bg-[color:var(--sidebar-hover)]"}
                   `}
                           >
                             <span className={`
@@ -291,7 +278,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                             <span className={`
     transition-all duration-300 ease-out group-hover:-translate-y-0.1 group-hover:rotate-3 group-hover:scale-110 group-active:scale-95
     ${hideWhenCollapsed}
-    ${isActive ? "text-white" : "text-gray-800 group-hover:text-[color:var(--sidebar-hover-text)] font-semibold"}`}>{item.label}</span>
+    ${isActive ? "text-white" : "text-foreground group-hover:text-[color:var(--sidebar-hover-text)] font-semibold"}`}>{item.label}</span>
                           </button>
 
                           {/* 🌳 CHILD TREE (ONLY if exists) */}
@@ -318,7 +305,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                                 transition-all
                                 ${isChildActive
                                             ? "bg-red-50 text-red-600 shadow-sm"
-                                            : "text-gray-500 hover:bg-red-50 hover:text-red-500"}
+                                            : "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"}
                               `}
                                       >
                                         {/* Active red bar */}
@@ -347,35 +334,21 @@ const Sidebar = ({ isOpen = false, onClose }) => {
             </div>
           </nav>
 
-          {/* Footer — a maroon band carrying the credit line.
-
-              The gradient stops were sampled from the bottom row of the lotus
-              banner that used to sit above this block, so the colour still
-              matches the rest of the brand even though the artwork is gone. */}
-          <div className="relative mt-auto">
-            <div
-              className="relative z-10 px-4 pb-4 pt-3 text-center"
-              style={{
-                background:
-                  "linear-gradient(90deg,#5C062D 0%,#59052C 25%,#840738 50%,#9B0641 75%,#800639 100%)",
-                filter: "brightness(1.07) contrast(1.03)",
-              }}
+          {/* Footer. Was a ~55px maroon band carrying a credit line — the
+              loudest block in the rail and, at 808px tall, part of why the
+              SYSTEM group was cut off. Reduced to one quiet line so the menu
+              gets the height back. */}
+          <div className="mt-auto border-t border-border px-4 py-2.5">
+            <p
+              className={`text-[10.5px] leading-tight text-muted-foreground ${hideWhenCollapsed}`}
             >
-              <div className={hideWhenCollapsed}>
-                <p className="text-[11px] font-semibold tracking-wide text-white">
-                  Developed by Aajneeti connect ltd.
-                </p>
-                <p className="mt-0.5 text-[11px] text-white/70">
-                  © 2026 All rights reserved.
-                </p>
-              </div>
-              {/* Collapsed: a bare mark, so the band still reads as a footer. */}
-              {isCollapsed && (
-                <p className="hidden lg:block text-[11px] font-semibold text-white">
-                  ©
-                </p>
-              )}
-            </div>
+              © 2026 Aajneeti Connect Ltd.
+            </p>
+            {isCollapsed && (
+              <p className="hidden text-center text-[10.5px] text-muted-foreground lg:block">
+                ©
+              </p>
+            )}
           </div>
         </div>
       </aside>
@@ -395,7 +368,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
           isCollapsed ? "Expand navigation menu" : "Collapse navigation menu"
         }
         title={isCollapsed ? "Expand menu" : "Collapse menu"}
-        className="sidebar-toggle-anchor top-[104px] z-50 hidden h-7 w-7 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-md transition-colors hover:bg-muted hover:text-foreground lg:flex"
+        className="sidebar-toggle-anchor top-[104px] z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-md transition-colors hover:bg-muted hover:text-foreground lg:flex"
       >
         <Icon name={isCollapsed ? "ChevronRight" : "ChevronLeft"} size={16} />
       </button>

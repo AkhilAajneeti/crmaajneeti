@@ -372,6 +372,44 @@ const Dashboard = () => {
   // on a phone. The card itself is unchanged.
   const isMobile = useIsMobile();
 
+  // The four insight tiles. `value` comes from the same `insightLists` the
+  // popup filters on, so the number on the card and the rows behind it can
+  // never disagree.
+  const insightCards = [
+    {
+      key: "meetings",
+      title: "Meetings Scheduled",
+      value: meetings,
+      icon: "Calendar",
+      iconColor: "#3B82F6",
+      description: "Held with leads today",
+    },
+    {
+      key: "proposals",
+      title: "Total Proposals",
+      value: proposals,
+      icon: "FileText",
+      iconColor: "#8B5CF6",
+      description: "Shared with leads",
+    },
+    {
+      key: "visits",
+      title: "Site Visits",
+      value: siteVisits,
+      icon: "MapPin",
+      iconColor: "#F59E0B",
+      description: "Scheduled or completed",
+    },
+    {
+      key: "deals",
+      title: "Client Onboarded",
+      value: closedDeals,
+      icon: "CheckCircle",
+      iconColor: "#10B981",
+      description: "Leads converted",
+    },
+  ];
+
   const kpiData = [
     {
       title: isMobile ? "This Month" : "This Month Leads",
@@ -396,7 +434,7 @@ const Dashboard = () => {
       isLoading: todayQuery.isLoading || yesterdayQuery.isLoading,
     },
     {
-      title: isMobile ? "Interested" : "Interested Leads (This Month)",
+      title: isMobile ? "Interested" : "Interested this month",
       value: interested,
       change: `${interestedGrowth}%`,
       changeType: interestedGrowth >= 0 ? "positive" : "negative",
@@ -445,7 +483,7 @@ const Dashboard = () => {
           <div>
             <h1 className="mb-2 flex items-center gap-3 text-2xl lg:text-3xl font-bold text-foreground">
               Dashboard
-              <FestiveRule />
+              
             </h1>
             <p className="text-muted-foreground">
               Welcome back! Here's what's happening with your sales today.
@@ -454,12 +492,12 @@ const Dashboard = () => {
         </div>
         {/* Follow-ups that need acting on now. Sits above the KPI cards:
             the numbers below describe what happened, this says what to do. */}
-        <div className="relative m-3 sm:m-5">
+        <div className="relative mx-4 mt-4 sm:mx-6 sm:mt-6">
           <FollowUpPanel />
         </div>
 
         {/* KPI Cards */}
-        <div className="relative grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-5 m-3 sm:m-5">
+        <div className="relative grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mx-4 mt-4 sm:mx-6 sm:mt-6">
           {kpiData?.map((kpi, index) => (
             <motion.div
               key={index}
@@ -485,113 +523,40 @@ const Dashboard = () => {
 
 
               {/* Pipeline Chart */}
-              <div className="sm:m-5 py-3">
+              <div className="mt-6 sm:mx-6">
                 <PipelineChart leads={leads} />
               </div>
-              <div className="sm:m-5 py-3">
+              <div className="mt-6 sm:mx-6">
                 <MultiLineChart leads={leads} />
               </div>
 
 
               {/* Recent Activities */}
-              <div className="sm:m-5 py-3">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-                  {/* Meetings Held */}
-                  <div
-                    onClick={() => setActiveInsight("meetings")}
-                    className="cursor-pointer bg-blue-50 border border-blue-100 rounded-2xl p-4 sm:p-6 
-  hover:shadow-lg transition-all duration-300 
-  flex items-center justify-between min-h-[92px] sm:min-h-[110px]"
-                  >
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium tracking-wide text-blue-700 uppercase">
-                        Meetings Scheduling
-                      </p>
-                      <p className="text-3xl font-bold text-blue-600">
-                        {meetings}
-                      </p>
-                    </div>
-
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shrink-0 bg-blue-100 flex items-center justify-center">
-                      <Icon
-                        name="Calendar"
-                        size={22}
-                        className="text-blue-600"
+              <div className="mt-6 sm:mx-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  {/* Built from the same KPICard as the row at the top of the
+                      page, per the dark-mode QA: these four used to be bespoke
+                      divs with pastel fills (bg-blue-50, bg-purple-50 ...) that
+                      never switched to dark, and a different layout — icon on
+                      the right, different padding — so the two rows did not
+                      read as one system. */}
+                  {insightCards.map((card) => (
+                    <button
+                      key={card.key}
+                      type="button"
+                      onClick={() => setActiveInsight(card.key)}
+                      className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-2xl"
+                      aria-label={`${card.title}: ${card.value}`}
+                    >
+                      <KPICard
+                        title={card.title}
+                        value={card.value}
+                        icon={card.icon}
+                        iconColor={card.iconColor}
+                        description={card.description}
                       />
-                    </div>
-                  </div>
-
-                  {/* Proposals Shared */}
-                  <div
-                    onClick={() => setActiveInsight("proposals")}
-                    className="cursor-pointer bg-purple-50 border border-purple-100 rounded-2xl p-4 sm:p-6 
-hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[92px] sm:min-h-[110px]"
-                  >
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium tracking-wide text-purple-700 uppercase">
-                        Total Proposals
-                      </p>
-                      <p className="text-3xl font-bold text-purple-600">
-                        {proposals}
-                      </p>
-                    </div>
-
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shrink-0 bg-purple-100 flex items-center justify-center">
-                      <Icon
-                        name="FileText"
-                        size={22}
-                        className="text-purple-600"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Site Visits */}
-                  <div
-                    onClick={() => setActiveInsight("visits")}
-                    className="cursor-pointer bg-amber-50 border border-amber-100 rounded-2xl p-4 sm:p-6 
-hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[92px] sm:min-h-[110px]"
-                  >
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium tracking-wide text-amber-700 uppercase">
-                        Site Visits
-                      </p>
-                      <p className="text-3xl font-bold text-amber-600">
-                        {siteVisits}
-                      </p>
-                    </div>
-
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shrink-0 bg-amber-100 flex items-center justify-center">
-                      <Icon
-                        name="MapPin"
-                        size={22}
-                        className="text-amber-600"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Deals Closed */}
-                  <div
-                    onClick={() => setActiveInsight("deals")}
-                    className="cursor-pointer bg-green-50 border border-green-100 rounded-2xl p-4 sm:p-6 
-hover:shadow-lg transition-all duration-300 flex items-center justify-between min-h-[92px] sm:min-h-[110px]"
-                  >
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium tracking-wide text-green-700 uppercase">
-                        Client Onboarded
-                      </p>
-                      <p className="text-3xl font-bold text-green-600">
-                        {closedDeals}
-                      </p>
-                    </div>
-
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shrink-0 bg-green-100 flex items-center justify-center">
-                      <Icon
-                        name="CheckCircle"
-                        size={22}
-                        className="text-green-600"
-                      />
-                    </div>
-                  </div>
+                    </button>
+                  ))}
                 </div>
                 {/* <RecentActivities activities={activities} /> */}
               </div>

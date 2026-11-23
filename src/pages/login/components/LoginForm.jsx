@@ -167,7 +167,6 @@ const LoginForm = () => {
     return (
       <OtpForm
         emailMasked={challenge?.emailMasked}
-        message={challenge?.message}
         onVerify={handleVerify}
         onResend={handleResend}
         onBack={handleBackToCredentials}

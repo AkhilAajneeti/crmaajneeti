@@ -353,7 +353,7 @@ const PipelineChart = ({ leads = [] }) => {
         <div className="flex items-center space-x-2">
           <Icon name="Target" size={16} className="text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
-            Leads : {loadingMonthly ? "..." : totalLeads} / Leads
+            {loadingMonthly ? "..." : totalLeads} leads generated
           </span>
         </div>
       </div>

@@ -4,6 +4,11 @@ import App from "./App";
 import "./styles/tailwind.css";
 import "./styles/index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { initMode } from "./utils/darkMode";
+
+// Applied before React renders. Doing it inside a component would paint the
+// cream theme first and then repaint dark — a visible flash on every load.
+initMode();
 
 const container = document.getElementById("root");
 const root = createRoot(container);

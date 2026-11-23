@@ -965,7 +965,7 @@ const UserTab = ({ deepLink }) => {
                 paginatedMembers?.map((member) => (
                   <tr
                     key={member?.id}
-                    className="border-b border-border hover:bg-sky-50/60 cursor-pointer transition-colors duration-200"
+                    className="border-b border-border hover:bg-[color:var(--row-hover)] cursor-pointer transition-colors duration-200"
                   >
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-3">

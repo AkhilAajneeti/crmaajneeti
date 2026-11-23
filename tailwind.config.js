@@ -1,5 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  // Dark mode is driven by the `data-mode` attribute that `utils/darkMode.js`
+  // writes on <html> — the same mechanism `utils/theme.js` uses for the
+  // per-user colour theme, so the two compose instead of competing.
+  //
+  // Most of the app paints from CSS custom properties and needs no `dark:`
+  // variants at all. This exists for the places that hardcode a Tailwind
+  // colour (bg-white, bg-blue-50, text-slate-700) and therefore cannot follow
+  // a token.
+  darkMode: ['selector', '[data-mode="dark"]'],
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",

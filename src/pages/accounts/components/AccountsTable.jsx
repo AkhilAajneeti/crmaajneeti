@@ -398,7 +398,7 @@ const AccountsTable = ({
               filteredAndSortedData?.map((account) => (
                 <tr
                   key={account?.id}
-                  className="border-t border-border hover:bg-sky-50/60 cursor-pointer transition-colors duration-200"
+                  className="border-t border-border hover:bg-[color:var(--row-hover)] cursor-pointer transition-colors duration-200"
                   onClick={() => onRowClick(account.id)}
                 >
                   <td className="p-4" onClick={(e) => e?.stopPropagation()}>

@@ -345,7 +345,7 @@ const StatusChart = () => {
                 (entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={isEmpty ? "#d1d5db" : getStatusColor(entry?.name, index)}
+                    fill={isEmpty ? "#6B7280" : getStatusColor(entry?.name, index)}
                     opacity={isEmpty ? 0.4 : 1}
                   />
                 ),

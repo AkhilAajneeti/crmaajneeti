@@ -59,7 +59,7 @@ const PipelineColumn = ({
   const count = deals?.length || 0;
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-2xl border border-border shadow-sm">
+    <div className="flex flex-col h-full bg-card rounded-2xl border border-border shadow-sm">
       {/* Column Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-1.5">

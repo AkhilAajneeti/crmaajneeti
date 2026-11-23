@@ -16,7 +16,6 @@ const pad = (n) => String(n).padStart(2, "0");
  */
 const OtpForm = ({
   emailMasked,
-  message,
   onVerify,
   onResend,
   onBack,
@@ -138,15 +137,18 @@ const OtpForm = ({
         <h3 className="text-[17px] font-semibold text-slate-800">
           Check your email
         </h3>
+        {/* The server's own `message` runs to four lines AND repeats the
+            masked address, which was then printed again below it. One line
+            carries the same information. */}
         <p className="mt-1 text-[13.5px] leading-relaxed text-slate-500">
-          {message ||
-            "We have sent a 6-digit verification code to your registered email address."}
+          Enter the 6-digit code sent to{" "}
+          {emailMasked ? (
+            <span className="font-semibold text-slate-700">{emailMasked}</span>
+          ) : (
+            "your registered email"
+          )}{" "}
+          and on your mobile.
         </p>
-        {emailMasked && (
-          <p className="mt-1 text-[13.5px] font-semibold text-slate-700">
-            {emailMasked}
-          </p>
-        )}
       </div>
 
       {error && (

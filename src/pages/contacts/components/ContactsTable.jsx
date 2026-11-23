@@ -7,14 +7,14 @@ import { canReadField } from "utils/permissions";
 // keeps the same tint as the table sorts or pages. Literal class strings —
 // Tailwind cannot see a class assembled from an index.
 const TINTS = [
-  { ring: "ring-rose-200", chip: "bg-rose-100 text-rose-700", name: "text-rose-700", row: "hover:bg-rose-50" },
-  { ring: "ring-amber-200", chip: "bg-amber-100 text-amber-800", name: "text-amber-800", row: "hover:bg-amber-50" },
-  { ring: "ring-emerald-200", chip: "bg-emerald-100 text-emerald-700", name: "text-emerald-700", row: "hover:bg-emerald-50" },
-  { ring: "ring-violet-200", chip: "bg-violet-100 text-violet-700", name: "text-violet-700", row: "hover:bg-violet-50" },
-  { ring: "ring-cyan-200", chip: "bg-cyan-100 text-cyan-700", name: "text-cyan-700", row: "hover:bg-cyan-50" },
-  { ring: "ring-indigo-200", chip: "bg-indigo-100 text-indigo-700", name: "text-indigo-700", row: "hover:bg-indigo-50" },
-  { ring: "ring-teal-200", chip: "bg-teal-100 text-teal-700", name: "text-teal-700", row: "hover:bg-teal-50" },
-  { ring: "ring-fuchsia-200", chip: "bg-fuchsia-100 text-fuchsia-700", name: "text-fuchsia-700", row: "hover:bg-fuchsia-50" },
+  { ring: "ring-rose-200 dark:ring-rose-500/40", chip: "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200", name: "text-rose-700 dark:text-rose-300", row: "hover:bg-rose-50 dark:hover:bg-rose-500/10" },
+  { ring: "ring-amber-200 dark:ring-amber-500/40", chip: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200", name: "text-amber-800 dark:text-amber-300", row: "hover:bg-amber-50 dark:hover:bg-amber-500/10" },
+  { ring: "ring-emerald-200 dark:ring-emerald-500/40", chip: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200", name: "text-emerald-700 dark:text-emerald-300", row: "hover:bg-emerald-50 dark:hover:bg-emerald-500/10" },
+  { ring: "ring-violet-200 dark:ring-violet-500/40", chip: "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200", name: "text-violet-700 dark:text-violet-300", row: "hover:bg-violet-50 dark:hover:bg-violet-500/10" },
+  { ring: "ring-cyan-200 dark:ring-cyan-500/40", chip: "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-200", name: "text-cyan-700 dark:text-cyan-300", row: "hover:bg-cyan-50 dark:hover:bg-cyan-500/10" },
+  { ring: "ring-indigo-200 dark:ring-indigo-500/40", chip: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200", name: "text-indigo-700 dark:text-indigo-300", row: "hover:bg-indigo-50 dark:hover:bg-indigo-500/10" },
+  { ring: "ring-teal-200 dark:ring-teal-500/40", chip: "bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-200", name: "text-teal-700 dark:text-teal-300", row: "hover:bg-teal-50 dark:hover:bg-teal-500/10" },
+  { ring: "ring-fuchsia-200 dark:ring-fuchsia-500/40", chip: "bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-500/20 dark:text-fuchsia-200", name: "text-fuchsia-700 dark:text-fuchsia-300", row: "hover:bg-fuchsia-50 dark:hover:bg-fuchsia-500/10" },
 ];
 
 const tintFor = (key) => {
@@ -121,7 +121,7 @@ const ContactCard = ({
         </p>
 
         {c.doNotCall ? (
-          <span className="shrink-0 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[11px] font-semibold text-red-700">
+          <span className="shrink-0 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[11px] font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-300">
             Do not call
           </span>
         ) : (
@@ -156,7 +156,7 @@ const ContactCard = ({
               <a
                 href={`tel:${phone}`}
                 aria-label={`Call ${c.name}`}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-50"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-500/15"
               >
                 <Icon name="PhoneCall" size={18} />
               </a>
@@ -332,7 +332,7 @@ const ContactsTable = ({
                           {c.phoneNumber}
                         </span>
                         {c.doNotCall && (
-                          <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+                          <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700 dark:bg-red-500/15 dark:text-red-300">
                             Do not call
                           </span>
                         )}
@@ -353,7 +353,7 @@ const ContactsTable = ({
                       <span
                         className={`inline-flex max-w-full items-center gap-1.5 rounded-full py-1 pl-1 pr-2.5 text-[12.5px] font-semibold ${tintFor(c.createdByName).chip}`}
                       >
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/70 text-[9px] font-bold">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/70 dark:bg-white/10 text-[9px] font-bold">
                           {getInitials(c.createdByName)}
                         </span>
                         <span className="truncate">{c.createdByName}</span>
@@ -375,7 +375,7 @@ const ContactsTable = ({
                             href={`tel:${phone}`}
                             aria-label={`Call ${c.name}`}
                             title={c.phoneNumber}
-                            className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100"
+                            className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 dark:bg-blue-500/15 dark:text-blue-300 dark:hover:bg-blue-500/25"
                           >
                             <Icon name="PhoneCall" size={16} />
                           </a>

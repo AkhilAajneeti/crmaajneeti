@@ -109,6 +109,26 @@
     --sidebar-hover: #f7ead9;
     --sidebar-heading: #8a6436;
     --sidebar-hover-text: #b91c1c;
+    /* Footer band. Was inline on the element with a brightness filter, which
+       made it the brightest thing on the page once dark mode existed. */
+    --sidebar-footer: linear-gradient(90deg,#5C062D 0%,#59052C 25%,#840738 50%,#9B0641 75%,#800639 100%);
+    /* Table row hover. Solid, not translucent: the pinned Action column sits
+       on its own background and has to match the row exactly. */
+    --row-hover: #EAF4FD;
+    /* KPI card surface. The sheen is the white highlight the wash fades into,
+       the inset is the lit top edge. Both are literally white on a cream page;
+       on a dark one they turned every card into a silver slab. */
+    --kpi-sheen: rgba(255, 255, 255, 0.75);
+    --kpi-inset: rgba(255, 255, 255, 0.85);
+    --kpi-border: rgba(201, 162, 39, 0.32);
+
+    /* Table header band. Translucent for the normal header, opaque for a
+       sticky cell (columns sliding under a translucent pinned cell ghost
+       through it). */
+    --thead-band: linear-gradient(180deg, rgba(251, 235, 210, 0.85) 0%, rgba(250, 242, 228, 0.7) 100%);
+    --thead-band-solid: linear-gradient(180deg, #FCEED9 0%, #FCF6EC 100%);
+    --thead-rule: rgba(201, 162, 39, 0.35);
+    --chart-grid: #E5E7EB;
 
     /* Sidebar footer wave, dark end to light end */
     --wave-1: #270b2a;
@@ -125,6 +145,17 @@
     --page-wash-1-fade: rgba(240, 160, 72, 0);
     --page-wash-2: rgba(226, 122, 32, 0.1);
     --page-wash-2-fade: rgba(226, 122, 32, 0);
+
+    /* Notification orb. A literal pale blue here glowed like a torch against
+       the dark surface, so it is a token. */
+    --orb-surface: radial-gradient(
+      ellipse 62.5% 62.5% at 48% 38%,
+      #f6f9fd 0 42%,
+      #e3f0fd 58%,
+      #cee6fe 74%,
+      #bedffe 86%,
+      #aed7fe 100%
+    );
   }
 
   /* Pink theme. Applied by `utils/theme.js` as [data-theme="pink"] on <html>
@@ -183,6 +214,16 @@
     --sidebar-hover: #FFE2EB;
     --sidebar-heading: #8E2A52;
     --sidebar-hover-text: #C2185B;
+    --sidebar-footer: linear-gradient(90deg,#7A1140 0%,#8E1549 25%,#A81857 50%,#C2185B 75%,#A81857 100%);
+    --row-hover: #FDEAF2;
+    --kpi-sheen: rgba(255, 255, 255, 0.78);
+    --kpi-inset: rgba(255, 255, 255, 0.85);
+    --kpi-border: rgba(214, 51, 108, 0.28);
+
+    --thead-band: linear-gradient(180deg, rgba(253, 234, 242, 0.9) 0%, rgba(255, 246, 250, 0.72) 100%);
+    --thead-band-solid: linear-gradient(180deg, #FDEAF2 0%, #FFF6FA 100%);
+    --thead-rule: rgba(214, 51, 108, 0.3);
+    --chart-grid: #F3D7E3;
 
     --wave-1: #2A0A1B;
     --wave-2: #3D0C22;
@@ -197,6 +238,113 @@
     --page-wash-1-fade: rgba(214, 51, 108, 0);
     --page-wash-2: rgba(240, 101, 149, 0.1);
     --page-wash-2-fade: rgba(240, 101, 149, 0);
+  }
+
+  /* ------------------------------------------------------------------ *
+     Dark mode.
+
+     Applied by `utils/darkMode.js` as [data-mode="dark"] on <html>. A
+     SEPARATE attribute from `data-theme` on purpose: the two compose, so an
+     HR user on the pink theme can also run dark without a pink-dark table
+     having to exist. Equal specificity to [data-theme="pink"], declared
+     after it, so source order makes dark win where they overlap.
+
+     Warm charcoal rather than neutral grey or black — the light theme is
+     cream and maroon, and a cold grey dark mode reads as a different
+     product. Brand tones are LIGHTENED here: #8C1226 on a dark surface
+     fails contrast badly, so the maroon moves up to #E04A5F.
+   * ------------------------------------------------------------------ */
+  [data-mode="dark"] {
+    --color-background: #131112;
+    --color-foreground: #F5F2F0;
+    --color-border: #2E2A2B;
+    --color-input: #1C191A;
+    --color-ring: #F4A3B1;
+
+    --color-card: #1C191A;
+    --color-card-foreground: #F5F2F0;
+
+    --color-popover: #242022;
+    --color-popover-foreground: #F5F2F0;
+
+    --color-muted: #242022;
+    --color-muted-foreground: #A8A0A0;
+
+    --color-primary: #E04A5F;
+    --color-primary-foreground: #1A0D10;
+
+    --color-secondary: #E04A5F;
+    --color-secondary-foreground: #1A0D10;
+
+    --color-destructive: #F87171;
+    --color-destructive-foreground: #1A0D0B;
+
+    --color-accent: #242022;
+    --color-accent-foreground: #F5F2F0;
+
+    --color-success: #34D399;
+    --color-success-foreground: #06261A;
+
+    --color-warning: #FBBF24;
+    --color-warning-foreground: #241803;
+
+    --color-error: #F87171;
+    --color-error-foreground: #1A0D0B;
+
+    --color-brand: #E04A5F;
+    --color-brand-strong: #B32B3D;
+    --color-brand-soft: #3A1E22;
+    --color-brand-muted: #2A171A;
+    --color-brand-glow: rgba(224, 74, 95, 0.38);
+    --color-field-border: #3B5C3D;
+
+    --split-soft: #2A171A;
+    --split-strong: #D63F52;
+
+    --sidebar-from: #1C191A;
+    --sidebar-to: #131112;
+    --sidebar-hover: #242022;
+    --sidebar-heading: #A8A0A0;
+    --sidebar-hover-text: #F5F2F0;
+    --sidebar-footer: linear-gradient(90deg,#2A0A16 0%,#33101C 25%,#431424 50%,#4F1629 75%,#3A1220 100%);
+    --row-hover: #242022;
+    /* Barely-there on dark: enough to keep the top edge from looking cut,
+       not enough to read as a gradient. */
+    --kpi-sheen: rgba(255, 255, 255, 0.025);
+    --kpi-inset: rgba(255, 255, 255, 0.06);
+    --kpi-border: rgba(255, 255, 255, 0.09);
+
+    --thead-band: linear-gradient(180deg, rgba(36, 32, 34, 0.92) 0%, rgba(28, 25, 26, 0.78) 100%);
+    --thead-band-solid: linear-gradient(180deg, #242022 0%, #1C191A 100%);
+    --thead-rule: rgba(255, 255, 255, 0.10);
+    /* 6% white: present enough to read a value against, invisible
+       otherwise. A light grey grid glowed on the dark card. */
+    --chart-grid: rgba(255, 255, 255, 0.06);
+
+    --wave-1: #140512;
+    --wave-2: #1C0715;
+    --wave-3: #2B0A1A;
+    --wave-4: #450F22;
+    --wave-5: #5E1229;
+    --wave-6: #7A1733;
+    --wave-contour: #7A4050;
+    --wave-contour-end: #4A2630;
+
+    --page-wash-1: rgba(201, 162, 39, 0.07);
+    --page-wash-1-fade: rgba(201, 162, 39, 0);
+    --page-wash-2: rgba(224, 74, 95, 0.06);
+    --page-wash-2-fade: rgba(224, 74, 95, 0);
+
+    --orb-surface: radial-gradient(
+      ellipse 62.5% 62.5% at 48% 38%,
+      #2B2A3A 0 42%,
+      #26303F 58%,
+      #22323F 74%,
+      #1F2D3A 86%,
+      #1B2630 100%
+    );
+
+    color-scheme: dark;
   }
 
   * {
@@ -475,15 +623,15 @@
 
   /* Table headers across the app: a champagne band under maroon type. */
   .festive-thead {
-    background: linear-gradient(180deg, rgba(251, 235, 210, 0.85) 0%, rgba(250, 242, 228, 0.7) 100%);
-    border-bottom: 1px solid rgba(201, 162, 39, 0.35);
+    background: var(--thead-band);
+    border-bottom: 1px solid var(--thead-rule);
   }
 
   /* The same band, but opaque — the two stops above flattened onto the card
      colour. A sticky header cell needs this: .festive-thead is translucent,
      so the columns sliding underneath a pinned cell would ghost through it. */
   .festive-thead-solid {
-    background: linear-gradient(180deg, #FCEED9 0%, #FCF6EC 100%);
+    background: var(--thead-band-solid);
   }
 
   /* Left edge of a pinned column — a soft fade only, no hard rule.
@@ -517,15 +665,63 @@
     animation: festive-spin 80s linear infinite;
   }
 
-  .orb-button {
-    background: radial-gradient(
-      ellipse 62.5% 62.5% at 48% 38%,
-      #f6f9fd 0 42%,
-      #e3f0fd 58%,
-      #cee6fe 74%,
-      #bedffe 86%,
-      #aed7fe 100%
+  /* The mandala artwork is drawn in saffron for a cream page. At 25% on a
+     near-black surface it became the loudest thing in the sidebar. */
+  [data-mode="dark"] .festive-spin {
+    opacity: 0.08;
+  }
+
+  /* KPI icon tile. `--kpi-glow` is an "r,g,b" triple set inline per card.
+     Light keeps the solid gradient with a white glyph; dark drops to an 18%
+     tint and colours the glyph instead, so the NUMBER is the brightest
+     element on the card. A CSS rule beats the `color="white"` presentation
+     attribute on the svg, which is why the glyph follows. */
+  /* Thin rail scrollbar. The native one — with arrow buttons on Windows —
+     was ~17px of chrome down the side of a 256px sidebar. */
+  .thin-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+
+  .thin-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .thin-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .thin-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 9999px;
+  }
+
+  .thin-scroll::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  .kpi-badge {
+    background: linear-gradient(
+      140deg,
+      rgba(var(--kpi-glow), 0.92) 0%,
+      rgba(var(--kpi-glow), 1) 100%
     );
+    box-shadow:
+      0 8px 16px -6px rgba(var(--kpi-glow), 0.9),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  [data-mode="dark"] .kpi-badge {
+    background: rgba(var(--kpi-glow), 0.18);
+    box-shadow: inset 0 0 0 1px rgba(var(--kpi-glow), 0.3);
+  }
+
+  [data-mode="dark"] .kpi-badge svg {
+    color: rgb(var(--kpi-glow));
+  }
+
+  .orb-button {
+    background: var(--orb-surface);
     transition:
       filter 220ms ease-out,
       box-shadow 220ms ease-out,

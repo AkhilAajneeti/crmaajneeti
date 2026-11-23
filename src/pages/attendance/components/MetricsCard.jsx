@@ -43,16 +43,16 @@ const MetricsCard = ({ title, value, change, changeType, icon, iconColor, descri
       // and Tailwind can't see a class built from a runtime value.
       whileHover={{
         y: -3,
-        boxShadow: `0 18px 34px -14px rgba(${glow},0.6), 0 0 0 1px rgba(${glow},0.35), inset 0 1px 0 rgba(255,255,255,0.9)`,
+        boxShadow: `0 18px 34px -14px rgba(${glow},0.6), 0 0 0 1px rgba(${glow},0.35), inset 0 1px 0 var(--kpi-inset)`,
       }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className="group relative overflow-hidden rounded-2xl p-4 sm:p-5"
       style={{
         // A wash of the card's own colour over the card surface, lit along the
         // top edge so it catches light instead of reading as a flat rectangle.
-        background: `linear-gradient(155deg, rgba(${glow},0.10) 0%, rgba(${glow},0.03) 42%, rgba(255,255,255,0.75) 100%), var(--color-card)`,
+        background: `linear-gradient(155deg, rgba(${glow},0.10) 0%, rgba(${glow},0.03) 42%, var(--kpi-sheen) 100%), var(--color-card)`,
         border: `1px solid rgba(${glow},0.22)`,
-        boxShadow: `0 1px 2px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.85)`,
+        boxShadow: `0 1px 2px rgba(15,23,42,0.05), inset 0 1px 0 var(--kpi-inset)`,
       }}
     >
       {/* Corner bloom — strengthens behind the icon, fades across the card */}
@@ -65,10 +65,8 @@ const MetricsCard = ({ title, value, change, changeType, icon, iconColor, descri
       <div className="relative">
         <div className="flex items-center gap-3 sm:gap-3.5">
           <div
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12 ${iconColor} transition-transform duration-300 group-hover:scale-105`}
-            style={{
-              boxShadow: `0 8px 16px -6px rgba(${glow},0.9), inset 0 1px 0 rgba(255,255,255,0.4)`,
-            }}
+            className={`kpi-badge flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12 ${iconColor} transition-transform duration-300 group-hover:scale-105`}
+            style={{ "--kpi-glow": glow }}
           >
             <Icon name={icon} size={20} color="white" className="sm:hidden" />
             <Icon name={icon} size={23} color="white" className="hidden sm:block" />

@@ -11,6 +11,7 @@ import Avatar from "react-avatar";
 import { Link } from "react-router-dom";
 import { clearLeadsCache } from "services/leads.service";
 import { applyTheme } from "utils/theme";
+import ThemeToggle from "./ThemeToggle";
 const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
   const LogInuserstr = localStorage.getItem("login_object");
   const LogInuser = LogInuserstr ? JSON.parse(LogInuserstr) : null;
@@ -114,8 +115,11 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
                   <span className="text-lg font-semibold text-foreground">
                     CRM
                   </span>
-                  <span className="px-2 py-0.5 text-xs font-medium bg-mahroon text-white rounded-full">
-                    By Aajneeti Connect ltd.
+                  {/* Was white 12px on the brand red, which measured 4.48:1
+                      — just under the 4.5:1 minimum. Plain muted text drops
+                      one accent colour from the header as well. */}
+                  <span className="text-xs font-medium text-muted-foreground">
+                    by AAJneeti Connect Ltd.
                   </span>
                 </div>
 
@@ -137,6 +141,8 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
 
           {/* Right Section - Actions & User */}
           <div className="flex items-center space-x-2">
+            <ThemeToggle />
+
             <div className="relative">
               {/* Notifications */}
               <Button
@@ -150,7 +156,7 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
                   name="Bell"
                   size={18}
                   strokeWidth={1.75}
-                  className="bell-swing text-slate-700"
+                  className="bell-swing text-foreground"
                 />
                 {count > 0 && (
                   <span className="badge-pop absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">

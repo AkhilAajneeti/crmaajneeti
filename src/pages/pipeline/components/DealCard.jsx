@@ -10,7 +10,7 @@ const CATEGORY_TONE = {
   overdue: {
     border: "border-l-red-500",
     date: "text-red-600",
-    pillBg: "bg-red-50 text-red-700",
+    pillBg: "bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300",
     bullet: "bg-red-500",
     ring: "border-red-200",
     shadow:
@@ -19,7 +19,7 @@ const CATEGORY_TONE = {
   due_today: {
     border: "border-l-amber-500",
     date: "text-amber-600",
-    pillBg: "bg-amber-50 text-amber-700",
+    pillBg: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
     bullet: "bg-amber-500",
     ring: "border-amber-200",
     shadow:
@@ -28,7 +28,7 @@ const CATEGORY_TONE = {
   upcoming: {
     border: "border-l-blue-500",
     date: "text-blue-600",
-    pillBg: "bg-blue-50 text-blue-700",
+    pillBg: "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
     bullet: "bg-blue-500",
     ring: "border-blue-200",
     shadow:
@@ -37,7 +37,7 @@ const CATEGORY_TONE = {
   active: {
     border: "border-l-emerald-500",
     date: "text-emerald-600",
-    pillBg: "bg-emerald-50 text-emerald-700",
+    pillBg: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
     bullet: "bg-emerald-500",
     ring: "border-emerald-200",
     shadow:
@@ -54,8 +54,8 @@ const CATEGORY_TONE = {
   },
   stale: {
     border: "border-l-gray-400",
-    date: "text-gray-600",
-    pillBg: "bg-gray-100 text-gray-700",
+    date: "text-gray-600 dark:text-slate-300",
+    pillBg: "bg-gray-100 text-gray-700 dark:bg-slate-500/15 dark:text-slate-300",
     bullet: "bg-gray-400",
     ring: "border-gray-200",
     shadow:
@@ -65,31 +65,31 @@ const CATEGORY_TONE = {
 
 // Status pill color — keyword-driven so any status string lands somewhere.
 const getStatusPill = (status) => {
-  if (!status) return "bg-gray-100 text-gray-700";
+  if (!status) return "bg-gray-100 text-gray-700 dark:bg-slate-500/15 dark:text-slate-300";
   const s = status.toLowerCase();
   if (s.includes("budget") || s.includes("dead") || s.includes("invalid") || s.includes("irrelevant"))
-    return "bg-red-50 text-red-700 border border-red-100";
+    return "bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300 border border-red-100 dark:border-red-500/25";
   if (s.includes("interested") || s.includes("qualified") || s.includes("converted"))
-    return "bg-emerald-50 text-emerald-700 border border-emerald-100";
+    return "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-500/25";
   if (s.includes("follow") || s.includes("call later"))
-    return "bg-amber-50 text-amber-700 border border-amber-100";
+    return "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 border border-amber-100 dark:border-amber-500/25";
   if (s.includes("not picked") || s.includes("not connecting") || s.includes("call"))
     return "bg-sky-50 text-sky-700 border border-sky-100";
   if (s.includes("proposal") || s.includes("process"))
     return "bg-indigo-50 text-indigo-700 border border-indigo-100";
-  return "bg-blue-50 text-blue-700 border border-blue-100";
+  return "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 border border-blue-100 dark:border-blue-500/25";
 };
 
 // Priority pill — uses the classifier's computed priority field.
 const getPriorityPill = (priority) => {
   switch (priority) {
     case "high":
-      return { label: "High Priority", cls: "bg-red-50 text-red-700 border border-red-100" };
+      return { label: "High Priority", cls: "bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300 border border-red-100 dark:border-red-500/25" };
     case "medium":
-      return { label: "Medium Priority", cls: "bg-amber-50 text-amber-700 border border-amber-100" };
+      return { label: "Medium Priority", cls: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 border border-amber-100 dark:border-amber-500/25" };
     case "low":
     default:
-      return { label: "Low Priority", cls: "bg-gray-100 text-gray-600 border border-gray-200" };
+      return { label: "Low Priority", cls: "bg-gray-100 text-gray-600 dark:bg-slate-500/15 dark:text-slate-300 border border-gray-200 dark:border-slate-500/25" };
   }
 };
 
@@ -172,7 +172,7 @@ const DealCard = ({ deal = {}, onDelete, onViewHistory, onOpen }) => {
 
   return (
     <motion.div
-      className={`relative bg-white border border-l-[4px] ${tone.border} ${tone.ring} ${tone.shadow} rounded-xl p-4 cursor-grab active:cursor-grabbing transition-shadow`}
+      className={`relative bg-card border border-l-[4px] ${tone.border} ${tone.ring} ${tone.shadow} rounded-xl p-4 cursor-grab active:cursor-grabbing transition-shadow`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       whileHover={{ y: -1 }}
@@ -180,7 +180,7 @@ const DealCard = ({ deal = {}, onDelete, onViewHistory, onOpen }) => {
     >
       {/* Hover actions */}
       {isHovered && (
-        <div className="absolute top-2 right-2 flex space-x-1 bg-white border border-border rounded-md shadow-sm p-0.5 z-10">
+        <div className="absolute top-2 right-2 flex space-x-1 bg-card border border-border rounded-md shadow-sm p-0.5 z-10">
           {onViewHistory && (
             <Button
               variant="ghost"

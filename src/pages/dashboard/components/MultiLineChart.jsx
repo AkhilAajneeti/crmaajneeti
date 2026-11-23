@@ -7,7 +7,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 import { motion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
@@ -22,7 +21,7 @@ import { fetchLeadsCount } from "services/leads.service";
 // Lines and legend swatches both read from here — they drifted apart easily
 // when the hex was written out at six separate call sites.
 const SERIES_COLORS = {
-  facebook: "#C2576B",
+  facebook: "#E06A80",
   ivr: "#52A07C",
   website: "#D8B34A",
 };
@@ -308,6 +307,8 @@ const MultiLineChart = ({ leads = [] }) => {
   const facebookTotal = chartData.reduce((sum, item) => sum + item.facebook, 0);
   const ivrTotal = chartData.reduce((sum, item) => sum + item.ivr, 0);
   const websiteTotal = chartData.reduce((sum, item) => sum + item.website, 0);
+  const hasNoData =
+    facebookTotal === 0 && ivrTotal === 0 && websiteTotal === 0;
   const Total = facebookTotal + ivrTotal + websiteTotal;
   const isLoading =
     (viewType === "monthly" && loadingMonthly) ||
@@ -435,6 +436,21 @@ const MultiLineChart = ({ leads = [] }) => {
               {/* Axis line */}
               <div className="absolute bottom-6 left-0 right-0 h-[1px] bg-gray-300/50" />
             </div>
+          ) : hasNoData ? (
+            /* An empty grid with a 0-4 axis reads as "broken", not as "no
+               data" — and all three zero-value lines overlap on the axis so
+               only one is visible. Say it instead. */
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <Icon name="LineChart" size={20} />
+              </span>
+              <p className="text-sm font-medium text-foreground">
+                No leads in this period
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Try a different range, or add leads to see them here.
+              </p>
+            </div>
           ) : (<ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={chartData}
@@ -444,7 +460,14 @@ const MultiLineChart = ({ leads = [] }) => {
                   : { top: 20, right: 30, left: 20, bottom: 5 }
               }
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              {/* Horizontal only. The dashed VERTICAL lines dominated an
+                  empty chart and carried no information the x-axis labels do
+                  not already give. */}
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--chart-grid)"
+                vertical={false}
+              />
 
               <XAxis dataKey="label" stroke="#888" fontSize={12} />
 
@@ -458,12 +481,12 @@ const MultiLineChart = ({ leads = [] }) => {
 
               <Tooltip content={<CustomTooltip />} />
 
-              <Legend />
 
               {/* Main Leads Line */}
               <Line
                 type="monotone"
                 dataKey="facebook"
+                name="Facebook"
                 stroke={SERIES_COLORS.facebook}
                 strokeWidth={2}
                 dot={{ r: 4 }}
@@ -473,16 +496,20 @@ const MultiLineChart = ({ leads = [] }) => {
               <Line
                 type="monotone"
                 dataKey="ivr"
+                name="IVR"
                 stroke={SERIES_COLORS.ivr}
                 strokeWidth={2}
+                strokeDasharray="6 4"
                 dot={{ r: 4 }}
               />
 
               <Line
                 type="monotone"
                 dataKey="website"
+                name="Website"
                 stroke={SERIES_COLORS.website}
                 strokeWidth={2}
+                strokeDasharray="2 3"
                 dot={{ r: 4 }}
               />
             </LineChart>

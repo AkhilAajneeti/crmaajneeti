@@ -371,7 +371,7 @@ const DealsTable = ({
                   // hover. Solid sky-50 rather than sky-50/60: the pinned cell
                   // needs an opaque fill, and a translucent one would sit a
                   // shade darker there than across the rest of the row.
-                  className="group hover:bg-sky-50 cursor-pointer transition-colors duration-200"
+                  className="group hover:bg-[color:var(--row-hover)] cursor-pointer transition-colors duration-200"
                 >
                   <td className="px-4 py-4" onClick={() => onDealClick(deal)}>
                     <div className="font-medium text-foreground truncate max-w-[400px]">
@@ -425,7 +425,7 @@ const DealsTable = ({
                     <UserPill name={deal?.assignedUserName} />
                   </td>
                   {(canEditDeal(deal) || canDeleteDeal(deal)) ? (
-                    <td className="sticky right-0 z-10 p-4 bg-card group-hover:bg-sky-50 transition-colors duration-200 sticky-col-divider" onClick={(e) => e?.stopPropagation()}>
+                    <td className="sticky right-0 z-10 p-4 bg-card group-hover:bg-[color:var(--row-hover)] transition-colors duration-200 sticky-col-divider" onClick={(e) => e?.stopPropagation()}>
                       <div className="flex items-center space-x-1">
                         {canEditDeal(deal) && (
                           <Button
@@ -454,7 +454,7 @@ const DealsTable = ({
                       </div>
                     </td>
                   ) : (
-                    <td className="sticky right-0 z-10 p-4 bg-card group-hover:bg-sky-50 transition-colors duration-200 sticky-col-divider" onClick={(e) => e?.stopPropagation()}>
+                    <td className="sticky right-0 z-10 p-4 bg-card group-hover:bg-[color:var(--row-hover)] transition-colors duration-200 sticky-col-divider" onClick={(e) => e?.stopPropagation()}>
                       <div className="flex items-center space-x-1">
 
                         {/* View — was an ArrowUpRight styled `text-destructive`,

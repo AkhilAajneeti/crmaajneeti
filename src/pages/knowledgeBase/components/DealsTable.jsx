@@ -261,7 +261,7 @@ const DealsTable = ({
                   key={deal?.id}
                   onMouseEnter={() => setHoveredRow(deal?.id)}
                   onMouseLeave={() => setHoveredRow(null)}
-                  className="hover:bg-sky-50/60 cursor-pointer transition-colors duration-200"
+                  className="hover:bg-[color:var(--row-hover)] cursor-pointer transition-colors duration-200"
                 >
                   <td className="px-4 py-4">
                     <Checkbox

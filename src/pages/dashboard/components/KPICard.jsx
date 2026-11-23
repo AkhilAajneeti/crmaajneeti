@@ -15,9 +15,14 @@ const hexToRgb = (hex) => {
 const NEUTRAL_GLOW = '100,116,139';
 
 // Bordered tints, matching the follow-up panel's chips.
+// A 50-level pill with 700-level text is near-white on a dark card — the
+// "0%" chip was brighter than the number it describes. The dark half is a
+// 12% tint of the same hue with a light label, per the design QA.
 const DELTA_TONES = {
-  positive: 'border-emerald-200/70 bg-emerald-50 text-emerald-700',
-  negative: 'border-red-200/70 bg-red-50 text-red-700',
+  positive:
+    'border-emerald-200/70 bg-emerald-50 text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-400/12 dark:text-emerald-300',
+  negative:
+    'border-red-200/70 bg-red-50 text-red-700 dark:border-red-400/25 dark:bg-red-400/12 dark:text-red-300',
   neutral: 'border-border bg-muted text-muted-foreground',
 };
 
@@ -63,16 +68,16 @@ const KPICard = ({
       // and Tailwind can't see a class built from a runtime value.
       whileHover={{
         y: -3,
-        boxShadow: `0 18px 34px -14px rgba(${glow},0.6), 0 0 0 1px rgba(${glow},0.35), inset 0 1px 0 rgba(255,255,255,0.9)`,
+        boxShadow: `0 18px 34px -14px rgba(${glow},0.6), 0 0 0 1px rgba(${glow},0.35), inset 0 1px 0 var(--kpi-inset)`,
       }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className={`group relative h-full overflow-hidden ${shell} ${isLoading ? 'kpi-shimmer kpi-glow' : ''}`}
       style={{
         // A wash of the card's own colour over the card surface, lit along the
         // top edge so it catches light instead of reading as a flat rectangle.
-        background: `linear-gradient(155deg, rgba(${glow},0.10) 0%, rgba(${glow},0.03) 42%, rgba(255,255,255,0.75) 100%), var(--color-card)`,
-        border: "1px solid rgba(201,162,39,0.32)",
-        boxShadow: `0 1px 2px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.85)`,
+        background: `linear-gradient(155deg, rgba(${glow},0.10) 0%, rgba(${glow},0.03) 42%, var(--kpi-sheen) 100%), var(--color-card)`,
+        border: "1px solid var(--kpi-border)",
+        boxShadow: `0 1px 2px rgba(15,23,42,0.05), inset 0 1px 0 var(--kpi-inset)`,
       }}
     >
       {/* Corner bloom — strengthens behind the icon, fades across the card */}
@@ -87,15 +92,13 @@ const KPICard = ({
       <div className="relative">
         <div className="flex items-center gap-3 sm:gap-3.5">
           <div
-            className={`flex shrink-0 items-center justify-center transition-transform duration-300 group-hover:scale-105 ${badge} ${isLoading ? `animate-pulse ${iconBg || 'bg-muted'}` : ''}`}
-            style={
-              isLoading
-                ? undefined
-                : {
-                    background: `linear-gradient(140deg, rgba(${glow},0.92) 0%, rgba(${glow},1) 100%)`,
-                    boxShadow: `0 8px 16px -6px rgba(${glow},0.9), inset 0 1px 0 rgba(255,255,255,0.4)`,
-                  }
-            }
+            className={`kpi-badge flex shrink-0 items-center justify-center transition-transform duration-300 group-hover:scale-105 ${badge} ${isLoading ? `animate-pulse ${iconBg || 'bg-muted'}` : ''}`}
+            // The tile colour is per-card, so it cannot be a Tailwind class.
+            // It is passed as a custom property instead, which lets the
+            // stylesheet soften it in dark mode — at full saturation these
+            // badges were the brightest thing on the page, brighter than the
+            // numbers they label.
+            style={isLoading ? undefined : { "--kpi-glow": glow }}
           >
             {compact ? (
               <Icon name={icon} size={19} color="white" />

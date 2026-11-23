@@ -257,7 +257,7 @@ const IndustryChart = () => {
                 (entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={isEmpty ? "#d1d5db" : COLORS[index % COLORS.length]}
+                    fill={isEmpty ? "#6B7280" : COLORS[index % COLORS.length]}
                     opacity={isEmpty ? 0.4 : 1}
                   />
                 ),
