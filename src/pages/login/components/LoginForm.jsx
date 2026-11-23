@@ -4,8 +4,14 @@ import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import { Checkbox } from "../../../components/ui/Checkbox";
 import Icon from "../../../components/AppIcon";
-import { fetchUser } from "services/user.service";
 import { applyTheme } from "utils/theme";
+import OtpForm from "./OtpForm";
+import {
+  fetchSessionUser,
+  initiateLogin,
+  resendOtp,
+  verifyOtp,
+} from "services/auth.service";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -18,6 +24,15 @@ const LoginForm = () => {
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  // Login is two screens now. `challenge` holds what step 1 handed back; it
+  // is deliberately NOT persisted — a challenge token is single-use and short
+  // lived, so a reload should start the login over rather than resume a
+  // half-finished one.
+  const [step, setStep] = useState("credentials");
+  const [challenge, setChallenge] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [otpError, setOtpError] = useState("");
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -49,6 +64,7 @@ const LoginForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // ---- Step 1: credentials -> OTP email ----------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -58,62 +74,10 @@ const LoginForm = () => {
     setErrors({});
 
     try {
-      // 🔐 Step 1: create login token (username + password)
-      const loginToken = btoa(`${formData.username}:${formData.password}`);
-
-      const res = await fetch("https://gateway.aajneetiadvertising.com/auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain",
-          "create-token": loginToken,
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.message || "Invalid credentials");
-      }
-      //
-
-      /* STEP 2: get logged in user */
-      const user = data.user;
-      // 🔐 Step 2: create login object from response
-      const loginObj = {
-        id: user.id,
-        username: user.userName,
-        token: data.token,
-        secret: data.secret,
-        type: user.type,
-        roles: Object.values(user.rolesNames || {}),
-        // Needed by the ACL helpers: a "team" grant (e.g. KnowledgeBaseArticle
-        // edit) is resolved by intersecting these with the record's teamsIds.
-        // Without them every "team" permission silently degrades to "own".
-        teamsIds: user.teamsIds || [],
-        defaultTeamId: user.defaultTeamId || null,
-        acl: data.acl || null,
-      };
-
-      // 🔐 Step 3: stringify + base64 encode
-      const jsonString = JSON.stringify(loginObj);
-      const myToken = btoa(jsonString);
-
-      // ✅ Store everything
-      localStorage.setItem("auth_token", myToken); // MAIN TOKEN
-      localStorage.setItem("login_object", jsonString); // optional (debug/use)
-      if (data.acl) {
-        localStorage.setItem("acl", JSON.stringify(data.acl));
-      }
-      localStorage.setItem("isAuthenticated", "true");
-
-      // Repaint for this user before the dashboard mounts.
-      applyTheme(loginObj);
-
-      navigate("/dashboard");
+      const sent = await initiateLogin(formData.username, formData.password);
+      setChallenge(sent);
+      setOtpError("");
+      setStep("otp");
     } catch (err) {
       console.error("Login error:", err);
       setErrors({ general: err.message });
@@ -122,8 +86,96 @@ const LoginForm = () => {
     }
   };
 
+  // ---- Step 2: OTP -> session, then load the profile ---------------------
+  const handleVerify = async (code) => {
+    setIsVerifying(true);
+    setOtpError("");
+
+    try {
+      const token = await verifyOtp(code, challenge.challengeToken);
+
+      // Stored under the key every service already reads, so nothing else in
+      // the app needs to know the token is now a 2FA session token.
+      localStorage.setItem("auth_token", token);
+
+      // The verify response carries only the token. Everything the app needs
+      // about WHO signed in — permissions, teams, theme, the sidebar — comes
+      // from here.
+      const { user, acl } = await fetchSessionUser(token);
+
+      const loginObj = {
+        id: user.id,
+        username: user.userName,
+        token,
+        type: user.type,
+        roles: Object.values(user.rolesNames || {}),
+        // Needed by the ACL helpers: a "team" grant is resolved by
+        // intersecting these with the record's teamsIds. Without them every
+        // "team" permission silently degrades to "own".
+        teamsIds: user.teamsIds || [],
+        defaultTeamId: user.defaultTeamId || null,
+        acl: acl || null,
+      };
+
+      localStorage.setItem("login_object", JSON.stringify(loginObj));
+      if (acl) localStorage.setItem("acl", JSON.stringify(acl));
+      localStorage.setItem("isAuthenticated", "true");
+
+      // Repaint for this user before the dashboard mounts.
+      applyTheme(loginObj);
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("OTP verification error:", err);
+      // A failed verify must not leave a half-written session behind.
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("isAuthenticated");
+      setOtpError(err.message);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      const sent = await resendOtp(challenge.challengeToken);
+      // The old challenge token stops working the moment a new code is sent,
+      // so this replacement is not optional.
+      setChallenge(sent);
+      setOtpError("");
+      return sent;
+    } catch (err) {
+      setOtpError(err.message);
+      return null;
+    }
+  };
+
+  const handleBackToCredentials = () => {
+    setStep("credentials");
+    setChallenge(null);
+    setOtpError("");
+    setFormData((prev) => ({ ...prev, password: "" }));
+  };
+
   const fieldClasses =
     "h-[clamp(42px,5.6vh,52px)] rounded-xl border-slate-200 bg-white pl-11 text-[14px] text-slate-800 shadow-[0_1px_2px_rgba(15,23,42,0.04)] placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-[#2563eb]/30 focus-visible:ring-offset-0 focus-visible:border-[#2563eb]";
+
+  // The OTP screen replaces the credentials form rather than stacking under
+  // it: leaving the password field mounted invites a second submit against a
+  // challenge that is already in flight.
+  if (step === "otp") {
+    return (
+      <OtpForm
+        emailMasked={challenge?.emailMasked}
+        message={challenge?.message}
+        onVerify={handleVerify}
+        onResend={handleResend}
+        onBack={handleBackToCredentials}
+        isVerifying={isVerifying}
+        error={otpError}
+      />
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-[clamp(12px,2.2vh,22px)]">
@@ -222,7 +274,7 @@ const LoginForm = () => {
               <Icon name="ArrowRight" size={17} />
             </span>
           )}
-          {isLoading ? "Signing In..." : "Sign In"}
+          {isLoading ? "Sending code..." : "Sign In"}
         </span>
       </Button>
 

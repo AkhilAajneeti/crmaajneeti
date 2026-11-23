@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Select from "../../../components/ui/Select";
 import Input from "components/ui/Input";
 import toast from "react-hot-toast";
+
+// Where each spark flies, relative to the button's centre. Hand-placed rather
+// than random: a fixed spread reads as a deliberate burst every time, where
+// randomised offsets occasionally clump on one side and look like a glitch.
+const COPY_SPARKS = [
+  { x: -34, y: -20, size: 13, delay: 0 },
+  { x: 30, y: -24, size: 11, delay: 0.05 },
+  { x: 44, y: 6, size: 14, delay: 0.1 },
+  { x: -42, y: 8, size: 10, delay: 0.08 },
+  { x: -14, y: -30, size: 9, delay: 0.14 },
+  { x: 14, y: 26, size: 12, delay: 0.12 },
+];
 import Avatar from "react-avatar";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -59,6 +72,8 @@ const DealDrawer = ({
   selectedIds = [],
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [summaryCopied, setSummaryCopied] = useState(false);
+  const reduceCopyMotion = useReducedMotion();
   const [isEditing, setIsEditing] = useState(false);
   const [activityText, setActivityText] = useState("");
 
@@ -212,6 +227,48 @@ const DealDrawer = ({
     };
   };
   const attendance = parseAttendance(user?.monthlyAttendanceSummary);
+
+  // What the user pastes to HR. The stored field is already in HR's format,
+  // so when it exists it is sent VERBATIM — reformatting it here would mean
+  // two slightly different messages depending on which path ran. The composed
+  // version is only a fallback for a record whose summary is still empty.
+  const rawSummary = (user?.monthlyAttendanceSummary || "").trim();
+  const summaryMessage =
+    rawSummary ||
+    [
+      "Monthly Attendance Summary",
+      `Month: ${attendance.month}`,
+      `Leaves Taken: ${attendance.leavesTaken}`,
+      `Salary Deduction: ${attendance.salaryDeduction}`,
+      `Contribution credit: ${attendance.contribution}`,
+      `New Leave Balance for Next Month: ${attendance.nextBalance}`,
+      `I, ${user?.name || ""}, confirm that the above detaiils are correct. TimeStamp: ${attendance.Discription}`,
+    ].join("\n");
+
+  const handleCopySummary = async () => {
+    try {
+      // `navigator.clipboard` only exists in a secure context. Opened over
+      // plain http on a phone (http://192.168.x.x:4028) it is undefined, so
+      // the button would silently do nothing without this fallback.
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(summaryMessage);
+      } else {
+        const area = document.createElement("textarea");
+        area.value = summaryMessage;
+        area.setAttribute("readonly", "");
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        document.body.removeChild(area);
+      }
+      setSummaryCopied(true);
+      setTimeout(() => setSummaryCopied(false), 2000);
+    } catch {
+      toast.error("Could not copy. Select the text and copy manually.");
+    }
+  };
 
 
   const handleEditActivity = (activity) => {
@@ -1566,6 +1623,111 @@ IFSC: ${bankData.ifsc}`;
                             </p>
                           </div>
                         </div>
+                      </div>
+
+                      {/* Ready-to-send message. The cards above are for
+                          reading; this is for sending — one button instead of
+                          selecting six values by hand. */}
+                      <div className="relative rounded-2xl border-2 border-dashed border-primary/30 bg-card p-4 shadow-sm sm:p-6">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <p className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+                            <Icon
+                              name="ClipboardList"
+                              size={16}
+                              className="shrink-0 text-primary"
+                            />
+                            Monthly Attendance
+                          </p>
+
+                          {/* `relative` is the anchor the sparks are
+                              positioned against; without it they would fly
+                              from the corner of the page. */}
+                          <div className="relative shrink-0">
+                            <motion.div
+                              animate={
+                                summaryCopied && !reduceCopyMotion
+                                  ? { scale: [1, 1.12, 1] }
+                                  : { scale: 1 }
+                              }
+                              transition={{ duration: 0.45, ease: "easeOut" }}
+                            >
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleCopySummary}
+                                aria-live="polite"
+                                className={
+                                  summaryCopied
+                                    ? "border-emerald-400 bg-emerald-500 text-white shadow-[0_6px_18px_-6px_rgba(16,185,129,0.75)] hover:bg-emerald-500 hover:text-white"
+                                    : ""
+                                }
+                              >
+                                <Icon
+                                  name={summaryCopied ? "Check" : "Copy"}
+                                  size={15}
+                                  className="mr-2"
+                                />
+                                {summaryCopied ? "Copied" : "Copy"}
+                              </Button>
+                            </motion.div>
+
+                            {/* Decorative only — the button already announces
+                                the state change through its label. */}
+                            <AnimatePresence>
+                              {summaryCopied &&
+                                !reduceCopyMotion &&
+                                COPY_SPARKS.map((spark, i) => (
+                                  <motion.span
+                                    key={i}
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute left-1/2 top-1/2 text-emerald-400"
+                                    initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+                                    animate={{
+                                      opacity: [0, 1, 1, 0],
+                                      scale: [0, 1.1, 0.9, 0.3],
+                                      x: spark.x,
+                                      y: spark.y,
+                                      rotate: 90,
+                                    }}
+                                    exit={{ opacity: 0, scale: 0 }}
+                                    transition={{
+                                      duration: 0.75,
+                                      delay: spark.delay,
+                                      ease: "easeOut",
+                                    }}
+                                  >
+                                    <Icon name="Sparkles" size={spark.size} />
+                                  </motion.span>
+                                ))}
+                            </AnimatePresence>
+                          </div>
+                        </div>
+
+                        {/* Tear line. The negative margins pull it out to the
+                            card's edges past the padding, so the two notches
+                            can sit ON the border and punch through it — a
+                            divider inset by the padding would leave the
+                            border running straight behind them. */}
+                        <div className="relative -mx-4 my-4 sm:-mx-6">
+                          <div className="border-t-2 border-dashed border-primary/25" />
+                          <span
+                            aria-hidden="true"
+                            className="absolute left-0 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-background"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className="absolute right-0 top-1/2 h-5 w-5 -translate-y-1/2 translate-x-1/2 rounded-full bg-background"
+                          />
+                        </div>
+
+                        {/* `whitespace-pre-wrap` keeps the line breaks that
+                            make the message readable in a chat window, and
+                            `select-all` lets a tap select the whole thing if
+                            someone would rather copy by hand. */}
+                        <pre className="select-all whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-foreground">
+{summaryMessage}
+                        </pre>
                       </div>
 
                       {/* Raw summary — the cards above are parsed out of this

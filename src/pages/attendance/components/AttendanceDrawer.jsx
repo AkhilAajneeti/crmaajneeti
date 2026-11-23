@@ -207,7 +207,11 @@ const AttendanceDrawer = ({
     startDate: "",
     endDate: "",
     duration: "",
-    durationInMinutes: 0,
+    // Empty, not 0. A numeric 0 renders as a literal "0" sitting in the box,
+    // and typing after it produced "04" because the caret lands to its right.
+    // The submit handlers already coerce with `Number(...) || null`, so an
+    // empty string reaches the API as null exactly like a 0 did.
+    durationInMinutes: "",
 
     // Leave Details
     leaveBalance: 0,
@@ -245,7 +249,7 @@ const AttendanceDrawer = ({
         startDate: account?.startDate || "",
         endDate: account?.endDate || account?.startDate,
         duration: account?.durationInMinutes || "",
-        durationInMinutes: account?.durationInMinutes || 0,
+        durationInMinutes: account?.durationInMinutes ?? "",
 
         // Leave Details
         leaveBalance: account?.leaveBalance || 0,
@@ -989,10 +993,15 @@ const AttendanceDrawer = ({
                   {formData.requestType === "Short Leave" && (
                     <Input
                       type="number"
+                      min="0"
                       label="Duration (Minutes)"
+                      placeholder="e.g. 30"
                       value={formData.durationInMinutes ?? ""}
+                      // Stored as the raw string. `Number("")` is 0, so
+                      // coercing here would put the 0 straight back the
+                      // moment the field is cleared.
                       onChange={(e) =>
-                        handleChange("durationInMinutes", Number(e.target.value))
+                        handleChange("durationInMinutes", e.target.value)
                       }
                     />
                   )}
@@ -1000,10 +1009,15 @@ const AttendanceDrawer = ({
                   {formData.requestType === "SLC" && (
                     <Input
                       type="number"
+                      min="0"
                       label="Duration (Minutes)"
+                      placeholder="e.g. 30"
                       value={formData.durationInMinutes ?? ""}
+                      // Stored as the raw string. `Number("")` is 0, so
+                      // coercing here would put the 0 straight back the
+                      // moment the field is cleared.
                       onChange={(e) =>
-                        handleChange("durationInMinutes", Number(e.target.value))
+                        handleChange("durationInMinutes", e.target.value)
                       }
                     />
                   )}
@@ -1315,9 +1329,11 @@ const AttendanceDrawer = ({
                               name="durationInMinutes"
                               label="Duration (Minutes)"
                               type="number"
+                              min="0"
+                              placeholder="e.g. 30"
                               value={formData.durationInMinutes ?? ""}
                               onChange={(e) =>
-                                handleChange("durationInMinutes", Number(e.target.value))
+                                handleChange("durationInMinutes", e.target.value)
                               }
                             />
                           ) : (
@@ -1475,11 +1491,10 @@ const AttendanceDrawer = ({
                               <div className="min-w-0">
                                 <p className={CELL_LABEL}>Leave Balance</p>
                                 <p
-                                  className={`${CELL_VALUE} ${
-                                    Number(account?.leaveBalance) < 0
+                                  className={`${CELL_VALUE} ${Number(account?.leaveBalance) < 0
                                       ? "text-rose-600"
                                       : ""
-                                  }`}
+                                    }`}
                                 >
                                   {formatLeaveBalance(account?.leaveBalance)}
                                 </p>
