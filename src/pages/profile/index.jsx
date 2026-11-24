@@ -194,52 +194,52 @@ const Profile = () => {
     <tr className="animate-pulse border-t border-border">
       {/* Checkbox */}
       <td className="p-4">
-        <div className="h-4 w-4 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-4 bg-muted rounded"></div>
       </td>
 
       {/* Company */}
       <td className="p-4">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gray-300/60 rounded-lg"></div>
+          <div className="w-8 h-8 bg-muted rounded-lg"></div>
           <div>
-            <div className="h-4 w-24 bg-gray-300/70 rounded mb-1"></div>
-            <div className="h-3 w-32 bg-gray-300/50 rounded"></div>
+            <div className="h-4 w-24 bg-muted rounded mb-1"></div>
+            <div className="h-3 w-32 bg-muted rounded"></div>
           </div>
         </div>
       </td>
 
       {/* Industry */}
       <td className="p-4">
-        <div className="h-4 w-20 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-20 bg-muted rounded"></div>
       </td>
 
       {/* Type */}
       <td className="p-4">
-        <div className="h-4 w-16 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-16 bg-muted rounded"></div>
       </td>
 
       {/* status */}
       <td className="p-4">
-        <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-24 bg-muted rounded"></div>
       </td>
       {/* Next Contact */}
       <td className="p-4">
-        <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-24 bg-muted rounded"></div>
       </td>
       {/* Created At */}
       <td className="p-4">
-        <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-24 bg-muted rounded"></div>
       </td>
       {/* Assign User */}
       <td className="p-4">
-        <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-24 bg-muted rounded"></div>
       </td>
 
       {/* Actions */}
       <td className="p-4">
         <div className="flex space-x-2">
-          <div className="h-8 w-8 bg-gray-300/60 rounded"></div>
-          <div className="h-8 w-8 bg-gray-300/60 rounded"></div>
+          <div className="h-8 w-8 bg-muted rounded"></div>
+          <div className="h-8 w-8 bg-muted rounded"></div>
         </div>
       </td>
     </tr>
@@ -490,11 +490,11 @@ const Profile = () => {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="p-4 flex items-start gap-3 animate-pulse">
-                    <div className="w-11 h-11 rounded-full bg-gray-300/60 flex-shrink-0" />
+                    <div className="w-11 h-11 rounded-full bg-muted flex-shrink-0" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-4 w-32 bg-gray-300/70 rounded" />
-                      <div className="h-3 w-24 bg-gray-300/50 rounded" />
-                      <div className="h-3 w-40 bg-gray-300/50 rounded" />
+                      <div className="h-4 w-32 bg-muted rounded" />
+                      <div className="h-3 w-24 bg-muted rounded" />
+                      <div className="h-3 w-40 bg-muted rounded" />
                     </div>
                   </div>
                 ))
@@ -514,9 +514,9 @@ const Profile = () => {
                     type="button"
                     key={deal?.id}
                     onClick={() => onDealClick(deal)}
-                    className="w-full text-left p-4 bg-gradient-to-br from-indigo-50/70 via-transparent to-background hover:from-primary/[0.04] hover:to-primary/[0.08] transition-colors border-indigo-200"
+                    className="w-full text-left p-4 bg-gradient-to-br from-indigo-50/70 via-transparent to-background hover:from-primary/[0.04] hover:to-primary/[0.08] transition-colors dark:from-indigo-500/10"
                   >
-                    <div className="flex items-start gap-3 ">
+                    <div className="flex items-center gap-3">
                       <div
                         className={`w-11 h-11 flex-shrink-0 rounded-full bg-gradient-to-br ${avatarColor(deal?.name)} flex items-center justify-center text-white font-semibold shadow-md`}
                       >
@@ -524,41 +524,45 @@ const Profile = () => {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-semibold text-foreground truncate">
-                            {deal?.name || "—"}
-                          </h3>
+                        {/* The name gets the row to itself. The emp-code chip
+                            used to sit beside it and, on a ~340px card, left
+                            roughly half the width for a full name — it is a
+                            reference number, so it belongs with the other
+                            metadata below. */}
+                        <h3 className="truncate font-semibold text-foreground">
+                          {deal?.name || "—"}
+                        </h3>
+
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                          {deal?.department && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground">
+                              <Icon name="Briefcase" size={10} />
+                              {deal.department}
+                            </span>
+                          )}
                           {deal?.empCode && (
-                            <span className="flex-shrink-0 inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">
+                            <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
                               {deal.empCode}
                             </span>
                           )}
                         </div>
 
-                        {deal?.department && (
-                          <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1 truncate">
-                            <Icon name="Briefcase" size={11} className="flex-shrink-0" />
-                            {deal.department}
-                          </p>
-                        )}
-
                         {deal?.email && (
-                          <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1 truncate">
+                          <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
                             <Icon name="Mail" size={11} className="flex-shrink-0" />
                             <span className="truncate">{deal.email}</span>
                           </p>
                         )}
 
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-2">
-                          <Icon name="Clock" size={11} />
+                        <p className="mt-1 text-[11px] text-muted-foreground/80">
                           Modified {formatDate(deal?.modifiedAt)}
-                        </div>
+                        </p>
                       </div>
 
                       <Icon
                         name="ChevronRight"
                         size={16}
-                        className="text-muted-foreground/60 self-center flex-shrink-0"
+                        className="flex-shrink-0 self-center text-muted-foreground/60"
                       />
                     </div>
                   </button>

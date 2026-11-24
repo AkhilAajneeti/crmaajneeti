@@ -215,21 +215,21 @@ const Activities = () => {
   const ActivitySkeleton = () => (
     <div className="flex items-start space-x-4 animate-pulse">
       {/* Checkbox */}
-      <div className="h-4 w-4 bg-gray-300/60 rounded mt-6"></div>
+      <div className="h-4 w-4 bg-muted rounded mt-6"></div>
 
       {/* Content */}
       <div className="flex-1 space-y-3">
         {/* Title */}
-        <div className="h-4 w-48 bg-gray-300/70 rounded"></div>
+        <div className="h-4 w-48 bg-muted rounded"></div>
 
         {/* Subtitle */}
-        <div className="h-3 w-32 bg-gray-300/50 rounded"></div>
+        <div className="h-3 w-32 bg-muted rounded"></div>
 
         {/* Description */}
-        <div className="h-3 w-full bg-gray-300/40 rounded"></div>
+        <div className="h-3 w-full bg-muted rounded"></div>
 
         {/* Meta (date/user) */}
-        <div className="h-3 w-24 bg-gray-300/40 rounded"></div>
+        <div className="h-3 w-24 bg-muted rounded"></div>
       </div>
     </div>
   );

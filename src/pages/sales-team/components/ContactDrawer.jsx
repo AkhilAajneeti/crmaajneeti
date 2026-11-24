@@ -386,7 +386,7 @@ const ContactDrawer = ({
 
     "Call Later": "bg-yellow-100 text-yellow-700",
 
-    "Switch Off": "bg-gray-300 text-gray-800",
+    "Switch Off": "bg-muted text-gray-800",
 
     "Invalid Number": "bg-rose-100 text-rose-700",
 

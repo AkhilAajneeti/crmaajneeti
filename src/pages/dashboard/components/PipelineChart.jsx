@@ -296,7 +296,7 @@ const PipelineChart = ({ leads = [] }) => {
 
           // 🔥 Skeleton UI
           <div className="w-full h-full flex items-end justify-between px-2 sm:px-4 pb-4 relative">
-            <div className="absolute bottom-4 left-0 right-0 h-[1px] bg-gray-300/60" />
+            <div className="absolute bottom-4 left-0 right-0 h-[1px] bg-muted" />
 
             {Array.from({ length: skeletonCount }).map((_, i) => {
               const heights = [180, 160, 190, 170, 100, 150, 0, 180, 30, 0, 200, 80];
@@ -305,7 +305,7 @@ const PipelineChart = ({ leads = [] }) => {
                 <div key={i} className="flex flex-col items-center justify-end flex-1 gap-2">
 
                   <motion.div
-                    className="w-3 sm:w-5 md:w-6 rounded-md bg-gray-300/60 relative overflow-hidden"
+                    className="w-3 sm:w-5 md:w-6 rounded-md bg-muted relative overflow-hidden"
                     style={{ height: `${heights[i] || 40}px` }}
                   >
                     <motion.div
@@ -319,7 +319,7 @@ const PipelineChart = ({ leads = [] }) => {
                     />
                   </motion.div>
 
-                  <div className="h-2 w-4 sm:w-6 bg-gray-300/60 rounded animate-pulse" />
+                  <div className="h-2 w-4 sm:w-6 bg-muted rounded animate-pulse" />
                 </div>
               );
             })}

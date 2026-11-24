@@ -174,52 +174,52 @@ const DealsTable = ({
     <tr className="animate-pulse border-t border-border">
       {/* Checkbox */}
       <td className="p-4">
-        <div className="h-4 w-4 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-4 bg-muted rounded"></div>
       </td>
 
       {/* Company */}
       <td className="p-4">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gray-300/60 rounded-lg"></div>
+          <div className="w-8 h-8 bg-muted rounded-lg"></div>
           <div>
-            <div className="h-4 w-24 bg-gray-300/70 rounded mb-1"></div>
-            <div className="h-3 w-32 bg-gray-300/50 rounded"></div>
+            <div className="h-4 w-24 bg-muted rounded mb-1"></div>
+            <div className="h-3 w-32 bg-muted rounded"></div>
           </div>
         </div>
       </td>
 
       {/* Industry */}
       <td className="p-4">
-        <div className="h-4 w-20 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-20 bg-muted rounded"></div>
       </td>
 
       {/* Type */}
       <td className="p-4">
-        <div className="h-4 w-16 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-16 bg-muted rounded"></div>
       </td>
 
       {/* status */}
       <td className="p-4">
-        <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-24 bg-muted rounded"></div>
       </td>
       {/* Next Contact */}
       <td className="p-4">
-        <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-24 bg-muted rounded"></div>
       </td>
       {/* Created At */}
       <td className="p-4">
-        <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-24 bg-muted rounded"></div>
       </td>
       {/* Assign User */}
       <td className="p-4">
-        <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-24 bg-muted rounded"></div>
       </td>
 
       {/* Actions */}
       <td className="p-4">
         <div className="flex space-x-2">
-          <div className="h-8 w-8 bg-gray-300/60 rounded"></div>
-          <div className="h-8 w-8 bg-gray-300/60 rounded"></div>
+          <div className="h-8 w-8 bg-muted rounded"></div>
+          <div className="h-8 w-8 bg-muted rounded"></div>
         </div>
       </td>
     </tr>

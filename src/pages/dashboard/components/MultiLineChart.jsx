@@ -394,7 +394,7 @@ const MultiLineChart = ({ leads = [] }) => {
                         {/* Horizontal line */}
                         {i !== heights.length - 1 && (
                           <motion.div
-                            className="flex-1 h-[2px] bg-gray-300/60"
+                            className="flex-1 h-[2px] bg-muted"
                             style={{
                               transform: `translateY(-${h}px)`
                             }}
@@ -429,12 +429,12 @@ const MultiLineChart = ({ leads = [] }) => {
               {/* X labels */}
               <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2">
                 {Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="h-3 w-6 bg-gray-300/60 rounded animate-pulse" />
+                  <div key={i} className="h-3 w-6 bg-muted rounded animate-pulse" />
                 ))}
               </div>
 
               {/* Axis line */}
-              <div className="absolute bottom-6 left-0 right-0 h-[1px] bg-gray-300/50" />
+              <div className="absolute bottom-6 left-0 right-0 h-[1px] bg-muted" />
             </div>
           ) : hasNoData ? (
             /* An empty grid with a 0-4 axis reads as "broken", not as "no

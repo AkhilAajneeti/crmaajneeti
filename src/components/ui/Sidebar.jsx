@@ -286,7 +286,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                             <div className={`ml-6 mt-2 relative ${hideWhenCollapsed}`}>
 
                               {/* Vertical line */}
-                              <div className="absolute left-3 top-0 bottom-0 w-px bg-gray-300"></div>
+                              <div className="absolute left-3 top-0 bottom-0 w-px bg-muted"></div>
 
                               <div className="space-y-3">
                                 {item.children.map((child) => {

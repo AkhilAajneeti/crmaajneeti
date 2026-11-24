@@ -112,11 +112,11 @@ const AccountsTable = ({
   const getTypeColor = (type) => {
     switch (type) {
       case "CPL":
-        return "bg-blue-100 text-blue-700 ring-1 ring-blue-200";
+        return "bg-blue-100 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/30";
       case "Retainer":
-        return "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200";
+        return "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-500/30";
       case "Hybrid":
-        return "bg-violet-100 text-violet-700 ring-1 ring-violet-200";
+        return "bg-violet-100 text-violet-700 ring-1 ring-violet-200 dark:bg-violet-500/15 dark:text-violet-300 dark:ring-violet-500/30";
       default:
         return "bg-muted text-foreground ring-1 ring-border";
     }
@@ -214,11 +214,11 @@ const AccountsTable = ({
   const getStageGradient = (stage) => {
     const gradients = {
       // ─── Positive / forward motion ────────────────────────────────
-      "cpl": "bg-gradient-to-br from-blue-50/70 to-background border-blue-100",
+      "cpl": "bg-gradient-to-br from-blue-50/70 to-background border-blue-100 dark:from-blue-500/10 dark:border-blue-500/20",
       "retainer":
-        "bg-gradient-to-br from-emerald-50/70 to-background border-emerald-100",
+        "bg-gradient-to-br from-emerald-50/70 to-background border-emerald-100 dark:from-emerald-500/10 dark:border-emerald-500/20",
       "hybrid":
-        "bg-gradient-to-br from-violet-50/70 to-background border-violet-100",
+        "bg-gradient-to-br from-violet-50/70 to-background border-violet-100 dark:from-violet-500/10 dark:border-violet-500/20",
     };
 
     return (
@@ -247,40 +247,40 @@ const AccountsTable = ({
     <tr className="animate-pulse border-t border-border">
       {/* Checkbox */}
       <td className="p-4">
-        <div className="h-4 w-4 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-4 bg-muted rounded"></div>
       </td>
 
       {/* Company */}
       <td className="p-4">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gray-300/60 rounded-lg"></div>
+          <div className="w-8 h-8 bg-muted rounded-lg"></div>
           <div>
-            <div className="h-4 w-24 bg-gray-300/70 rounded mb-1"></div>
-            <div className="h-3 w-32 bg-gray-300/50 rounded"></div>
+            <div className="h-4 w-24 bg-muted rounded mb-1"></div>
+            <div className="h-3 w-32 bg-muted rounded"></div>
           </div>
         </div>
       </td>
 
       {/* Industry */}
       <td className="p-4">
-        <div className="h-4 w-20 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-20 bg-muted rounded"></div>
       </td>
 
       {/* Type */}
       <td className="p-4">
-        <div className="h-4 w-16 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-16 bg-muted rounded"></div>
       </td>
 
       {/* Last Activity */}
       <td className="p-4">
-        <div className="h-4 w-24 bg-gray-300/60 rounded"></div>
+        <div className="h-4 w-24 bg-muted rounded"></div>
       </td>
 
       {/* Actions */}
       <td className="p-4">
         <div className="flex space-x-2">
-          <div className="h-8 w-8 bg-gray-300/60 rounded"></div>
-          <div className="h-8 w-8 bg-gray-300/60 rounded"></div>
+          <div className="h-8 w-8 bg-muted rounded"></div>
+          <div className="h-8 w-8 bg-muted rounded"></div>
         </div>
       </td>
     </tr>
@@ -513,58 +513,65 @@ const AccountsTable = ({
     transition-all duration-200
   `}
           >
-            {/* Top Row */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start gap-5">
-                <Checkbox
-                  checked={selectedRows?.has(account?.id)}
-                  onChange={(e) =>
-                    handleSelectRow(account?.id, e?.target?.checked)
-                  }
-                  onClick={(e) => e.stopPropagation()}
-                />
+            {/* One row for identity, one for the facts. The old card spent
+                three rows on a name prefixed with "Account Name:", a gap-5
+                indent that forced the name to wrap, and two chips floated on
+                their own line — tall and mostly empty. */}
+            <div className="flex items-start gap-3">
+              <Checkbox
+                checked={selectedRows?.has(account?.id)}
+                onChange={(e) =>
+                  handleSelectRow(account?.id, e?.target?.checked)
+                }
+                onClick={(e) => e.stopPropagation()}
+                className="mt-0.5 shrink-0"
+              />
 
-                <div onClick={() => onRowClick(account.id)}>
-                  {/* Account Name */}
-                  <h4 className="font-semibold text-foreground leading-tight">
-                    Account Name:{account?.name}
-                  </h4>
+              <div
+                className="min-w-0 flex-1"
+                onClick={() => onRowClick(account.id)}
+              >
+                {/* The "Account Name:" prefix is removed — the column it came
+                    from is not visible on a card, and it pushed every name on
+                    to a second line. */}
+                <h4 className="truncate font-semibold leading-tight text-foreground">
+                  {account?.name}
+                </h4>
 
-                  {/* Created By */}
-                  {account?.createdByName && (
-                    <div className="mt-1.5">
-                      <UserPill name={account?.createdByName} />
-                    </div>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  {account?.type && (
+                    <span
+                      className={`px-2 py-0.5 text-[11px] font-medium rounded-full ${getTypeColor(
+                        account?.type
+                      )}`}
+                    >
+                      {account?.type}
+                    </span>
+                  )}
+                  {account?.createdAt && (
+                    <span className="text-[11px] text-muted-foreground">
+                      {formatDate(account?.createdAt)}
+                    </span>
                   )}
                 </div>
+
+                {account?.createdByName && (
+                  <div className="mt-2">
+                    <UserPill name={account?.createdByName} />
+                  </div>
+                )}
               </div>
 
               {canEdit && (
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="shrink-0"
                   onClick={() => onRowClick(account.id, "edit")}
+                  aria-label={`Edit ${account?.name}`}
                 >
                   <Icon name="Edit" size={16} />
                 </Button>
-              )}
-            </div>
-
-            {/* Meta Info */}
-            <div className="flex flex-wrap items-center gap-3 ms-4 mt-3">
-              {account?.createdAt && (
-                <p className="px-2 py-0.5 text-xs rounded-md bg-muted text-foreground">
-                  {formatDate(account?.createdAt)}
-                </p>
-              )}
-              {account?.type && (
-                <span
-                  className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${getTypeColor(
-                    account?.type
-                  )}`}
-                >
-                  {account?.type}
-                </span>
               )}
             </div>
           </div>
