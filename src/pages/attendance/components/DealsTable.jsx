@@ -93,15 +93,15 @@ const formatDuration = (deal) =>
 const getRequestTypeColor = (type) => {
   switch (type) {
     case "Leave":
-      return "bg-blue-100 text-blue-700";
+      return "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300";
     case "Half Day":
-      return "bg-purple-100 text-purple-700";
+      return "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300";
     case "Short Leave":
-      return "bg-amber-100 text-amber-700";
+      return "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300";
     case "SLC":
-      return "bg-emerald-100 text-emerald-700";
+      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300";
     default:
-      return "bg-gray-100 text-gray-700";
+      return "bg-gray-100 text-gray-700 dark:bg-slate-500/15 dark:text-slate-300";
   }
 };
 
@@ -171,24 +171,30 @@ const DealsTable = ({
 
   const getStageColor = (stage) => {
     const colors = {
-      Approved: "bg-green-100 text-green-900",
-      Pending: "bg-sky-100 text-sky-800",
-      Rejected: "bg-orange-100 text-orange-800",
-      LWP: "bg-purple-100 text-purple-800",
+      Approved:
+        "bg-green-100 text-green-900 dark:bg-green-500/15 dark:text-green-300",
+      Pending: "bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300",
+      Rejected:
+        "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300",
+      LWP: "bg-purple-100 text-purple-800 dark:bg-purple-500/15 dark:text-purple-300",
     };
 
-    return colors?.[stage] || "bg-gray-100 text-gray-800";
+    return (
+      colors?.[stage] ||
+      "bg-gray-100 text-gray-800 dark:bg-slate-500/15 dark:text-slate-300"
+    );
   };
 
   // Subtle card background/border tint per attendance status (mobile cards)
   const getStatusGradient = (status) => {
     const gradients = {
       Approved:
-        "bg-gradient-to-br from-green-50/70 to-background border-green-100",
-      Pending: "bg-gradient-to-br from-sky-50/70 to-background border-sky-100",
+        "bg-gradient-to-br from-green-50/70 to-background border-green-100 dark:from-green-500/10 dark:border-green-500/20",
+      Pending:
+        "bg-gradient-to-br from-sky-50/70 to-background border-sky-100 dark:from-sky-500/10 dark:border-sky-500/20",
       Rejected:
-        "bg-gradient-to-br from-orange-50/70 to-background border-orange-100",
-      LWP: "bg-gradient-to-br from-purple-50/70 to-background border-purple-100",
+        "bg-gradient-to-br from-orange-50/70 to-background border-orange-100 dark:from-orange-500/10 dark:border-orange-500/20",
+      LWP: "bg-gradient-to-br from-purple-50/70 to-background border-purple-100 dark:from-purple-500/10 dark:border-purple-500/20",
     };
 
     return (
@@ -511,20 +517,18 @@ const DealsTable = ({
               {/* Content */}
               <div className="flex-1 min-w-0">
                 {/* Top Row */}
+                {/* The reason is the only thing that identifies a request,
+                    and it was sharing one line with the status chip and the
+                    ⋮ button — "Request for 2 Hours Short Leave" truncated to
+                    "Request for 2 Hours S...". It now gets the row, wrapping
+                    to two lines, and the status moves down with the other
+                    facts. */}
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-foreground truncate">
+                  <h3 className="line-clamp-2 font-semibold leading-snug text-foreground">
                     {deal?.name}
                   </h3>
 
                   <div className="flex items-center gap-1 shrink-0">
-                    <span
-                      className={`px-2 py-0.5 text-xs rounded-full ${getStageColor(
-                        deal?.status,
-                      )}`}
-                    >
-                      {deal?.status}
-                    </span>
-
                     {/* ⋮ actions */}
                     <button
                       type="button"
@@ -543,6 +547,36 @@ const DealsTable = ({
                       <Icon name="MoreVertical" size={18} />
                     </button>
                   </div>
+                </div>
+
+                {/* Status, type and duration together — the type and the
+                    duration were only in the desktop table, so a card could
+                    not tell a 2-hour short leave from a full day off. */}
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span
+                    className={`px-2 py-0.5 text-[11px] font-medium rounded-full ${getStageColor(
+                      deal?.status,
+                    )}`}
+                  >
+                    {deal?.status}
+                  </span>
+
+                  {deal?.requestType && (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getRequestTypeColor(
+                        deal.requestType,
+                      )}`}
+                    >
+                      {deal.requestType}
+                    </span>
+                  )}
+
+                  {formatDuration(deal) && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground">
+                      <Icon name="Clock" size={10} />
+                      {formatDuration(deal)}
+                    </span>
+                  )}
                 </div>
 
                 {/* Project Name */}
