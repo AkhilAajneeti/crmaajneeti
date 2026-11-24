@@ -159,7 +159,7 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
                   className="bell-swing text-foreground"
                 />
                 {count > 0 && (
-                  <span className="badge-pop absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">
+                  <span className="badge-pop absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-background">
                     {count}
                   </span>
                 )}
@@ -201,10 +201,10 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
                   />
 
                   {/* Dropdown Card */}
-                  <div className="shine-border absolute right-0 mt-3 w-72 rounded-xl border border-neutral-200/70 bg-white/90 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 overflow-hidden">
+                  <div className="shine-border absolute right-0 mt-3 w-72 rounded-xl border border-border bg-popover/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.18)] z-50 overflow-hidden">
 
                     {/* Profile Section */}
-                    <div className="px-5 py-4 border-b border-neutral-200/60">
+                    <div className="px-5 py-4 border-b border-border">
                       <div className="flex items-center gap-3">
 
                         {/* Avatar */}
@@ -216,10 +216,10 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
 
                         {/* User Info */}
                         <div className="leading-tight">
-                          <p className="text-sm font-semibold text-gray-900">
+                          <p className="text-sm font-semibold text-foreground">
                             {LogInuser.username}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-muted-foreground">
                             Aajneeti Connect Ltd
                           </p>
                         </div>
@@ -232,12 +232,12 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
                       {/* Profile Button */}
                       <button
                         onClick={handleProfileClick}
-                        className="group flex items-center w-full px-5 py-2.5 text-sm text-gray-700 hover:bg-gray-100/70 transition-all duration-200"
+                        className="group flex items-center w-full px-5 py-2.5 text-sm text-foreground hover:bg-muted transition-all duration-200"
                       >
                         <Icon
                           name="User"
                           size={16}
-                          className="mr-3 text-gray-500 group-hover:text-indigo-600 transition"
+                          className="mr-3 text-muted-foreground group-hover:text-primary transition"
                         />
                         <span className="group-hover:translate-x-0.5 transition">
                           Profile Settings
@@ -245,17 +245,17 @@ const Header = ({ onMenuToggle, isSidebarOpen = false }) => {
                       </button>
 
                       {/* Divider */}
-                      <div className="my-2 border-t border-neutral-200/60" />
+                      <div className="my-2 border-t border-border" />
 
                       {/* Logout Button */}
                       <button
                         onClick={handleLogout}
-                        className="group flex items-center w-full px-5 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-all duration-200"
+                        className="group flex items-center w-full px-5 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-all duration-200"
                       >
                         <Icon
                           name="LogOut"
                           size={16}
-                          className="mr-3 text-red-500 group-hover:scale-110 transition"
+                          className="mr-3 text-destructive group-hover:scale-110 transition"
                         />
                         <span className="group-hover:translate-x-0.5 transition">
                           Sign Out
