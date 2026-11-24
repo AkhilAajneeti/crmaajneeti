@@ -251,11 +251,17 @@ const NotificationDropdown = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 0.95 }}
           transition={{ duration: 0.25 }}
-          // `w-96` is a fixed 384px — wider than a 375px phone — so anchored
-          // to the bell at `right-0` the panel ran off the left edge. It now
-          // takes the viewport width minus a gutter on small screens, and
-          // goes back to its fixed width from `sm` up.
-          className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-[22rem] sm:w-96 sm:max-w-none bg-popover text-popover-foreground shadow-2xl rounded-2xl z-50 border border-border overflow-hidden"
+          // Narrowing it was not enough: anchored to the BELL at `right-0`,
+          // the panel's right edge lands where the bell ends — roughly 90px
+          // in from the viewport, because the avatar and chevron sit to its
+          // right. Any panel wider than the remaining space still runs off
+          // the left edge.
+          //
+          // On a phone it therefore leaves the bell's coordinate space
+          // entirely: `fixed` with a gutter on both sides, so it is centred
+          // on the viewport rather than hung off a button. From `sm` up it
+          // goes back to being anchored under the bell.
+          className="fixed inset-x-3 top-[4.5rem] w-auto sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-96 bg-popover text-popover-foreground shadow-2xl rounded-2xl z-50 border border-border overflow-hidden"
         >
           <audio ref={audioRef} src="/notification.mp3" preload="auto" />
           {/* Header */}
