@@ -122,36 +122,6 @@ const DealsTable = ({
   canDelete = true,
 }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
-  // Mobile "⋮" action menu: { deal, top, right } positioned in viewport
-  // coordinates so it is never clipped by the card's overflow.
-  const [actionMenu, setActionMenu] = useState(null);
-
-  const openActionMenu = (e, deal, itemCount) => {
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const menuHeight = itemCount * 44 + 12;
-    const openUpward = rect.bottom + menuHeight > window.innerHeight - 12;
-
-    setActionMenu({
-      deal,
-      top: openUpward ? rect.top - menuHeight - 6 : rect.bottom + 6,
-      right: Math.max(8, window.innerWidth - rect.right),
-    });
-  };
-
-  const runAction = (action) => {
-    const deal = actionMenu?.deal;
-    setActionMenu(null);
-    if (deal && typeof action === "function") action(deal);
-  };
-
-  // Let the ACL decide on its own. It already resolves the grant level:
-  //   own  -> record.assignedUserId === current user
-  //   team -> own, or the record shares one of the user's teams
-  //   all  -> every record
-  // The previous version ANDed in a hardcoded assignedUserId check, which
-  // forced "own" behaviour on everyone and silently downgraded an "all"
-  // grant (HR) or a "team" grant to owner-only.
   const canEditDeal = (deal) => canEditRecord("CAttendanceRequest", deal);
 
   const canDeleteDeal = (deal) =>
@@ -528,24 +498,54 @@ const DealsTable = ({
                     {deal?.name}
                   </h3>
 
-                  <div className="flex items-center gap-1 shrink-0">
-                    {/* ⋮ actions */}
-                    <button
-                      type="button"
-                      aria-label="Open actions"
-                      onClick={(e) =>
-                        openActionMenu(
-                          e,
-                          deal,
-                          1 +
-                            (canEditDeal(deal) ? 1 : 0) +
-                            (canDeleteDeal(deal) ? 1 : 0),
-                        )
-                      }
-                      className="-mr-1 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors active:bg-foreground/10 hover:bg-foreground/5"
-                    >
-                      <Icon name="MoreVertical" size={18} />
-                    </button>
+                  {/* The same icons the desktop row shows, for the same
+                      reason: a single ⋮ looked identical on every card, so
+                      there was no way to tell which requests you can edit
+                      without opening the menu on each one. Pencil means
+                      editable, eye means read-only — at a glance. */}
+                  <div
+                    className="flex items-center gap-0.5 shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {canEditDeal(deal) ? (
+                      <button
+                        type="button"
+                        aria-label={`Edit ${deal?.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(deal);
+                        }}
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 active:bg-foreground/10"
+                      >
+                        <Icon name="Pencil" size={16} />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        aria-label={`View ${deal?.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDealClick(deal);
+                        }}
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 active:bg-foreground/10"
+                      >
+                        <Icon name="Eye" size={16} />
+                      </button>
+                    )}
+
+                    {canDeleteDeal(deal) && (
+                      <button
+                        type="button"
+                        aria-label={`Delete ${deal?.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(deal);
+                        }}
+                        className="-mr-1 flex h-8 w-8 items-center justify-center rounded-full text-destructive transition-colors hover:bg-destructive/10 active:bg-destructive/20"
+                      >
+                        <Icon name="Trash2" size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -605,64 +605,6 @@ const DealsTable = ({
           </div>
         ))}
 
-        {/* Action menu for the tapped card */}
-        {actionMenu && (
-          <>
-            {/* Tap-away backdrop */}
-            <div
-              className="fixed inset-0 z-40"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActionMenu(null);
-              }}
-            />
-
-            <div
-              role="menu"
-              onClick={(e) => e.stopPropagation()}
-              style={{ top: actionMenu.top, right: actionMenu.right }}
-              className="fixed z-50 w-40 overflow-hidden rounded-xl border border-border bg-popover py-1.5 shadow-lg"
-            >
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => runAction(onDealClick)}
-                className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-sm text-foreground transition-colors active:bg-muted hover:bg-muted"
-              >
-                <Icon name="Eye" size={16} className="text-muted-foreground" />
-                View
-              </button>
-
-              {canEditDeal(actionMenu.deal) && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => runAction(onEdit)}
-                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-sm text-foreground transition-colors active:bg-muted hover:bg-muted"
-                >
-                  <Icon
-                    name="Pencil"
-                    size={16}
-                    className="text-muted-foreground"
-                  />
-                  Edit
-                </button>
-              )}
-
-              {canDeleteDeal(actionMenu.deal) && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => runAction(onDelete)}
-                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-sm text-destructive transition-colors active:bg-red-50 hover:bg-red-50"
-                >
-                  <Icon name="Trash2" size={16} />
-                  Delete
-                </button>
-              )}
-            </div>
-          </>
-        )}
       </div>
     </div>
   );

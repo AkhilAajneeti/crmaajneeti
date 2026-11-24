@@ -1688,30 +1688,33 @@ const AccountDrawer = ({
 
                       {/* Content */}
                       <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <h4 className="font-medium text-foreground">
+                        {/* Same collision as the attendance stream: nothing
+                            could shrink, so a wrapped name pushed the date on
+                            top of the type label. */}
+                        <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <h4 className="truncate font-medium text-foreground">
                               {item.createdByName || "System"}
                             </h4>
 
                             <Icon
                               name={getStreamIcon(item.type)}
                               size={14}
-                              className={getStreamIconColor(item.type)}
+                              className={`shrink-0 ${getStreamIconColor(item.type)}`}
                             />
 
-                            <span className="text-xs text-muted-foreground">
+                            <span className="shrink-0 text-xs text-muted-foreground">
                               {item.type}
                             </span>
                           </div>
 
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs text-muted-foreground">
+                          <div className="flex shrink-0 items-center gap-1">
+                            <span className="whitespace-nowrap text-xs text-muted-foreground">
                               {formatDateTime(item.createdAt)}
                             </span>
 
-                            {/* Actions (hover only) */}
-                            <div className="opacity-0 group-hover:opacity-100 transition">
+                            {/* Hover-only controls are unreachable on touch. */}
+                            <div className="transition sm:opacity-0 sm:group-hover:opacity-100">
                               <Button
                                 variant="ghost"
                                 size="icon"
