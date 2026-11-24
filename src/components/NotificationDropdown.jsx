@@ -251,12 +251,16 @@ const NotificationDropdown = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 0.95 }}
           transition={{ duration: 0.25 }}
-          className="absolute right-0 mt-2 w-96 bg-white shadow-2xl rounded-2xl z-50 border overflow-hidden"
+          // `w-96` is a fixed 384px — wider than a 375px phone — so anchored
+          // to the bell at `right-0` the panel ran off the left edge. It now
+          // takes the viewport width minus a gutter on small screens, and
+          // goes back to its fixed width from `sm` up.
+          className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-[22rem] sm:w-96 sm:max-w-none bg-popover text-popover-foreground shadow-2xl rounded-2xl z-50 border border-border overflow-hidden"
         >
           <audio ref={audioRef} src="/notification.mp3" preload="auto" />
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b">
-            <h3 className="font-semibold text-gray-800">Notifications</h3>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <h3 className="font-semibold text-foreground">Notifications</h3>
 
             <div className="flex items-center gap-2 text-xs">
               <button
@@ -264,7 +268,7 @@ const NotificationDropdown = () => {
                   setActiveTab("all");
                   setCurrentPage(1);
                 }}
-                className={`px-2 py-1 rounded-full ${activeTab === "all" ? "bg-gray-100" : "text-gray-500"}`}
+                className={`px-2 py-1 rounded-full ${activeTab === "all" ? "bg-muted text-foreground" : "text-muted-foreground"}`}
               >
                 All
               </button>
@@ -273,14 +277,14 @@ const NotificationDropdown = () => {
                   setActiveTab("unread");
                   setCurrentPage(1);
                 }}
-                className={`px-2 py-1 rounded-full ${activeTab === "unread" ? "bg-gray-100" : "text-gray-500"}`}
+                className={`px-2 py-1 rounded-full ${activeTab === "unread" ? "bg-muted text-foreground" : "text-muted-foreground"}`}
               >
                 Unread
               </button>
               <button
                 onClick={handleMarkAll}
                 disabled={notifications.every((n) => n.read)}
-                className="px-2 py-1 rounded-full text-blue-600 hover:bg-blue-50 disabled:text-gray-300 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                className="px-2 py-1 rounded-full text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/15 disabled:text-muted-foreground/40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
               >
                 Mark all
               </button>
@@ -291,7 +295,7 @@ const NotificationDropdown = () => {
             {filterNotification.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <div className="text-3xl mb-2">🔔</div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   {activeTab === "unread"
                     ? "You're all caught up 🎉"
                     : "No notifications yet"}
@@ -316,15 +320,15 @@ const NotificationDropdown = () => {
                         handleOpen(item);
                       }
                     }}
-                    className={`group flex gap-3 px-4 py-3 border-b ${
+                    className={`group flex gap-3 px-4 py-3 border-b border-border ${
                       item.canOpen
-                        ? "cursor-pointer hover:bg-gray-50"
+                        ? "cursor-pointer hover:bg-muted"
                         : "cursor-default"
-                    } ${isUnread ? "bg-gray-50" : ""}`}
+                    } ${isUnread ? "bg-muted/60" : ""}`}
                   >
                     {/* Avatar — the person who acted */}
                     <div className="relative shrink-0">
-                      <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-700">
+                      <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-foreground">
                         {item.actor?.[0]?.toUpperCase()}
                       </div>
                     </div>
@@ -334,14 +338,14 @@ const NotificationDropdown = () => {
                       {/* One readable sentence:
                           "Sushil Kumar Singh created attendance request
                            Woke up late this morning assigned to you" */}
-                      <p className="text-sm leading-5 text-gray-700">
-                        <span className="font-semibold text-gray-900">
+                      <p className="text-sm leading-5 text-muted-foreground">
+                        <span className="font-semibold text-foreground">
                           {item.actor}
                         </span>{" "}
                         {item.action}
                         {item.entityLabel ? ` ${item.entityLabel}` : ""}{" "}
                         {item.title && (
-                          <span className="font-semibold text-gray-900">
+                          <span className="font-semibold text-foreground">
                             {item.title}
                           </span>
                         )}
@@ -349,7 +353,7 @@ const NotificationDropdown = () => {
                           <>
                             {" "}
                             {item.assignedPrefix}{" "}
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium text-foreground">
                               {item.assignedTo}
                             </span>
                           </>
@@ -364,15 +368,15 @@ const NotificationDropdown = () => {
                               key={change.field}
                               className="flex items-center gap-2 text-xs"
                             >
-                              <span className="text-gray-500 shrink-0">
+                              <span className="text-muted-foreground shrink-0">
                                 {change.field}
                               </span>
                               {change.from && (
                                 <>
-                                  <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 line-through decoration-gray-400">
+                                  <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground line-through decoration-muted-foreground/60">
                                     {change.from}
                                   </span>
-                                  <span className="text-gray-400">→</span>
+                                  <span className="text-muted-foreground">→</span>
                                 </>
                               )}
                               <span className="px-1.5 py-0.5 rounded bg-emerald-50 font-medium text-emerald-700">
@@ -385,7 +389,7 @@ const NotificationDropdown = () => {
 
                       {/* Post body / system message */}
                       {(item.post || item.message) && (
-                        <p className="mt-1.5 text-sm text-gray-600 line-clamp-2">
+                        <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
                           {item.post || item.message}
                         </p>
                       )}
@@ -396,7 +400,7 @@ const NotificationDropdown = () => {
                           <span
                             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
                               ENTITY_BADGES[item.entity]?.tone ||
-                              "bg-gray-100 text-gray-600"
+                              "bg-muted text-muted-foreground"
                             }`}
                           >
                             <span>{ENTITY_BADGES[item.entity]?.icon || "🔔"}</span>
@@ -404,11 +408,11 @@ const NotificationDropdown = () => {
                           </span>
                         )}
                         {item.groupedCount > 1 && (
-                          <span className="text-[11px] text-gray-500">
+                          <span className="text-[11px] text-muted-foreground">
                             +{item.groupedCount - 1} more
                           </span>
                         )}
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-muted-foreground/70">
                           {formatTime(item.time)}
                         </span>
                         {item.canOpen && (
@@ -431,7 +435,7 @@ const NotificationDropdown = () => {
 
           {/* Pagination footer — always shown when there are notifications */}
           {totalItems > 0 && (
-            <div className="flex items-center justify-between px-3 py-2 border-t bg-white text-xs">
+            <div className="flex items-center justify-between px-3 py-2 border-t border-border bg-popover text-xs">
               <Button
                 variant="outline"
                 size="sm"
@@ -441,9 +445,9 @@ const NotificationDropdown = () => {
               >
                 ‹ Prev
               </Button>
-              <span className="text-gray-600">
-                Page <b className="text-gray-900">{safePage}</b> / {totalPages}
-                <span className="text-gray-400"> · {totalItems} total</span>
+              <span className="text-muted-foreground">
+                Page <b className="text-foreground">{safePage}</b> / {totalPages}
+                <span className="text-muted-foreground/70"> · {totalItems} total</span>
               </span>
               <Button
                 variant="outline"
