@@ -1708,16 +1708,13 @@ const AccountDrawer = ({
                             </span>
                           </div>
 
-                          {/* `ml-auto` keeps this group on the right even
-                              when the row wraps — without it a wrapped group
-                              falls back to the start of the new line. */}
-                          <div className="ml-auto flex shrink-0 items-center gap-1">
+                          <div className="flex shrink-0 items-center gap-1">
                             <span className="whitespace-nowrap text-xs text-muted-foreground">
                               {formatDateTime(item.createdAt)}
                             </span>
 
                             {/* Hover-only controls are unreachable on touch. */}
-                            <div className="flex items-center justify-end transition sm:opacity-0 sm:group-hover:opacity-100">
+                            <div className="transition sm:opacity-0 sm:group-hover:opacity-100">
                               <Button
                                 variant="ghost"
                                 size="icon"

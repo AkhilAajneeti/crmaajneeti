@@ -1915,10 +1915,7 @@ const AttendanceDrawer = ({
                             </span>
                           </div>
 
-                          {/* `ml-auto` keeps this group on the right even
-                              when the row wraps — without it a wrapped group
-                              falls back to the start of the new line. */}
-                          <div className="ml-auto flex shrink-0 items-center gap-1">
+                          <div className="flex shrink-0 items-center gap-1">
                             <span className="whitespace-nowrap text-xs text-muted-foreground">
                               {formatDateTime(item.createdAt)}
                             </span>
@@ -1926,7 +1923,7 @@ const AttendanceDrawer = ({
                             {/* Hover-only controls are unreachable on a touch
                                 screen, which has no hover — shown by default
                                 below `sm`. */}
-                            <div className="flex items-center justify-end transition sm:opacity-0 sm:group-hover:opacity-100">
+                            <div className="transition sm:opacity-0 sm:group-hover:opacity-100">
                               <Button
                                 variant="ghost"
                                 size="icon"
